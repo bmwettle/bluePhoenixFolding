@@ -1,10 +1,10 @@
-package origamiTestOne;
 import java.awt.Color;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 
 import acm.graphics.*;
 import acm.program.*;
+
 public class Paper extends GraphicsProgram{
 	
 public void run() {}
