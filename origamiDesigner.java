@@ -1,6 +1,9 @@
 package origamiProject;
 
 import java.awt.event.*;
+import java.util.Iterator;
+import java.util.List;
+
 import java.awt.*;
 
 import javax.swing.*;
@@ -13,17 +16,23 @@ public class origamiDesigner extends JFrame implements ActionListener{
 	private static final long serialVersionUID = 1L;
 	JMenuBar menuBar;
 	JMenu fileMenu; 
-
+	paper myPaper;
+	int num_squares=8;
+	JPanel myPanel;
 public origamiDesigner() {
-	setSize(600,600);
+	setSize(400,400);
 	setTitle("designer");
 	setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
+	myPaper= new paper();
 	menuBar= new JMenuBar();
 	createMenu();
+	myPanel=new JPanel();
+	
 	
 	this.setJMenuBar(menuBar);
-}
+	this.add(myPanel);
+	myPanel.setDoubleBuffered(true);
+	}
 public void createMenu() {
 	menuBar= new JMenuBar();
 	createFileMenu();
@@ -58,6 +67,7 @@ private void createFileMenu() {
 }
 private void createActionMenu() {
 	JMenu actionMenu= new JMenu("Action");
+
 	actionMenu.setMnemonic(KeyEvent.VK_A);
 	JMenuItem optimize= new JMenuItem("optimize nodes",KeyEvent.VK_Z);
 	JMenuItem verify= new JMenuItem("verify",KeyEvent.VK_V);
@@ -82,6 +92,7 @@ private void createActionMenu() {
 }
 private void createDisplayMenu() {
 	JMenu DisplayMenu= new JMenu("Display");
+
 	DisplayMenu.setMnemonic(KeyEvent.VK_D);
 	JMenuItem plan= new JMenuItem("plan",KeyEvent.VK_L);
 	JMenuItem grid= new JMenuItem("grid",KeyEvent.VK_G);
@@ -98,8 +109,6 @@ private void createDisplayMenu() {
 	grid.setActionCommand("grid");
 	creases.addActionListener(this);
 	creases.setActionCommand("creases");
-	
-	
 	menuBar.add(DisplayMenu);
 }
 public static void main(String[] args){
@@ -140,6 +149,7 @@ public void actionPerformed(ActionEvent action) {
 	}
 	if(action.getActionCommand().equals("plan")) {
 		planDisplay();
+	
 	}
 	if(action.getActionCommand().equals("grid")) {
 		gridDisplay();
@@ -150,9 +160,34 @@ private void gridDisplay() {
 	// TODO Auto-generated method stub
 	JOptionPane.showMessageDialog(this,"showing grid");
 }
+
 private void planDisplay() {
 	// TODO Auto-generated method stub
-	JOptionPane.showMessageDialog(this,"showing plan");
+	//JOptionPane.showMessageDialog(this,"showing plan");
+	editor edit= new editor();
+	edit.setVisible(true);
+	Graphics g1= myPanel.getGraphics();
+
+	int squareSize= this.getWidth()/num_squares;
+	Iterator<node> it= myPaper.getNodes();
+		// plot the node, and lines conecting them.
+	while(it.hasNext()) {
+		node myNode= (node) it.next();
+		g1.drawOval(myNode.x*squareSize-myNode.size*squareSize, myNode.y*squareSize-myNode.size*squareSize, myNode.size*2*squareSize, myNode.size*2*squareSize);
+		List<node> connections= myPaper.getConections(myNode);
+		Iterator<node> conIt= connections.iterator();
+		while(conIt.hasNext()) {
+			node endNode= conIt.next();
+			g1.drawLine(myNode.getX()*squareSize, myNode.getY()*squareSize, endNode.getX()*squareSize, endNode.getY()*squareSize);
+			
+		}
+	}
+	
+	for (int i=0;i<num_squares;i++){
+		g1.drawLine(0, i*squareSize, this.getWidth(), i*squareSize);
+		g1.drawLine( i*squareSize,0, i*squareSize,this.getHeight());
+	}
+	
 }
 private void creasesDisplay() {
 	// TODO Auto-generated method stub
