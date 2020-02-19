@@ -7,6 +7,10 @@ import java.util.List;
 import java.awt.*;
 
 import javax.swing.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.util.Scanner;
 
 public class origamiDesigner extends JFrame implements ActionListener{
 
@@ -212,6 +216,20 @@ private void buildAction() {
 private void saveFile() {
 	// TODO Auto-generated method stub
 	JOptionPane.showMessageDialog(this,"saving file");
+	JFileChooser fc = new JFileChooser();
+	int returnVal = fc.showSaveDialog(this);
+
+	if (returnVal == JFileChooser.APPROVE_OPTION) {
+		File file = fc.getSelectedFile();
+		try {
+			PrintWriter fileOut = new PrintWriter(file);
+			fileOut.println("Hello, world!");
+		    fileOut.close();
+		} catch (FileNotFoundException e) {
+			System.err.println("Could not open the file.");
+			e.printStackTrace();
+		}
+	}
 }
 private void printFile() {
 	// TODO Auto-generated method stub
@@ -220,6 +238,22 @@ private void printFile() {
 private void openFile() {
 	// TODO Auto-generated method stub
 	JOptionPane.showMessageDialog(this,"opening file");
+	JFileChooser fc = new JFileChooser();
+	int returnVal = fc.showOpenDialog(this);
+
+	if (returnVal == JFileChooser.APPROVE_OPTION) {
+		File file = fc.getSelectedFile();
+		try {
+		    Scanner fileIn = new Scanner(file);
+		    while (fileIn.hasNext()) {
+			    System.out.println(fileIn.nextLine());
+		    }
+		    fileIn.close();
+		} catch (FileNotFoundException e) {
+			System.err.println("Could not open the file.");
+			e.printStackTrace();
+		}
+	}
 }
 private void newFile() {
 	// TODO Auto-generated method stub
