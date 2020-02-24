@@ -1,42 +1,55 @@
 package origamiProject;
 
-import java.awt.event.*;
-import java.util.Iterator;
-import java.util.List;
-
-import java.awt.*;
-
-import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.Scanner;
 
-public class origamiDesigner extends JFrame implements ActionListener{
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+
+public class origamiDesigner extends JFrame implements ActionListener, MouseListener,MouseMotionListener{
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
+	String mode;
 	JMenuBar menuBar;
 	JMenu fileMenu; 
 	paper myPaper;
-	int num_squares=8;
-	JPanel myPanel;
+	int num_squares=18;
+	Oplanner planner;
+	Oeditor myEdit;
 public origamiDesigner() {
 	setSize(400,400);
 	setTitle("designer");
 	setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-	myPaper= new paper();
+	myPaper= new paper(num_squares);
 	menuBar= new JMenuBar();
+	
 	createMenu();
-	myPanel=new JPanel();
-	
-	
+	menuBar.setDoubleBuffered(true);
 	this.setJMenuBar(menuBar);
-	this.add(myPanel);
-	myPanel.setDoubleBuffered(true);
-	}
+	planner=new Oplanner(myPaper);
+	planner.setDoubleBuffered(true);
+	this.addMouseListener(this);
+	this.addMouseMotionListener(this);
+	this.add(planner);
+	myEdit= new Oeditor();
+	myEdit.setVisible(true);
+	
+}
 public void createMenu() {
 	menuBar= new JMenuBar();
 	createFileMenu();
@@ -93,20 +106,17 @@ private void createActionMenu() {
 	build.setActionCommand("build");
 	
 	menuBar.add(actionMenu);
+	
 }
 private void createDisplayMenu() {
 	JMenu DisplayMenu= new JMenu("Display");
-
 	DisplayMenu.setMnemonic(KeyEvent.VK_D);
 	JMenuItem plan= new JMenuItem("plan",KeyEvent.VK_L);
 	JMenuItem grid= new JMenuItem("grid",KeyEvent.VK_G);
 	JMenuItem creases= new JMenuItem("creases",KeyEvent.VK_C);
-	
 	DisplayMenu.add(grid);
 	DisplayMenu.add(plan);
 	DisplayMenu.add(creases);
-	
-	
 	plan.addActionListener(this);
 	plan.setActionCommand("plan");
 	grid.addActionListener(this);
@@ -114,6 +124,7 @@ private void createDisplayMenu() {
 	creases.addActionListener(this);
 	creases.setActionCommand("creases");
 	menuBar.add(DisplayMenu);
+	
 }
 public static void main(String[] args){
 	origamiDesigner design = new origamiDesigner();
@@ -121,7 +132,6 @@ public static void main(String[] args){
 }
 @Override
 public void actionPerformed(ActionEvent action) {
-	
 	if(action.getActionCommand().equals("new")) {
 		newFile();
 	}
@@ -134,7 +144,6 @@ public void actionPerformed(ActionEvent action) {
 	if(action.getActionCommand().equals("save")) {
 		saveFile();
 	}
-	
 	if(action.getActionCommand().equals("build")) {
 		buildAction();
 	}
@@ -163,34 +172,11 @@ public void actionPerformed(ActionEvent action) {
 private void gridDisplay() {
 	// TODO Auto-generated method stub
 	JOptionPane.showMessageDialog(this,"showing grid");
+	mode="grid";
 }
 
 private void planDisplay() {
-	// TODO Auto-generated method stub
-	//JOptionPane.showMessageDialog(this,"showing plan");
-	editor edit= new editor();
-	edit.setVisible(true);
-	Graphics g1= myPanel.getGraphics();
-
-	int squareSize= this.getWidth()/num_squares;
-	Iterator<node> it= myPaper.getNodes();
-		// plot the node, and lines conecting them.
-	while(it.hasNext()) {
-		node myNode= (node) it.next();
-		g1.drawOval(myNode.x*squareSize-myNode.size*squareSize, myNode.y*squareSize-myNode.size*squareSize, myNode.size*2*squareSize, myNode.size*2*squareSize);
-		List<node> connections= myPaper.getConections(myNode);
-		Iterator<node> conIt= connections.iterator();
-		while(conIt.hasNext()) {
-			node endNode= conIt.next();
-			g1.drawLine(myNode.getX()*squareSize, myNode.getY()*squareSize, endNode.getX()*squareSize, endNode.getY()*squareSize);
-			
-		}
-	}
-	
-	for (int i=0;i<num_squares;i++){
-		g1.drawLine(0, i*squareSize, this.getWidth(), i*squareSize);
-		g1.drawLine( i*squareSize,0, i*squareSize,this.getHeight());
-	}
+	planner.drawNodes(myPaper);
 	
 }
 private void creasesDisplay() {
@@ -214,8 +200,7 @@ private void buildAction() {
 	JOptionPane.showMessageDialog(this,"building creases");
 }
 private void saveFile() {
-	// TODO Auto-generated method stub
-	JOptionPane.showMessageDialog(this,"saving file");
+	//JOptionPane.showMessageDialog(this,"saving file");
 	JFileChooser fc = new JFileChooser();
 	int returnVal = fc.showSaveDialog(this);
 
@@ -230,14 +215,16 @@ private void saveFile() {
 			e.printStackTrace();
 		}
 	}
+
 }
+
 private void printFile() {
 	// TODO Auto-generated method stub
 	JOptionPane.showMessageDialog(this,"printing file");
 }
 private void openFile() {
 	// TODO Auto-generated method stub
-	JOptionPane.showMessageDialog(this,"opening file");
+	//JOptionPane.showMessageDialog(this,"opening file");
 	JFileChooser fc = new JFileChooser();
 	int returnVal = fc.showOpenDialog(this);
 
@@ -255,8 +242,56 @@ private void openFile() {
 		}
 	}
 }
+
 private void newFile() {
 	// TODO Auto-generated method stub
 	JOptionPane.showMessageDialog(this,"new file");
+}
+@Override
+public void mouseClicked(MouseEvent arg0) {
+	// TODO Auto-generated method stub
+	int squareSize= planner.getWidth()/num_squares;
+	if(myEdit.isNewNode()) {
+		//JOptionPane.showMessageDialog(this,"adding nodes");
+		int x= arg0.getX()/squareSize;
+		int y= arg0.getY()/squareSize;
+		myPaper.addNode(x, y, 1, "leaf");
+		planDisplay();
+	}
+}
+public void mouseMoved(MouseEvent arg0) {
+	// TODO Auto-generated method stub
+	int squareSize= planner.getWidth()/myPaper.num_squares;
+	int x= arg0.getX()/squareSize;
+	int y= arg0.getY()/squareSize;
+	planner.drawNodes(myPaper);
+	planner.drawCursor(x*squareSize, y*squareSize);
+	System.out.println("at:"+x+y+"now");
+}
+
+@Override
+public void mouseEntered(MouseEvent arg0) {
+	// TODO Auto-generated method stub
+	
+}
+@Override
+public void mouseExited(MouseEvent arg0) {
+	// TODO Auto-generated method stub
+	
+}
+@Override
+public void mousePressed(MouseEvent arg0) {
+	// TODO Auto-generated method stub
+	
+}
+@Override
+public void mouseReleased(MouseEvent arg0) {
+	// TODO Auto-generated method stub
+	
+}
+@Override
+public void mouseDragged(MouseEvent arg0) {
+	// TODO Auto-generated method stub
+	
 }
 }

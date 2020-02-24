@@ -4,43 +4,45 @@ import java.util.*;
 public class paper {
 int num_squares;
 int square_size;
-Map<node, List<node>> connections;
+Map<node, ArrayList<node>> connections;
 ArrayList<node> nodes;
-public paper() {
-	connections= new HashMap<node,List<node>>();
+
+
+public paper(int squares) {
+	num_squares=squares;
+	connections= new HashMap<node,ArrayList<node>>();
 	nodes= new ArrayList<node>();
-	node a= new node(4,4,1,"leaf");
-	addNode(a);
-	addNode(2,1,2,"leaf",a);
+addNode(new node(1,1,4,"leaf"));
+addNode(new node(1,3,4,"leaf"));
+addNode(new node(1,6,2,"leaf"));
 	
 }
+
 public void addNode(int x, int y,int size, String type, node startNode) {
 	node newNode= new node(x,y,size,type);
 	connections.get(startNode).add(newNode);
-	List<node>newList= new ArrayList<node>();
+	ArrayList<node>newList= new ArrayList<node>();
 	newList.add(startNode);
 	connections.put(newNode,newList);
-	nodes.add(newNode);
-	
+	nodes.add(newNode);	
 }
 public void addNode(node newNode, node startNode) {
 	
 	connections.get(startNode).add(newNode);
-	List<node>newList= new ArrayList<node>();
+	ArrayList<node>newList= new ArrayList<node>();
 	newList.add(startNode);
 	connections.put(newNode,newList);
 	nodes.add(newNode);
-	
 }
 public void addNode(node newNode) {
 	nodes.add(newNode);
-	List<node>newList= new ArrayList<node>();
+	ArrayList<node>newList= new ArrayList<node>();
 	connections.put(newNode,newList);
 }
 
 public void addNode(int x, int y,int size, String type) {
 	node newNode= new node(x,y,size,type);
-	List<node>newList= new ArrayList<node>();
+	ArrayList<node>newList= new ArrayList<node>();
 	connections.put(newNode,newList);
 	nodes.add(newNode);
 	
@@ -50,7 +52,7 @@ public Iterator<node> getNodes(){
 	return nodes.iterator();
 	
 }
-public List<node> getConections(node myNode) {
+public ArrayList<node> getConections(node myNode) {
 	return connections.get(myNode);
 }
 }

@@ -1,11 +1,14 @@
 package origamiProject;
 
-public class node{
+import java.awt.Polygon;
+
+public class node extends Polygon{
 int x;
 int y;
 int size;
 String type;
 public node() {
+	super();
 	x=0;
 	y=0;
 	size=1;
@@ -15,7 +18,7 @@ public node(int X,int Y, int Size,String Type) {
 	x=X;
 	y=Y;
 	size=Size;
-	type=type;
+	type=Type;
 	
 }
 public int getX() {
