@@ -176,8 +176,8 @@ private void gridDisplay() {
 }
 
 private void planDisplay() {
-	planner.drawNodes(myPaper);
-	
+	//planner.drawNodes(myPaper);
+	planner.repaint();
 }
 private void creasesDisplay() {
 	// TODO Auto-generated method stub
@@ -264,9 +264,9 @@ public void mouseMoved(MouseEvent arg0) {
 	int squareSize= planner.getWidth()/myPaper.num_squares;
 	int x= arg0.getX()/squareSize;
 	int y= arg0.getY()/squareSize;
-	planner.drawNodes(myPaper);
+	//planner.drawNodes(myPaper);
 	planner.drawCursor(x*squareSize, y*squareSize);
-	System.out.println("at:"+x+y+"now");
+	System.out.println("at: " + x + "," + y + " now");
 }
 
 @Override
