@@ -1,5 +1,7 @@
 package origamiProject;
 
+import java.awt.Button;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -7,12 +9,17 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.util.Scanner;
 
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JLayeredPane;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -24,6 +31,8 @@ public class origamiDesigner extends JFrame implements ActionListener, MouseList
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
+
+	Rectangle mouseRect;
 	String mode;
 	JMenuBar menuBar;
 	JMenu fileMenu; 
@@ -37,7 +46,7 @@ public origamiDesigner() {
 	setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	myPaper= new paper(num_squares);
 	menuBar= new JMenuBar();
-	
+	mouseRect= new Rectangle(0,0,6,6);
 	createMenu();
 	menuBar.setDoubleBuffered(true);
 	this.setJMenuBar(menuBar);
@@ -48,7 +57,6 @@ public origamiDesigner() {
 	this.add(planner);
 	myEdit= new Oeditor();
 	myEdit.setVisible(true);
-	
 }
 public void createMenu() {
 	menuBar= new JMenuBar();
@@ -126,6 +134,7 @@ private void createDisplayMenu() {
 	menuBar.add(DisplayMenu);
 	
 }
+
 public static void main(String[] args){
 	origamiDesigner design = new origamiDesigner();
 	design.setVisible(true);
@@ -176,8 +185,9 @@ private void gridDisplay() {
 }
 
 private void planDisplay() {
-	//planner.drawNodes(myPaper);
-	planner.repaint();
+	//planner.repaint();
+	planner.drawNodes(myPaper);
+	
 }
 private void creasesDisplay() {
 	// TODO Auto-generated method stub
@@ -207,10 +217,10 @@ private void saveFile() {
 	if (returnVal == JFileChooser.APPROVE_OPTION) {
 		File file = fc.getSelectedFile();
 		try {
-			PrintWriter fileOut = new PrintWriter(file);
-			fileOut.println("Hello, world!");
+			ObjectOutputStream fileOut = new ObjectOutputStream(new FileOutputStream (file));
+			fileOut.writeObject(myPaper);
 		    fileOut.close();
-		} catch (FileNotFoundException e) {
+		} catch (Exception e) {
 			System.err.println("Could not open the file.");
 			e.printStackTrace();
 		}
@@ -231,12 +241,11 @@ private void openFile() {
 	if (returnVal == JFileChooser.APPROVE_OPTION) {
 		File file = fc.getSelectedFile();
 		try {
-		    Scanner fileIn = new Scanner(file);
-		    while (fileIn.hasNext()) {
-			    System.out.println(fileIn.nextLine());
-		    }
+		    ObjectInputStream fileIn = new ObjectInputStream(new FileInputStream(file));
+		    myPaper=(paper)fileIn.readObject();
 		    fileIn.close();
-		} catch (FileNotFoundException e) {
+		    
+		} catch (Exception e) {
 			System.err.println("Could not open the file.");
 			e.printStackTrace();
 		}
@@ -255,7 +264,7 @@ public void mouseClicked(MouseEvent arg0) {
 		//JOptionPane.showMessageDialog(this,"adding nodes");
 		int x= arg0.getX()/squareSize;
 		int y= arg0.getY()/squareSize;
-		myPaper.addNode(x, y, 1, "leaf");
+		myPaper.addNode(x, y, myEdit.getNodeSize(), "leaf");
 		planDisplay();
 	}
 }
@@ -264,9 +273,10 @@ public void mouseMoved(MouseEvent arg0) {
 	int squareSize= planner.getWidth()/myPaper.num_squares;
 	int x= arg0.getX()/squareSize;
 	int y= arg0.getY()/squareSize;
-	//planner.drawNodes(myPaper);
-	planner.drawCursor(x*squareSize, y*squareSize);
-	System.out.println("at: " + x + "," + y + " now");
+	planner.drawNodes(myPaper);
+	planner.drawCursor(x*squareSize, y*squareSize);	
+
+
 }
 
 @Override

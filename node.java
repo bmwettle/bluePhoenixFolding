@@ -1,8 +1,13 @@
 package origamiProject;
 
 import java.awt.Polygon;
+import java.io.Serializable;
 
-public class node extends Polygon{
+public class node extends Polygon implements Serializable{
+/**
+	 * 
+	 */
+	private static final long serialVersionUID = 2107895915449290373L;
 int x;
 int y;
 int size;

@@ -16,9 +16,10 @@ public class Oeditor extends JFrame implements ActionListener{
 	JRadioButton  cut;
 	JRadioButton  newNode;
 	JRadioButton  select;
+	JTextField size;
 public Oeditor(){
 	super();
-	setLayout(new GridLayout(3,1));
+	setLayout(new GridLayout(4,1));
 	this.setSize(100, 100);
 	this.setBackground(Color.GREEN);
 	cut= new JRadioButton("cut",false);
@@ -34,18 +35,23 @@ public Oeditor(){
 	options.add(cut);
 	options.add(newNode);
 	options.add(select);
-	
-
+	size= new JTextField();
+	add(size);
 }
 @Override
 public void actionPerformed(ActionEvent arg0) {
 	// TODO Auto-generated method stub
 	
 }
+//public int getSize() {
+	//return Integer.parseInt(size.getText());
+//}
 public boolean isNewNode() {
 	//JOptionPane.showMessageDialog(this,"finding nodes");
 
 	return options.isSelected(newNode.getModel());
 }
-
+public int getNodeSize() {
+	return Integer.parseInt(size.getText());
+}
 }

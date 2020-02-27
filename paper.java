@@ -1,7 +1,13 @@
 package origamiProject;
 
+import java.io.Serializable;
 import java.util.*;
-public class paper {
+public class paper implements Serializable {
+	
+/**
+	 * 
+	 */
+	private static final long serialVersionUID = -6420912694063224236L;
 int num_squares;
 int square_size;
 Map<node, ArrayList<node>> connections;
@@ -12,10 +18,6 @@ public paper(int squares) {
 	num_squares=squares;
 	connections= new HashMap<node,ArrayList<node>>();
 	nodes= new ArrayList<node>();
-addNode(new node(1,1,4,"leaf"));
-addNode(new node(1,3,4,"leaf"));
-addNode(new node(1,6,2,"leaf"));
-	
 }
 
 public void addNode(int x, int y,int size, String type, node startNode) {
