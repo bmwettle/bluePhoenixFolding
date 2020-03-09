@@ -3,16 +3,10 @@ package origamiProject;
 import java.awt.Button;
 import java.awt.Color;
 import java.awt.Graphics;
-import java.awt.Image;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import javax.swing.*;
-
-import acm.graphics.GRect;
+import javax.swing.JPanel;
 
 public class Oplanner extends JPanel   {
 /**
@@ -47,12 +41,13 @@ public void drawCursor(int x,int y) {
 	mouseY=y;
 	picker.setLocation(mouseX, mouseY);
 	this.setComponentZOrder(picker, 0);
-	System.out.println("at:"+x+","+y+"now");
+	//System.out.println("at:"+x+","+y+"now");
 }
 public void drawNodes(paper p){
 	Graphics g= this.getGraphics();
-	int num_squares=p.num_squares;
-	int squareSize= this.getWidth()/num_squares;
+	int width= p.width;
+	int height=p.height;
+	int squareSize= Math.min(getWidth()/width,getHeight()/height);
 	int smallSquareSize=squareSize/6;
 	Iterator<node> it= p.getNodes();
 		// plot the node, and lines conecting them.
@@ -61,20 +56,36 @@ public void drawNodes(paper p){
 		
 		g.drawOval(myNode.x*squareSize-myNode.size*squareSize, myNode.y*squareSize-myNode.size*squareSize, myNode.size*2*squareSize, myNode.size*2*squareSize);
 		g.setColor(Color.blue);
+		if( p.isSelcted(myNode)) {
+			g.setColor(Color.ORANGE);
+		}
 		g.fillOval(myNode.x*squareSize-myNode.size*smallSquareSize, myNode.y*squareSize-myNode.size*smallSquareSize, myNode.size*2*smallSquareSize, myNode.size*2*smallSquareSize);
 		g.setColor(Color.BLACK);
 		ArrayList<node> connections= p.getConections(myNode);
 		Iterator<node> conIt= connections.iterator();
+		g.setColor(Color.GREEN);
 		while(conIt.hasNext()) {
 			node endNode= conIt.next();
 			g.drawLine(myNode.getX()*squareSize, myNode.getY()*squareSize, endNode.getX()*squareSize, endNode.getY()*squareSize);
 			
 		}
+		g.setColor(Color.RED);
+		//System.out.println(p.getCuts(myNode));
+		Iterator<node> cuts= p.getCuts(myNode).iterator();
+		while(cuts.hasNext()) {
+			node endNode= cuts.next();
+			g.drawLine(myNode.getX()*squareSize, myNode.getY()*squareSize, endNode.getX()*squareSize, endNode.getY()*squareSize);
+		}
+		g.setColor(Color.BLACK);
 	}
 	
-	for (int i=0;i<=num_squares;i++){
-		g.drawLine(0, i*squareSize, num_squares*squareSize, i*squareSize);
-		g.drawLine( i*squareSize,0, i*squareSize,num_squares*squareSize);
+	for (int i=0;i<=height;i++){
+		g.drawLine(0, i*squareSize, width*squareSize, i*squareSize);
+	
+	}
+	for (int i=0;i<=width;i++){
+		g.drawLine( i*squareSize,0,i*squareSize, height*squareSize);
+	
 	}
 	picker.setLocation(mouseX, mouseY);
 	this.setComponentZOrder(picker, 0);

@@ -1,29 +1,9 @@
 package origamiProject;
 
-import java.awt.Button;
-import java.awt.Rectangle;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.PrintWriter;
-import java.util.Scanner;
-
-import javax.swing.JFileChooser;
-import javax.swing.JFrame;
-import javax.swing.JLayeredPane;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
+import java.awt.*;
+import java.awt.event.*;
+import java.io.*;
+import javax.swing.*;
 
 public class origamiDesigner extends JFrame implements ActionListener, MouseListener,MouseMotionListener{
 
@@ -37,14 +17,18 @@ public class origamiDesigner extends JFrame implements ActionListener, MouseList
 	JMenuBar menuBar;
 	JMenu fileMenu; 
 	paper myPaper;
-	int num_squares=18;
+	int paper_width;
+	int paper_height;
 	Oplanner planner;
 	Oeditor myEdit;
+
 public origamiDesigner() {
 	setSize(400,400);
 	setTitle("designer");
+	paper_width=8;
+	paper_height=18;
 	setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-	myPaper= new paper(num_squares);
+	myPaper= new paper(paper_width,paper_height);
 	menuBar= new JMenuBar();
 	mouseRect= new Rectangle(0,0,6,6);
 	createMenu();
@@ -256,27 +240,56 @@ private void newFile() {
 	// TODO Auto-generated method stub
 	JOptionPane.showMessageDialog(this,"new file");
 }
+private int getSquareSize() {
+	return Math.min(planner.getWidth()/paper_width, planner.getHeight()/paper_height);
+}
 @Override
 public void mouseClicked(MouseEvent arg0) {
 	// TODO Auto-generated method stub
-	int squareSize= planner.getWidth()/num_squares;
+	int squareSize= getSquareSize();
+	int x= arg0.getX()/squareSize;
+	int y= arg0.getY()/squareSize;
 	if(myEdit.isNewNode()) {
 		//JOptionPane.showMessageDialog(this,"adding nodes");
-		int x= arg0.getX()/squareSize;
-		int y= arg0.getY()/squareSize;
-		myPaper.addNode(x, y, myEdit.getNodeSize(), "leaf");
+		
+		node newNode= new node(x, y, myEdit.getNodeSize(), "leaf");
+		
+		myPaper.addNode(newNode);
+		myPaper.setSelectedNode(newNode);
 		planDisplay();
 	}
+	else if(myEdit.isSelect()) {
+		
+		node selected= myPaper.getNodeAt(x,y);
+		if(selected==(null)) {
+			
+		}else {
+			myPaper.setSelectedNode(selected);
+		}
+	}else if(myEdit.isCut()) {
+
+		node second= myPaper.getNodeAt(x,y);
+		if (second!=null){
+			myPaper.addCut(second);
+		}
+	}else if(myEdit.getMoving()) {
+		//myPaper.moveSelect(x,y);
+		//repaint();
+		myPaper.getTreeDistances();
+	}
+	planner.drawNodes(myPaper);
+	planner.drawCursor(x*squareSize, y*squareSize);
 }
 public void mouseMoved(MouseEvent arg0) {
 	// TODO Auto-generated method stub
-	int squareSize= planner.getWidth()/myPaper.num_squares;
+	int squareSize= getSquareSize();
 	int x= arg0.getX()/squareSize;
 	int y= arg0.getY()/squareSize;
+	
 	planner.drawNodes(myPaper);
 	planner.drawCursor(x*squareSize, y*squareSize);	
 
-
+	
 }
 
 @Override

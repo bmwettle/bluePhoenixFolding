@@ -12,12 +12,18 @@ int x;
 int y;
 int size;
 String type;
+boolean isSelected;
+int ID;
 public node() {
 	super();
 	x=0;
 	y=0;
 	size=1;
 	type="leaf";
+	ID=0;
+}
+public void setID(int id) {
+	this.ID=id;
 }
 public node(int X,int Y, int Size,String Type) {
 	x=X;
@@ -31,6 +37,9 @@ public int getX() {
 }
 public void setX(int x) {
 	this.x = x;
+}
+public String toString() {
+	return(ID+":");
 }
 public int getY() {
 	return y;
