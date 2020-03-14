@@ -17,11 +17,16 @@ public class Oeditor extends JFrame implements ActionListener{
 	JRadioButton  select;
 	JRadioButton move;
 	JTextField size;
+	JTextArea sizeLabel;
+	JTextField paperSize;
+	JTextArea paperSizeLabel;
+
 public Oeditor(){
 	super();
 	this.setAlwaysOnTop(true);
-	setLayout(new GridLayout(5,1));
-	this.setSize(100, 100);
+	setLayout(new GridLayout(9,1));
+	this.setSize(200, 350);
+	
 	this.setBackground(Color.GREEN);
 	cut= new JRadioButton("cut",false);
 	cut.addActionListener(this);
@@ -31,6 +36,7 @@ public Oeditor(){
 	move.addActionListener(this);
 	move.setActionCommand("move");
 	this.add(move);
+	sizeLabel= new JTextArea("enter size of node:");
 	
 	newNode= new JRadioButton("new node",true);
 	newNode.addActionListener(this);
@@ -45,8 +51,14 @@ public Oeditor(){
 	options.add(newNode);
 	options.add(select);
 	options.add(move);
+	add(sizeLabel);
 	size= new JTextField("1");
+	
 	add(size);
+	paperSize= new JTextField("16:16");
+	paperSizeLabel= new JTextArea("width:height of the grid");
+	add(paperSizeLabel);
+	add(paperSize);
 }
 @Override
 public void actionPerformed(ActionEvent arg0) {
@@ -54,9 +66,17 @@ public void actionPerformed(ActionEvent arg0) {
 	
 	
 }
-//public int getSize() {
-	//return Integer.parseInt(size.getText());
-//}
+public int getPaperWidth() {
+	String text= paperSize.getText();
+	String number= text.substring(0, text.indexOf(":"));
+	System.out.print(number);
+	return Integer.parseInt(number);
+}
+public int getPaperHeight() {
+	String text= paperSize.getText();
+	String number= text.substring(text.indexOf(":")+1);
+	return Integer.parseInt(number);
+}
 public boolean isNewNode() {
 	//JOptionPane.showMessageDialog(this,"finding nodes");
 

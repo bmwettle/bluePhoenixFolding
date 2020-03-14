@@ -8,7 +8,7 @@ import java.util.Iterator;
 
 import javax.swing.JPanel;
 
-public class Oplanner extends JPanel   {
+public class Oplanner extends JPanel    {
 /**
 	 * 
 	 */
@@ -25,6 +25,7 @@ public Oplanner(paper p) {
 	
 	//mouseBox= new GRect(0,0,6,6);
 	picker= new Button("pick");
+	picker.setEnabled(false);
 this.add(picker);
 	//this.setBackground(Color.blue);
 }

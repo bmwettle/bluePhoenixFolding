@@ -5,7 +5,7 @@ import java.awt.event.*;
 import java.io.*;
 import javax.swing.*;
 
-public class origamiDesigner extends JFrame implements ActionListener, MouseListener,MouseMotionListener{
+public class origamiDesigner extends JFrame implements ActionListener, MouseListener,MouseMotionListener, KeyListener{
 
 	/**
 	 * 
@@ -25,8 +25,8 @@ public class origamiDesigner extends JFrame implements ActionListener, MouseList
 public origamiDesigner() {
 	setSize(400,400);
 	setTitle("designer");
-	paper_width=8;
-	paper_height=18;
+	paper_width=16;
+	paper_height=16;
 	setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	myPaper= new paper(paper_width,paper_height);
 	menuBar= new JMenuBar();
@@ -41,6 +41,9 @@ public origamiDesigner() {
 	this.add(planner);
 	myEdit= new Oeditor();
 	myEdit.setVisible(true);
+	myEdit.setLocation(this.getWidth(), this.getHeight()/2);
+	this.addKeyListener(this);
+	
 }
 public void createMenu() {
 	menuBar= new JMenuBar();
@@ -79,17 +82,21 @@ private void createActionMenu() {
 
 	actionMenu.setMnemonic(KeyEvent.VK_A);
 	JMenuItem optimize= new JMenuItem("optimize nodes",KeyEvent.VK_Z);
+	JMenuItem optimizeWithoutCuts= new JMenuItem("optimize (without cuts)",KeyEvent.VK_0);
 	JMenuItem verify= new JMenuItem("verify",KeyEvent.VK_V);
 	JMenuItem undo= new JMenuItem("undo",KeyEvent.VK_U);
 	JMenuItem build= new JMenuItem("build crease pattern",KeyEvent.VK_B);
 	
 	actionMenu.add(optimize);
+	actionMenu.add(optimizeWithoutCuts);
 	actionMenu.add(verify);
 	actionMenu.add(undo);
 	actionMenu.add(build);
 	
 	optimize.addActionListener(this);
 	optimize.setActionCommand("optimize");
+	optimizeWithoutCuts.addActionListener(this);
+	optimizeWithoutCuts.setActionCommand("optimizeWithoutCuts");
 	verify.addActionListener(this);
 	verify.setActionCommand("verify");
 	undo.addActionListener(this);
@@ -143,6 +150,10 @@ public void actionPerformed(ActionEvent action) {
 	if(action.getActionCommand().equals("optimize")) {
 		optimizeAction();
 	}
+	if(action.getActionCommand().equals("optimizeWithoutCuts")) {
+		optimizeWithoutCuts();
+	}
+	
 	if(action.getActionCommand().equals("undo")) {
 		undoAction();
 	}
@@ -161,6 +172,16 @@ public void actionPerformed(ActionEvent action) {
 		gridDisplay();
 	}
 		
+}
+private void optimizeWithoutCuts() {
+	// TODO Auto-generated method stub
+	optimizer myop= new optimizer(myPaper);
+	paper optimized=myop.optimizeWithoutCuts();
+	if(optimized!=null) {
+		myPaper=optimized;
+	}
+	update();
+
 }
 private void gridDisplay() {
 	// TODO Auto-generated method stub
@@ -187,7 +208,8 @@ private void verifyAction() {
 }
 private void optimizeAction() {
 	// TODO Auto-generated method stub
-	JOptionPane.showMessageDialog(this,"optimizing nodes");
+	
+	
 }
 private void buildAction() {
 	// TODO Auto-generated method stub
@@ -248,7 +270,7 @@ public void mouseClicked(MouseEvent arg0) {
 	// TODO Auto-generated method stub
 	int squareSize= getSquareSize();
 	int x= arg0.getX()/squareSize;
-	int y= arg0.getY()/squareSize;
+	int y= (arg0.getY()-2*menuBar.getHeight())/squareSize;
 	if(myEdit.isNewNode()) {
 		//JOptionPane.showMessageDialog(this,"adding nodes");
 		
@@ -273,9 +295,9 @@ public void mouseClicked(MouseEvent arg0) {
 			myPaper.addCut(second);
 		}
 	}else if(myEdit.getMoving()) {
-		//myPaper.moveSelect(x,y);
-		//repaint();
-		myPaper.getTreeDistances();
+		myPaper.moveSelect(x,y);
+		repaint();
+		
 	}
 	planner.drawNodes(myPaper);
 	planner.drawCursor(x*squareSize, y*squareSize);
@@ -283,9 +305,9 @@ public void mouseClicked(MouseEvent arg0) {
 public void mouseMoved(MouseEvent arg0) {
 	// TODO Auto-generated method stub
 	int squareSize= getSquareSize();
-	int x= arg0.getX()/squareSize;
-	int y= arg0.getY()/squareSize;
-	
+	int x= (arg0.getX())/squareSize;
+
+	int y= ((arg0.getY()-2*menuBar.getHeight()))/squareSize;
 	planner.drawNodes(myPaper);
 	planner.drawCursor(x*squareSize, y*squareSize);	
 
@@ -316,5 +338,31 @@ public void mouseReleased(MouseEvent arg0) {
 public void mouseDragged(MouseEvent arg0) {
 	// TODO Auto-generated method stub
 	
+}
+@Override
+public void keyPressed(KeyEvent arg0) {
+	// TODO Auto-generated method stub
+	
+}
+@Override
+public void keyReleased(KeyEvent arg0) {
+	// TODO Auto-generated method stub
+	
+}
+@Override
+public void keyTyped(KeyEvent arg0) {
+	char action =arg0.getKeyChar();
+	System.out.print(action+"ok");
+	if(action==' ') {
+		update();
+	}
+	
+}
+private void update() {
+	// TODO Auto-generated method stub
+	planner.repaint();
+	this.paper_height=myEdit.getPaperWidth();
+	this.paper_width=myEdit.getPaperHeight();
+	myPaper.setPaperSize(paper_width, paper_height);
 }
 }

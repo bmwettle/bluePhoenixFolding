@@ -14,6 +14,9 @@ int size;
 String type;
 boolean isSelected;
 int ID;
+double Vx;
+double Vy;
+
 public node() {
 	super();
 	x=0;
@@ -21,6 +24,7 @@ public node() {
 	size=1;
 	type="leaf";
 	ID=0;
+	
 }
 public void setID(int id) {
 	this.ID=id;
@@ -39,7 +43,7 @@ public void setX(int x) {
 	this.x = x;
 }
 public String toString() {
-	return(ID+":");
+	return(""+ID);
 }
 public int getY() {
 	return y;

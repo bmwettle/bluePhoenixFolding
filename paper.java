@@ -19,6 +19,35 @@ HashMap<node,ArrayList<node>> cuts;
 HashMap<node,HashMap<node, Integer>> distances;
 ArrayList<node> settled;
 ArrayList<node> unSettled;
+int bestXBounds;
+int bestYBounds;
+public paper(paper p) {
+	this.width=p.width;
+	this.height=p.height;
+	this.square_size=p.square_size;
+	this.selected=p.selected;
+	this.connections=p.connections;
+	this.nodes=p.nodes;
+	this.cuts=p.cuts;
+	this.distances=p.distances;
+	this.settled=p.settled;
+	this.unSettled=p.unSettled;
+}
+public int[] getXcords() {
+	int[] Xcords= new int[nodes.size()];
+	for(int i=0;i<nodes.size();i++) {
+		Xcords[i]=nodes.get(i).x;
+	}
+	return Xcords;
+}
+public int[] getYcords() {
+	int[] Ycords= new int[nodes.size()];
+	for(int i=0;i<nodes.size();i++) {
+		Ycords[i]=nodes.get(i).y;
+	}
+	return Ycords;
+}
+
 public paper(int w,int h) {
 	width=w;
 	height=h;
@@ -65,6 +94,10 @@ public void getTreeDistances() {
 		}
 	}
 	
+}
+public void setPaperSize(int w, int h) {
+	this.width=w;
+	this.height=h;
 }
 public int getLongestLegWithoutCuts(node one,node two) {
 	int deltaX= Math.abs(one.x-two.x);
@@ -140,13 +173,14 @@ public void addNode(node newNode) {
 }
 
 public node getNodeAt(int x, int y) {
-	node select=null;
+	System.out.println("getting node at:"+x+","+y);
 	for(node Node:nodes) {
 		if (Node.x==x&&Node.y==y){
-			select=Node;
+			System.out.println(Node.toString());
+			return Node;
 		}
 	}
-	return select;
+	return null;
 }
 public Iterator<node> getNodes(){
 	return nodes.iterator();
