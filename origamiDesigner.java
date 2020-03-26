@@ -364,5 +364,6 @@ private void update() {
 	this.paper_height=myEdit.getPaperWidth();
 	this.paper_width=myEdit.getPaperHeight();
 	myPaper.setPaperSize(paper_width, paper_height);
+	planner.drawNodes(myPaper);
 }
 }

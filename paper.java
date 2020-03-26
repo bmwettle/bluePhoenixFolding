@@ -113,7 +113,7 @@ private void searchNodes(node start, node current,node end,int length, ArrayList
 	searched.addAll(mySearched);
 	searched.add(current);
 	
-	if (current.equals(end)){
+	if (current.equals(end)||cuts.get(current).contains(end)){
 		distances.get(end).put(start, length);
 		distances.get(start).put(end, length);
 		
@@ -171,7 +171,41 @@ public void addNode(node newNode) {
 
 	}
 }
+public String toText() {
+	String text="";
+	char[][]display=new char[this.width][this.height];
+	
+	for(int i=0;i<width;i++) {
+		for(int j=0;j<height;j++) {
+		display[i][j]='.';
+		}
+	}
+	for(node n:nodes) {
+		display[n.x][n.y]=n.toString().charAt(0);
+	}
+	for(int i=0;i<width;i++) {
+		for(int j=0;j<height;j++) {
+		text+=display[i][j];
+		}
+		text+=System.lineSeparator();
+	}
+	return text;
+}
+public boolean isLeaf(node n) {
+	return connections.get(n).size()>1;
+}
+public boolean overlaps(node one, node two) {
+	int deltax= Math.abs(one.x-two.x);
+	int deltay= Math.abs(one.y-two.y);
+	if(deltax>=distances.get(one).get(two)) {
+		return false;
+	}
+	if(deltay>=distances.get(one).get(two)) {
+		return false;
+	}
 
+	return true;
+}
 public node getNodeAt(int x, int y) {
 	System.out.println("getting node at:"+x+","+y);
 	for(node Node:nodes) {
