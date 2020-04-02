@@ -2,7 +2,7 @@ package origamiProject;
 
 import java.io.Serializable;
 import java.util.*;
-public class paper implements Serializable {
+public class paper implements Serializable , Comparable<paper>{
 	
 /**
 	 * 
@@ -19,8 +19,15 @@ HashMap<node,ArrayList<node>> cuts;
 HashMap<node,HashMap<node, Integer>> distances;
 ArrayList<node> settled;
 ArrayList<node> unSettled;
-int bestXBounds;
-int bestYBounds;
+
+@Override
+public int compareTo(paper b) {
+	return this.getSize()-b.getSize();
+}
+public int getSize() {
+	// TODO Auto-generated method stub
+	return Math.max(width, height);
+}
 public paper(paper p) {
 	this.width=p.width;
 	this.height=p.height;
@@ -32,6 +39,46 @@ public paper(paper p) {
 	this.distances=p.distances;
 	this.settled=p.settled;
 	this.unSettled=p.unSettled;
+}
+public boolean isLoose( node one, node two) {
+	int deltax= Math.abs(one.x-two.x);
+	int deltay= Math.abs(one.y-two.y);
+	if(deltax>distances.get(one).get(two)) {
+		return true;
+	}
+	if(deltay>distances.get(one).get(two)) {
+		return true;
+	}
+
+	return false;
+}
+public void shrink() {
+	int xmax=0;
+	int xmin=Integer.MAX_VALUE;
+	int ymax=0;
+	int ymin=Integer.MAX_VALUE;
+	
+	for(node n:nodes) {
+		if(n.x>xmax) {
+			xmax=n.x;
+		}
+		if(n.x<xmin) {
+			xmin=n.x;
+		}
+		if(n.y>ymax) {
+			ymax=n.y;
+		}
+		if(n.y<ymin) {
+			ymin=n.y;
+		}
+		
+	}
+	for( node n:nodes) {
+	n.x-=xmin;	
+	n.y-=ymin;
+	}
+	width=xmax-xmin;
+	height=ymax-ymin;
 }
 public int[] getXcords() {
 	int[] Xcords= new int[nodes.size()];
@@ -88,12 +135,7 @@ public void getTreeDistances() {
 			
 		}
 	}
-	for(node one:nodes) {
-		for(node two:nodes) {
-			System.out.println(nodes.indexOf(one)+","+nodes.indexOf(two)+":"+distances.get(one).get(two));
-		}
-	}
-	
+		
 }
 public void setPaperSize(int w, int h) {
 	this.width=w;
@@ -172,6 +214,8 @@ public void addNode(node newNode) {
 	}
 }
 public String toText() {
+	this.shrink();
+	System.out.println("width"+width+" , hieght"+height);
 	String text="";
 	char[][]display=new char[this.width][this.height];
 	
