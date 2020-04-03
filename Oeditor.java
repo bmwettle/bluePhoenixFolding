@@ -87,6 +87,9 @@ public boolean isCut() {
 
 	return options.isSelected(cut.getModel());
 }
+public void setPaperSize( int width, int height) {
+	this.size.setText(width+":"+height);
+}
 public boolean isSelect() {
 	//JOptionPane.showMessageDialog(this,"finding nodes");
 

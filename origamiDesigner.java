@@ -179,8 +179,14 @@ private void optimizeWithoutCuts() {
 	paper optimized=myop.optimizeWithoutCuts();
 	if(optimized!=null) {
 		myPaper=optimized;
+		myPaper.shrink();
+		myEdit.setPaperSize(myPaper.width,myPaper.height);
+		paper_width=myPaper.width;
+		paper_height=myPaper.height;
 	}
-	update();
+	repaint();
+	planner.drawNodes(myPaper);
+	
 
 }
 private void gridDisplay() {

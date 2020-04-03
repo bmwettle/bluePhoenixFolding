@@ -16,14 +16,22 @@ public optimizer(paper p) {
 	//display();
 }
 public paper optimizeWithoutCuts() {
-	System.out.print(p.distances);
+	
+	
 	createStarter();
 	while(true) {
 		System.out.println("next step");
 		nextGen();
+		//System.out.println(newGen.toString());
+		for(paper one:newGen) {
+			System.out.println(one.toText());
+			System.out.println();
+		}
 		killOverlaping();
+	
+		//System.out.println(newGen.toString());
 		if(newGen.size()==0) {
-			System.out.println("ta da");
+			System.out.println("no more options");
 			break;
 		}
 
@@ -31,13 +39,19 @@ public paper optimizeWithoutCuts() {
 		System.out.println(newGen.toString());
 		killWeak();
 		System.out.println(newGen.toString());
+		if(newGen.get(0).compareTo(oldGen.get(0))<=0) {
+			System.out.println("ta da");
+			break;
+		}
 		oldGen=newGen;
 	}
 	sortBest();
 	p=oldGen.get(0);
-	display();
+	System.out.print(hasOverlap(p));
+	//display();
 	return p;
 }
+
 private void killOverlaping() {
 	ArrayList<paper> toRemove= new ArrayList<paper>();
 	for(paper gen:newGen) {
@@ -49,55 +63,56 @@ private void killOverlaping() {
 }
 private void sortBest() {
 	// TODO Auto-generated method stub
+	System.out.println(newGen);
 	Collections.sort(newGen);
 	Collections.reverse(newGen);
+	System.out.println(newGen);
 }
 private void killWeak() {
 	// TODO Auto-generated method stub
-	int survive= Math.min(20, newGen.size());
+	int survive= Math.min(200, newGen.size());
+	System.out.println(survive);
 	newGen= new ArrayList<paper>(newGen.subList(0, survive));
 }
-private boolean isFitter(paper a, paper b) {
-	return getFittnes(a)>=getFittnes(b);
-}
-private int getFittnes(paper a) {
-	// TODO Auto-generated method stub
-	if(hasOverlap(a)) {
-		return 0;
-	}
-	return a.getSize();
-}
+
 private void nextGen() {
+	newGen= new ArrayList<paper>();
 	for(paper test:oldGen) {
 		ArrayList<paper> children = new ArrayList<paper>();
-		for(node a:p.nodes) {
-			for(node b:p.nodes) {
-				System.out.println("ok"+a.toString()+","+b.toString());
-				if(!a.equals(b)) {
-					if(p.isLoose(a, b)) {
-						paper xshift= new paper(test);
-						paper yshift= new paper(test);
-						int deltaX=(int) Math.copySign(1,b.x-a.x );
-						int deltaY=(int) Math.copySign(1,b.y-a.y );
-						System.out.println("here we are"+deltaX+","+deltaY);
-						xshift.nodes.get(test.nodes.indexOf(a)).x+=deltaX;
-						yshift.nodes.get(test.nodes.indexOf(a)).y+=deltaY;
-						children.add(xshift);
-						children.add(yshift);
-						System.out.println(newGen);
-					}
-				}
-			}
+		for(int i=0;i<test.nodes.size();i++) {
+			paper test1= new paper(test);
+			node newNode= new node(test.nodes.get(i));
+			test1.nodes.set(i, newNode);
+			test1.shrink();
+			children.add(test1);
+			paper test2= new paper(test);
+			test2.nodes.get(i).moveX(-1);
+			test2.shrink();
+			children.add(test2);
+			paper test3= new paper(test);
+			test3.nodes.get(i).moveY(1);
+			test3.shrink();
+			children.add(test1);
+			paper test4= new paper(test);
+			test4.nodes.get(i).moveY(-1);
+			test4.shrink();
+			children.add(test4);
+
 		}
+		System.out.println(children.toString());
 		newGen.addAll(children);
 	}
+	System.out.println(newGen);
 }
 private void createStarter() {
 	// TODO Auto-generated method stub
 	oldGen= new ArrayList<paper>();
 	newGen= new ArrayList<paper>();
+	p.shrink();
 	paper starter= new paper(p);
+	System.out.println(starter.nodes.get(0)==p.nodes.get(0));
 	while(hasOverlap(starter)) {
+		System.out.println("expanding");
 		for(node n:starter.nodes){
 			n.x*=2;
 			n.y*=2;
@@ -106,18 +121,17 @@ private void createStarter() {
 	}
 	oldGen.add(starter);
 	System.out.println("starter is"+starter.toString());
+	System.out.println(starter.toText());
+	System.out.print(hasOverlap(starter));
 }
-private void display() {
-	System.out.println(p.toText());
-	System.out.print(hasOverlap(p));
-}
-private boolean overlaps(node one, node two) {
-	return p.getLongestLegWithoutCuts(one, two)<p.distances.get(one).get(two);
+
+private boolean overlaps(node one, node two, paper test) {
+	return test.getLongestLegWithoutCuts(one, two)<test.distances.get(one).get(two);
 }
 private boolean hasOverlap(paper test) {
 	for(node N1:test.nodes) {
 		for(node N2:test.nodes) {
-			if(overlaps(N1,N2)) {
+			if(overlaps(N1,N2, test)) {
 				return true;
 			}
 		}

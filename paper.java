@@ -13,8 +13,8 @@ int width;
 int height;
 int square_size;
 node selected;
-Map<node, ArrayList<node>> connections;
-ArrayList<node> nodes;
+HashMap<node, ArrayList<node>> connections;
+public ArrayList<node> nodes;
 HashMap<node,ArrayList<node>> cuts;
 HashMap<node,HashMap<node, Integer>> distances;
 ArrayList<node> settled;
@@ -28,30 +28,19 @@ public int getSize() {
 	// TODO Auto-generated method stub
 	return Math.max(width, height);
 }
+@SuppressWarnings("unchecked")
 public paper(paper p) {
 	this.width=p.width;
 	this.height=p.height;
 	this.square_size=p.square_size;
-	this.selected=p.selected;
-	this.connections=p.connections;
-	this.nodes=p.nodes;
-	this.cuts=p.cuts;
-	this.distances=p.distances;
-	this.settled=p.settled;
-	this.unSettled=p.unSettled;
-}
-public boolean isLoose( node one, node two) {
-	int deltax= Math.abs(one.x-two.x);
-	int deltay= Math.abs(one.y-two.y);
-	if(deltax>distances.get(one).get(two)) {
-		return true;
-	}
-	if(deltay>distances.get(one).get(two)) {
-		return true;
-	}
+	this.selected=new node(p.selected);
+	this.connections= (HashMap<node, ArrayList<node>>) p.connections.clone();
+	this.nodes=(ArrayList<node>) p.nodes.clone();
+	this.cuts = (HashMap<node, ArrayList<node>>) p.cuts.clone();
+	this.distances=(HashMap<node, HashMap<node, Integer>>) p.distances.clone();
 
-	return false;
 }
+
 public void shrink() {
 	int xmax=0;
 	int xmin=Integer.MAX_VALUE;
@@ -79,6 +68,12 @@ public void shrink() {
 	}
 	width=xmax-xmin;
 	height=ymax-ymin;
+	if(width==0) {
+		width=1;
+	}
+	if(height==0) {
+		height=1;
+	}
 }
 public int[] getXcords() {
 	int[] Xcords= new int[nodes.size()];
@@ -217,19 +212,19 @@ public String toText() {
 	this.shrink();
 	System.out.println("width"+width+" , hieght"+height);
 	String text="";
-	char[][]display=new char[this.width][this.height];
+	char[][]display=new char[this.width+1][this.height+1];
 	
-	for(int i=0;i<width;i++) {
-		for(int j=0;j<height;j++) {
+	for(int i=0;i<width+1;i++) {
+		for(int j=0;j<height+1;j++) {
 		display[i][j]='.';
 		}
 	}
 	for(node n:nodes) {
-		display[n.x][n.y]=n.toString().charAt(0);
+		display[n.x][n.y]=n.toString().charAt(1);
 	}
-	for(int i=0;i<width;i++) {
-		for(int j=0;j<height;j++) {
-		text+=display[i][j];
+	for(int i=0;i<height+1;i++) {
+		for(int j=0;j<width+1;j++) {
+		text+=display[j][i];
 		}
 		text+=System.lineSeparator();
 	}

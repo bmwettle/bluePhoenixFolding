@@ -87,11 +87,10 @@ private void drawNode(node myNode) {
 	g.setColor(Color.BLACK);
 	ArrayList<node> connections= p.getConections(myNode);
 	Iterator<node> conIt= connections.iterator();
-	g.setColor(Color.GREEN);
 	while(conIt.hasNext()) {
 		node endNode= conIt.next();
 		if(p.isLeaf(myNode)&&p.overlaps(myNode,endNode)) {
-			g.setColor(Color.black);
+			g.setColor(Color.red);
 		}
 		g.drawLine(myNode.getX()*squareSize, myNode.getY()*squareSize, endNode.getX()*squareSize, endNode.getY()*squareSize);
 		
