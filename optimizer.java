@@ -97,9 +97,13 @@ private void nextGen() {
 			test4.nodes.get(i).moveY(-1);
 			test4.shrink();
 			children.add(test4);
-
+		
 		}
-		System.out.println(children.toString());
+		for(paper child:children) {
+			System.out.println("ok now ");
+			System.out.println(child.nodes.get(1));
+			System.out.println(child.distances.get(child.nodes.get(1)).get(child.nodes.get(0)));
+		}
 		newGen.addAll(children);
 	}
 	System.out.println(newGen);
@@ -126,6 +130,11 @@ private void createStarter() {
 }
 
 private boolean overlaps(node one, node two, paper test) {
+	System.out.println("dist"+test.distances+"one is"+one+"two is "+two);
+	System.out.println(test.distances.get(one)==null);
+	if(one.equals(two)) {
+		return false;
+	}
 	return test.getLongestLegWithoutCuts(one, two)<test.distances.get(one).get(two);
 }
 private boolean hasOverlap(paper test) {

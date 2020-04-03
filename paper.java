@@ -13,10 +13,10 @@ int width;
 int height;
 int square_size;
 node selected;
-HashMap<node, ArrayList<node>> connections;
+public HashMap<node, ArrayList<node>> connections;
 public ArrayList<node> nodes;
-HashMap<node,ArrayList<node>> cuts;
-HashMap<node,HashMap<node, Integer>> distances;
+public HashMap<node,ArrayList<node>> cuts;
+public HashMap<node,HashMap<node, Integer>> distances;
 ArrayList<node> settled;
 ArrayList<node> unSettled;
 
@@ -28,17 +28,56 @@ public int getSize() {
 	// TODO Auto-generated method stub
 	return Math.max(width, height);
 }
-@SuppressWarnings("unchecked")
+
 public paper(paper p) {
 	this.width=p.width;
 	this.height=p.height;
 	this.square_size=p.square_size;
-	this.selected=new node(p.selected);
-	this.connections= (HashMap<node, ArrayList<node>>) p.connections.clone();
-	this.nodes=(ArrayList<node>) p.nodes.clone();
-	this.cuts = (HashMap<node, ArrayList<node>>) p.cuts.clone();
-	this.distances=(HashMap<node, HashMap<node, Integer>>) p.distances.clone();
+	
+	this.nodes= new ArrayList<node>();
+	for(node n: p.nodes) {
+		this.nodes.add(new node(n));
+	}
+	this.selected= this.nodes.get(p.nodes.indexOf(p.selected));
+	this.connections = new HashMap<node, ArrayList<node>>();
+	this.cuts= new HashMap<node,ArrayList<node>> ();
+	
+	this.distances= new HashMap<node,HashMap<node, Integer>>();
+	for(int i=0;i<p.nodes.size();i++) {
+		node n= this.nodes.get(i);
+		node pn = p.nodes.get(i);
+		ArrayList<node> con = new ArrayList<node>();
+		ArrayList<node> cut= new ArrayList<node>();
+		ArrayList<node> oldCuts= p.cuts.get(pn);
+		if(oldCuts!=null) {
+		for( node c:oldCuts) {
+			int oldindex= p.nodes.indexOf(c);
+			cut.add(this.nodes.get(oldindex));
+		}
+		}else {
+		
+		}
+		
+		ArrayList<node> oldCon= p.connections.get(pn);
+		if(oldCon!=null) {
+		for( node c:oldCon) {
+			int oldindex= p.nodes.indexOf(c);
+			con.add(this.nodes.get(oldindex));
+		}
+		}
 
+		this.cuts.put(n, cut);
+		connections.put(n, con);
+	}
+	System.out.println(this.nodes.toString());
+	
+	this.getTreeDistances();
+	System.out.println("distance"+this.distances.toString());
+	for(node n:nodes) {
+		System.out.println("no, "+this.distances.get(n));
+	}
+	System.out.println("cuts"+this.cuts.toString());
+	System.out.println("connections"+this.connections.toString());
 }
 
 public void shrink() {
@@ -112,6 +151,7 @@ public void moveSelect(int x, int y) {
 }
 public void getTreeDistances() {
 	distances= new HashMap<node,HashMap<node,Integer>>();
+	
 	for(node one:nodes) {
 		
 			
