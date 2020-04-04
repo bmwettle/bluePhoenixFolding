@@ -30,54 +30,64 @@ public int getSize() {
 }
 
 public paper(paper p) {
-	this.width=p.width;
-	this.height=p.height;
-	this.square_size=p.square_size;
-	
-	this.nodes= new ArrayList<node>();
-	for(node n: p.nodes) {
+
+    this.width = p.width;
+    this.height = p.height;
+    this.square_size = p.square_size;
+
+	this.nodes = new ArrayList<>();
+	for (node n: p.nodes) {
 		this.nodes.add(new node(n));
 	}
-	this.selected= this.nodes.get(p.nodes.indexOf(p.selected));
-	this.connections = new HashMap<node, ArrayList<node>>();
-	this.cuts= new HashMap<node,ArrayList<node>> ();
-	
-	this.distances= new HashMap<node,HashMap<node, Integer>>();
-	for(int i=0;i<p.nodes.size();i++) {
-		node n= this.nodes.get(i);
-		node pn = p.nodes.get(i);
-		ArrayList<node> con = new ArrayList<node>();
-		ArrayList<node> cut= new ArrayList<node>();
-		ArrayList<node> oldCuts= p.cuts.get(pn);
-		if(oldCuts!=null) {
-		for( node c:oldCuts) {
-			int oldindex= p.nodes.indexOf(c);
-			cut.add(this.nodes.get(oldindex));
-		}
-		}else {
-		
-		}
-		
-		ArrayList<node> oldCon= p.connections.get(pn);
-		if(oldCon!=null) {
-		for( node c:oldCon) {
-			int oldindex= p.nodes.indexOf(c);
-			con.add(this.nodes.get(oldindex));
-		}
-		}
 
-		this.cuts.put(n, cut);
-		connections.put(n, con);
+	this.selected= this.nodes.get(p.nodes.indexOf(p.selected));
+
+	this.connections = new HashMap<>();
+	for (node key: p.connections.keySet()) {
+		node thisKey = this.nodes.get(p.nodes.indexOf(key));
+
+		ArrayList<node> nodeConnections = new ArrayList<>();
+		this.connections.put(thisKey, nodeConnections);
+		
+		for (node connection: p.connections.get(key)) {
+			nodeConnections.add(this.nodes.get(p.nodes.indexOf(connection)));
+		}
 	}
-	System.out.println(this.nodes.toString());
-	
-	this.getTreeDistances();
-	System.out.println("distance"+this.distances.toString());
-	for(node n:nodes) {
-		System.out.println("no, "+this.distances.get(n));
+
+	this.cuts = new HashMap<>();
+	for (node key: p.cuts.keySet()) {
+		node thisKey = this.nodes.get(p.nodes.indexOf(key));
+
+		ArrayList<node> nodeCuts = new ArrayList<>();
+		this.cuts.put(thisKey, nodeCuts);
+		
+		for (node cut: p.cuts.get(key)) {
+			nodeCuts.add(this.nodes.get(p.nodes.indexOf(cut)));
+		}
 	}
-	System.out.println("cuts"+this.cuts.toString());
-	System.out.println("connections"+this.connections.toString());
+
+	this.distances = new HashMap<>();
+	for (node key: p.distances.keySet()) {
+		node thisKey = this.nodes.get(p.nodes.indexOf(key));
+
+		HashMap<node, Integer> nodeDistances = new HashMap<>();
+		this.distances.put(thisKey, nodeDistances);
+
+		for (node secondKey: p.distances.get(key).keySet()) {
+			node thisSecondKey = this.nodes.get(p.nodes.indexOf(secondKey));
+			nodeDistances.put(thisSecondKey, p.distances.get(key).get(secondKey));
+		}
+	}
+
+	this.settled = new ArrayList<>();
+	for (node settledNode: p.settled) {
+		this.settled.add(this.nodes.get(p.nodes.indexOf(settledNode)));
+	}
+
+	this.unSettled = new ArrayList<>();
+	for (node unSettledNode: p.unSettled) {
+		this.unSettled.add(this.nodes.get(p.nodes.indexOf(unSettledNode)));
+	}
 }
 
 public void shrink() {
