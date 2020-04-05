@@ -280,7 +280,7 @@ public void mouseClicked(MouseEvent arg0) {
 	if(myEdit.isNewNode()) {
 		//JOptionPane.showMessageDialog(this,"adding nodes");
 		
-		node newNode= new node(x, y, myEdit.getNodeSize(), "leaf");
+		node newNode= new node(x, y, myEdit.getNodeSize());
 		
 		myPaper.addNode(newNode);
 		myPaper.setSelectedNode(newNode);

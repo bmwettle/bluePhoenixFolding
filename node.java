@@ -25,6 +25,7 @@ public node() {
 	
 }
 public node(node n) {
+	super();
 	this.x=n.x;
 	this.y=n.y;
 	this.size=n.size;
@@ -33,7 +34,7 @@ public node(node n) {
 public void setID(int id) {
 	this.ID=id;
 }
-public node(int X,int Y, int Size,String Type) {
+public node(int X,int Y, int Size) {
 	x=X;
 	y=Y;
 	size=Size;
@@ -44,7 +45,6 @@ public int getX() {
 }
 public void moveX(int x) {
 	this.x += x;
-	System.out.println(ID+"has been moved to"+this.x);
 }
 public String toString() {
 	return("."+ID);
