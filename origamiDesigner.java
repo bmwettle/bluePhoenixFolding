@@ -2,8 +2,11 @@ package origamiProject;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.geom.Area;
 import java.io.*;
 import javax.swing.*;
+
+import acm.graphics.GRect;
 
 public class origamiDesigner extends JFrame implements ActionListener, MouseListener,MouseMotionListener, KeyListener{
 
@@ -41,9 +44,9 @@ public origamiDesigner() {
 	this.add(planner);
 	myEdit= new Oeditor();
 	myEdit.setVisible(true);
-	myEdit.setLocation(this.getWidth(), this.getHeight()/2);
-	this.addKeyListener(this);
+	myEdit.setLocation(this.getX()+this.getWidth(),this.getY());
 	
+	this.addKeyListener(this);
 }
 public void createMenu() {
 	menuBar= new JMenuBar();
@@ -180,12 +183,11 @@ private void optimizeWithoutCuts() {
 	if(optimized!=null) {
 		myPaper=optimized;
 		myPaper.shrink();
-		myEdit.setPaperSize(myPaper.width,myPaper.height);
+		//myEdit.setPaperSize(myPaper.width,myPaper.height);
 		paper_width=myPaper.width;
 		paper_height=myPaper.height;
 	}
-	repaint();
-	planner.drawNodes(myPaper);
+	update();
 	
 
 }
@@ -277,6 +279,61 @@ public void mouseClicked(MouseEvent arg0) {
 	int squareSize= getSquareSize();
 	int x= arg0.getX()/squareSize;
 	int y= (arg0.getY()-2*menuBar.getHeight())/squareSize;
+	if(myEdit.leafMode.isSelected()) {
+		System.out.print("leaf ");
+node newNode= new node(x, y, Integer.parseInt(myEdit.nodeSize.getValue().toString()));
+		
+		myPaper.addNode(newNode);
+		myPaper.setSelectedNode(newNode);
+		planDisplay();
+	}
+	if(myEdit.riverMode.isSelected()) {
+		System.out.print("river ");
+		
+	}
+	if(myEdit.moveMode.isSelected()) {
+		System.out.print("move ");
+		myPaper.moveSelect(x,y);
+		repaint();
+	}
+	if(myEdit.selectMode.isSelected()) {
+		System.out.print("select ");
+		node selected= myPaper.getNodeAt(x,y);
+		if(selected==(null)) {
+			
+		}else {
+			myPaper.setSelectedNode(selected);
+		}
+	}
+	if(myEdit.deleteMode.isSelected()) {
+		System.out.print("delete ");
+		node selected= myPaper.getNodeAt(x,y);
+		if(selected==(null)) {
+			
+		}else {
+			myPaper.deleteNode(selected);
+		}
+	}
+	if(myEdit.fixX.isSelected()) {
+		System.out.print("X ");
+	}
+	if(myEdit.fixY.isSelected()) {
+		System.out.print("Y ");
+	}
+	System.out.print(myEdit.nodeSize.getValue());
+	System.out.print(myEdit.Width.getValue());
+	System.out.print(myEdit.Height.getValue());
+	if(myEdit.square.isSelected()) {
+		System.out.print("square");
+	}
+	if(myEdit.fixDifference.isSelected()) {
+		System.out.print("difference ");
+	}
+	if(myEdit.fixRatio.isSelected()) {
+		System.out.print("ratio ");
+	}
+	
+	/*
 	if(myEdit.isNewNode()) {
 		//JOptionPane.showMessageDialog(this,"adding nodes");
 		
@@ -304,9 +361,11 @@ public void mouseClicked(MouseEvent arg0) {
 		myPaper.moveSelect(x,y);
 		repaint();
 		
-	}
+	}*/
 	planner.drawNodes(myPaper);
 	planner.drawCursor(x*squareSize, y*squareSize);
+
+	System.out.println("ok, that worked");
 }
 public void mouseMoved(MouseEvent arg0) {
 	// TODO Auto-generated method stub
@@ -314,6 +373,7 @@ public void mouseMoved(MouseEvent arg0) {
 	int x= (arg0.getX())/squareSize;
 
 	int y= ((arg0.getY()-2*menuBar.getHeight()))/squareSize;
+	this.planner.myPaper=this.myPaper;
 	planner.drawNodes(myPaper);
 	planner.drawCursor(x*squareSize, y*squareSize);	
 
@@ -366,9 +426,10 @@ public void keyTyped(KeyEvent arg0) {
 }
 private void update() {
 	// TODO Auto-generated method stub
+	this.planner.myPaper=this.myPaper;
 	planner.repaint();
-	this.paper_height=myEdit.getPaperWidth();
-	this.paper_width=myEdit.getPaperHeight();
+	//this.paper_height=myEdit.getPaperWidth();
+	//this.paper_width=myEdit.getPaperHeight();
 	myPaper.setPaperSize(paper_width, paper_height);
 	planner.drawNodes(myPaper);
 }

@@ -9,6 +9,10 @@ public class optimizer{
 	ArrayList<paper> newGen;
 	ArrayList<paper>oldGen;
 	Random r;
+	public static final int POP_SIZE=1000;
+	public static final int NUM_CHILDREN=50;
+	public static final int NUM_Gen=20;
+	public static final double CHANCE_MUTATE=.8;
 public optimizer(paper p) {
 	this.p=new paper(p);
 	this.p.getTreeDistances();
@@ -16,27 +20,17 @@ public optimizer(paper p) {
 	//display();
 }
 public paper optimizeWithoutCuts() {
-	
-	
 	createStarter();
 	int i=0;
-	while(i<2000) {
-		System.out.println("next step");
+	while(i<NUM_Gen) {
 		nextGen();
-	
-		
 		killOverlaping();
-	
-		if(newGen.size()==0) {
-			System.out.println("no more options");
+		if(newGen.size()<POP_SIZE) {
+			System.out.println("a problem occurred");
 			break;
 		}
-
 		sortBest();
-	//	System.out.println(newGen.toString());
 		killWeak();
-		//System.out.println(newGen.toString());
-		
 		oldGen=newGen;
 		i++;
 	}
@@ -46,7 +40,6 @@ public paper optimizeWithoutCuts() {
 	//display();
 	return p;
 }
-
 private void killOverlaping() {
 	ArrayList<paper> toRemove= new ArrayList<paper>();
 	for(paper gen:newGen) {
@@ -60,71 +53,52 @@ private void sortBest() {
 	// TODO Auto-generated method stub
 	//System.out.println(newGen);
 	Collections.sort(newGen);
-	System.out.println("before"+newGen);
-
 }
-private void killWeak() {
-	for(paper p:newGen) {
-		System.out.println(p.width+" : "+p.height);
-	}
-
-	int survive=Math.min(20, newGen.size()-1);
-	newGen= new ArrayList<paper>(newGen.subList(0,survive));
-	for(paper p:newGen) {
-		System.out.println(p.width+" , "+p.height);
-	}
+private void killWeak() {	
+	System.out.println(newGen.size()+",");
+	newGen= new ArrayList<paper>(newGen.subList(0,POP_SIZE));
 }
-
 private void nextGen() {
 	newGen= new ArrayList<paper>();
-	for(paper test:oldGen) {
-		ArrayList<paper> children = new ArrayList<paper>();
-		for(int i=0;i<test.nodes.size();i++) {
-			paper test1= new paper(test);
-			
-			test1.nodes.get(i).moveX(1);
-			test1.shrink();
-			children.add(test1);
-			
-			paper test2= new paper(test);
-			test2.nodes.get(i).moveX(-1);
-			test2.shrink();
-			children.add(test2);
-			
-			paper test3= new paper(test);
-			test3.nodes.get(i).moveY(1);
-			test3.shrink();
-			children.add(test1);
-			paper test4= new paper(test);
-			test4.nodes.get(i).moveY(-1);
-			test4.shrink();
-			children.add(test4);
-		
+		for( int i=0;i<POP_SIZE;i++) {
+			paper Parent=oldGen.get(i);
+			for(int j=0;j<NUM_CHILDREN;j++) {
+				paper child= new paper(Parent);
+				for(node n:child.nodes) {
+					double rand= Math.random();
+					if(rand>CHANCE_MUTATE) {
+						if(Math.random()>1-(CHANCE_MUTATE/2)) {
+							n.x+=1;
+						}else {
+							n.x-=1;
+						}
+					}
+					rand= Math.random();
+					if(rand>CHANCE_MUTATE) {
+						if(Math.random()>1-(CHANCE_MUTATE/2)) {
+							n.y+=1;
+						}else {
+							n.y-=1;
+						}
+					}
+				}
+				child.shrink();
+				newGen.add(child);
+				}
+			}
 		}
-	
-		newGen.addAll(children);
-	}
-	System.out.println(newGen);
-}
 private void createStarter() {
 	// TODO Auto-generated method stub
 	oldGen= new ArrayList<paper>();
 	newGen= new ArrayList<paper>();
 	p.shrink();
 	paper starter= new paper(p);
-	System.out.println(starter.nodes.get(0)==p.nodes.get(0));
-	while(hasOverlap(starter)) {
-		System.out.println("expanding");
-		for(node n:starter.nodes){
-			n.x*=2;
-			n.y*=2;
-		}
-		starter.shrink();
-	}
+	starter.shrink();
+	for(int i=0;i<POP_SIZE;i++) {
+		
 	oldGen.add(starter);
-	System.out.println("starter is"+starter.toString());
-	System.out.println(starter.toText());
-	System.out.print(hasOverlap(starter));
+	}
+	System.out.print(starter.distances.toString());
 }
 
 private boolean overlaps(node one, node two, paper test) {

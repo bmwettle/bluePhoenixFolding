@@ -15,26 +15,36 @@ int square_size;
 node selected;
 public HashMap<node, ArrayList<node>> connections;
 public ArrayList<node> nodes;
-public HashMap<node,ArrayList<node>> cuts;
 public HashMap<node,HashMap<node, Integer>> distances;
 ArrayList<node> settled;
 ArrayList<node> unSettled;
 
 @Override
 public int compareTo(paper b) {
-	return this.width*this.height-b.width*b.height;
+	return this.getSize()-b.getSize();
 }
 public int getSize() {
 	// TODO Auto-generated method stub
 	return Math.max(width, height);
+	//return(width*height);
 }
-
+public void deleteNode(node delete) {
+	if(delete.equals(selected)) {
+		selected= nodes.get(0);
+	}
+	nodes.remove(delete);
+	if(delete.equals(selected)) {
+		selected= nodes.get(0);
+	}
+	connections.remove(delete);
+	for(node n:nodes) {
+		connections.get(n).remove(delete);
+	}
+}
 public paper(paper p) {
 	this.width=p.width;
 	this.height=p.height;
 	this.square_size=p.square_size;
-	
-
 	this.nodes= new ArrayList<node>();
 	this.settled=new ArrayList<node>();
 	this.unSettled= new ArrayList<node>();
@@ -45,23 +55,28 @@ public paper(paper p) {
 	}
 	this.selected= this.nodes.get(p.nodes.indexOf(p.selected));
 	this.connections = new HashMap<node, ArrayList<node>>();
-	this.cuts= new HashMap<node,ArrayList<node>> ();
-	
 	this.distances= new HashMap<node,HashMap<node, Integer>>();
+	Iterator<node> it= p.distances.keySet().iterator();
+	while(it.hasNext()) {
+		node oldStart= it.next();
+		node newStart= this.nodes.get(p.nodes.indexOf(oldStart));
+		Iterator<node> end= p.distances.get(oldStart).keySet().iterator();
+		HashMap<node, Integer> dist= new HashMap<node,Integer>();
+		while(end.hasNext()) {
+			node oldEnd= end.next();
+			int length= p.distances.get(oldStart).get(oldEnd);
+			node newEnd= this.nodes.get(p.nodes.indexOf(oldEnd));
+			dist.put(newEnd, length);
+		}
+		this.distances.put(newStart, dist);
+	}
 	for(int i=0;i<p.nodes.size();i++) {
 		node n= this.nodes.get(i);
 		node pn = p.nodes.get(i);
 		ArrayList<node> con = new ArrayList<node>();
 		ArrayList<node> cut= new ArrayList<node>();
-		ArrayList<node> oldCuts= p.cuts.get(pn);
-		if(oldCuts!=null) {
-		for( node c:oldCuts) {
-			int oldindex= p.nodes.indexOf(c);
-			cut.add(this.nodes.get(oldindex));
-		}
-		}else {
+	
 		
-		}
 		
 		ArrayList<node> oldCon= p.connections.get(pn);
 		if(oldCon!=null) {
@@ -71,14 +86,9 @@ public paper(paper p) {
 			
 		}
 		}
-
-		this.cuts.put(n, cut);
 		connections.put(n, con);
 	}
-	
-	this.getTreeDistances();
 	}
-
 public void shrink() {
 	int xmax=0;
 	int xmin=Integer.MAX_VALUE;
@@ -133,17 +143,10 @@ public paper(int w,int h) {
 	height=h;
 	connections= new HashMap<node,ArrayList<node>>();
 	nodes= new ArrayList<node>();
-	cuts= new HashMap<node,ArrayList<node>>();
+
 }
-public void addCut(node second) {
-	if(selected!=null) {
-	cuts.get(selected).add(second);
-	cuts.get(second).add(selected);
-	}
-}
-public ArrayList<node> getCuts(node Node) {
-	return cuts.get(Node);
-}
+
+
 public void moveSelect(int x, int y) {
 	selected.x=x;
 	selected.y=y;
@@ -166,7 +169,7 @@ public void getTreeDistances() {
 		for(node end:this.nodes) {
 			
 			searchNodes(start,start,end,0,new ArrayList<node>());
-			
+		
 		}
 	}
 		
@@ -189,7 +192,8 @@ private void searchNodes(node start, node current,node end,int length, ArrayList
 	searched.addAll(mySearched);
 	searched.add(current);
 	
-	if (current.equals(end)||cuts.get(current).contains(end)){
+	if (current.equals(end)){
+		length+=current.size;
 		distances.get(end).put(start, length);
 		distances.get(start).put(end, length);
 		
@@ -206,7 +210,7 @@ private void searchNodes(node start, node current,node end,int length, ArrayList
 		nearby.removeAll(searched);
 		//System.out.println("now at:"+start.toString()+","+current.toString()+","+end.toString()+",nearby"+nearby.toString()+"searched:"+searched.toString()+","+ length);
 		for(node connect:nearby) {
-			searchNodes(start,connect,end,length+connect.size+current.size,searched);
+			searchNodes(start,connect,end,length+current.size,searched);
 		}
 	}
 	
@@ -229,7 +233,7 @@ public void addNode(node newNode, node startNode) {
 	ArrayList<node> newCuts= new ArrayList<node>();
 	newList.add(startNode);
 	connections.put(newNode,newList);
-	cuts.put(newNode, newCuts);
+	
 	nodes.add(newNode);
 	newNode.setID(nodes.indexOf(newNode));
 }
@@ -242,7 +246,7 @@ public void addNode(node newNode) {
 		connections.put(newNode,newList);
 		nodes.add(newNode);
 		ArrayList<node> newCuts= new ArrayList<node>();
-		cuts.put(newNode, newCuts);
+		
 		newNode.setID(nodes.indexOf(newNode));
 
 	}
@@ -270,9 +274,12 @@ public String toText() {
 	return text;
 }
 public boolean isLeaf(node n) {
-	return connections.get(n).size()>1;
+	//System.out.println(connections.get(n));
+	
+	return connections.get(n).size()<=1;
 }
 public boolean overlaps(node one, node two) {
+	if(isLeaf(one)&&isLeaf(two)) {
 	int deltax= Math.abs(one.x-two.x);
 	int deltay= Math.abs(one.y-two.y);
 	if(deltax>=distances.get(one).get(two)) {
@@ -281,11 +288,12 @@ public boolean overlaps(node one, node two) {
 	if(deltay>=distances.get(one).get(two)) {
 		return false;
 	}
-
 	return true;
+	}
+	return false;
 }
 public node getNodeAt(int x, int y) {
-	System.out.println("getting node at:"+x+","+y);
+	//System.out.println("getting node at:"+x+","+y);
 	for(node Node:nodes) {
 		if (Node.x==x&&Node.y==y){
 			System.out.println(Node.toString());

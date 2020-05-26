@@ -11,95 +11,111 @@ public class Oeditor extends JFrame implements ActionListener{
 	 * 
 	 */
 	private static final long serialVersionUID = 42871189832605926L;
-	ButtonGroup options;
-	JRadioButton  cut;
-	JRadioButton  newNode;
-	JRadioButton  select;
-	JRadioButton move;
-	JTextField size;
-	JTextArea sizeLabel;
-	JTextField paperSize;
-	JTextArea paperSizeLabel;
-
+	JLabel Node;
+	ButtonGroup Mode;
+	JToggleButton leafMode;
+	JToggleButton riverMode;
+	JToggleButton selectMode;
+	JToggleButton deleteMode;
+	JToggleButton moveMode;
+	JToggleButton escMode;
+	JCheckBox fixX;
+	JCheckBox fixY;
+	JLabel nodeSizeLabel;
+	JSpinner nodeSize;
+	
+	JLabel paper;
+	JSpinner Width;
+	JSpinner Height;
+	ButtonGroup optimizeParams;
+	JRadioButton square;
+	JRadioButton fixRatio;
+	JRadioButton fixDifference;
+	
 public Oeditor(){
 	super();
-	this.setAlwaysOnTop(true);
-	setLayout(new GridLayout(9,1));
-	this.setSize(200, 350);
+	this.setLayout(new GridLayout(16,2));
+	this.setSize(250, 500);
+	createNodeGui();
+	createPaperGui();
 	
-	this.setBackground(Color.GREEN);
-	cut= new JRadioButton("cut",false);
-	cut.addActionListener(this);
-	cut.setActionCommand("cut");
-	this.add(cut);
-	move= new JRadioButton("move",false);
-	move.addActionListener(this);
-	move.setActionCommand("move");
-	this.add(move);
-	sizeLabel= new JTextArea("enter size of node:");
+}
+private void createNodeGui() {
+	Node = new JLabel("Node:");
+	this.add(Node);
+	JLabel Buffer= new JLabel("");
+	this.add(Buffer);
+	Mode= new ButtonGroup();
+	leafMode= new JToggleButton("add leaf node");
+	Mode.add(leafMode);
+	this.add(leafMode);
 	
-	newNode= new JRadioButton("new node",true);
-	newNode.addActionListener(this);
-	newNode.setActionCommand("new node");
-	this.add(newNode);
-	select= new JRadioButton("select",false);
-	select.addActionListener(this);
-	select.setActionCommand("select");
-	this.add(select);
-	options=new ButtonGroup();
-	options.add(cut);
-	options.add(newNode);
-	options.add(select);
-	options.add(move);
-	add(sizeLabel);
-	size= new JTextField("1");
+	riverMode= new JToggleButton("add river node");
+	Mode.add(riverMode);
+	this.add(riverMode);
 	
-	add(size);
-	paperSize= new JTextField("16:16");
-	paperSizeLabel= new JTextArea("width:height of the grid");
-	add(paperSizeLabel);
-	add(paperSize);
+	selectMode= new JToggleButton("select node");
+	Mode.add(selectMode);
+	this.add(selectMode);
+	deleteMode= new JToggleButton("delete node");
+	Mode.add(deleteMode);
+	this.add(deleteMode);
+	moveMode= new JToggleButton("move node");
+	Mode.add(moveMode);
+	this.add(moveMode);
+	escMode= new JToggleButton("ecsape");
+	Mode.add(escMode);
+	this.add(escMode);
+	JLabel fixXLabel= new JLabel("Fix X:");
+	this.add(fixXLabel);
+	fixX= new JCheckBox("fix node X");
+	this.add(fixX);
+	JLabel fixYLabel= new JLabel("Fix Y:");
+	this.add(fixYLabel);
+	fixY= new JCheckBox("fix node Y");
+	this.add(fixY);
+	nodeSize=new JSpinner();
+	JLabel nodeSizeLabel= new JLabel("SetNodeSize");
+	this.add(nodeSizeLabel);
+	nodeSize.setModel(new SpinnerNumberModel(1, 0, Integer.MAX_VALUE, 1));
+	this.add(nodeSize);
+
+	
+}
+private void createPaperGui() {
+	paper= new JLabel("Paper:");
+	this.add(paper);
+	JLabel Buffer= new JLabel("");
+	this.add(Buffer);
+	Width=new JSpinner();
+	Width.setModel(new SpinnerNumberModel(16, 1, Integer.MAX_VALUE, 1));
+	JLabel WidthLabel= new JLabel("Set Width:");
+	this.add(WidthLabel);
+	this.add(Width);
+	Height=new JSpinner();
+	Height.setModel(new SpinnerNumberModel(16, 1, Integer.MAX_VALUE, 1));
+	JLabel HeightLabel= new JLabel("Set Height:");
+	this.add(HeightLabel);
+	this.add(Height);
+	
+	optimizeParams= new ButtonGroup();
+	JLabel optimizeLabel= new JLabel("Optimize to:");
+	this.add(optimizeLabel);
+	square= new JRadioButton("Square");
+	square.setSelected(true);
+	this.add(square);
+	optimizeParams.add(square);
+	fixDifference= new JRadioButton("fix difference");
+	this.add(fixDifference);
+	optimizeParams.add(fixDifference);;
+	fixRatio= new JRadioButton("fix ratio");
+	this.add(fixRatio);
+	optimizeParams.add(fixRatio);
+	
 }
 @Override
 public void actionPerformed(ActionEvent arg0) {
 	// TODO Auto-generated method stub
 	
-	
-}
-public int getPaperWidth() {
-	String text= paperSize.getText();
-	String number= text.substring(0, text.indexOf(":"));
-	System.out.print(number);
-	return Integer.parseInt(number);
-}
-public int getPaperHeight() {
-	String text= paperSize.getText();
-	String number= text.substring(text.indexOf(":")+1);
-	return Integer.parseInt(number);
-}
-public boolean isNewNode() {
-	//JOptionPane.showMessageDialog(this,"finding nodes");
-
-	return options.isSelected(newNode.getModel());
-}
-public boolean isCut() {
-	//JOptionPane.showMessageDialog(this,"finding nodes");
-
-	return options.isSelected(cut.getModel());
-}
-public void setPaperSize( int width, int height) {
-	this.size.setText(width+":"+height);
-}
-public boolean isSelect() {
-	//JOptionPane.showMessageDialog(this,"finding nodes");
-
-	return options.isSelected(select.getModel());
-}
-public boolean getMoving() {
-	return options.isSelected(move.getModel());
-}
-
-public int getNodeSize() {
-	return Integer.parseInt(size.getText());
-}
+}	
 }

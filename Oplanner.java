@@ -3,9 +3,15 @@ package origamiProject;
 import java.awt.Button;
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Polygon;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Area;
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import java.awt.*;
 import javax.swing.JPanel;
 
 public class Oplanner extends JPanel    {
@@ -16,7 +22,7 @@ public class Oplanner extends JPanel    {
 int mouseX=0;
 int mouseY=0;
 Button picker;
-Graphics g;
+Graphics2D g;
 int squareSize;
 int smallSquareSize;
 paper p;
@@ -52,7 +58,9 @@ public void drawCursor(int x,int y) {
 public void drawNodes(paper myP){
 	this.p=myP;
 	p.getTreeDistances();
-	g= this.getGraphics();
+	g= (Graphics2D)this.getGraphics();
+	g.setColor(Color.BLACK);
+	
 	width= p.width;
 	height=p.height;
 	squareSize= Math.min(getWidth()/width,getHeight()/height);
@@ -77,8 +85,17 @@ public void drawNodes(paper myP){
 	this.setComponentZOrder(picker, 0);
 }
 private void drawNode(node myNode) {
-	g.setColor(Color.GREEN);
-	g.fillRect(myNode.x*squareSize-myNode.size*squareSize, myNode.y*squareSize-myNode.size*squareSize, myNode.size*2*squareSize, myNode.size*2*squareSize);
+	if(this.myPaper.connections.get(myNode).size()==1) {
+		drawLeafNode(myNode);
+	}else{
+		if(myNode.size==0) {
+			drawHub(myNode);
+		}else {
+			if(this.myPaper.connections.get(myNode).size()==2) {
+				drawRiverNode(myNode);
+			}
+		}
+	}
 	g.setColor(Color.blue);
 	if( p.isSelcted(myNode)) {
 		g.setColor(Color.ORANGE);
@@ -95,13 +112,46 @@ private void drawNode(node myNode) {
 		g.drawLine(myNode.getX()*squareSize, myNode.getY()*squareSize, endNode.getX()*squareSize, endNode.getY()*squareSize);
 		
 	}
-	g.setColor(Color.ORANGE);
-	//System.out.println(p.getCuts(myNode));
-	Iterator<node> cuts= p.getCuts(myNode).iterator();
-	while(cuts.hasNext()) {
-		node endNode= cuts.next();
-		g.drawLine(myNode.getX()*squareSize, myNode.getY()*squareSize, endNode.getX()*squareSize, endNode.getY()*squareSize);
-	}
 	g.setColor(Color.BLACK);
+}
+private void drawRiverNode(node myNode) {
+	int buffer =myNode.size;
+	node hub= myPaper.connections.get(myNode).get(0);
+	Area river= new  Area();
+	Area inside= new Area();
+	for(node n: myPaper.connections.get(hub)) {
+		if(myPaper.isLeaf(n)) {
+		river.add(new Area(n.getShape(squareSize, buffer)));
+		inside.add(new Area(n.getShape(squareSize, 0)));
+		}
+	}
+	
+	g.setColor(Color.blue);
+	g.setStroke(new BasicStroke(3));
+	g.draw(river);
+	g.setColor(Color.GRAY);
+	g.draw(inside);
+	g.setStroke(new BasicStroke(1));
+	
+}
+private void drawHub(node myNode) {
+	int X=0;
+	int Y=0;
+	for(node n:myPaper.connections.get(myNode)) {
+		X+=n.x;
+		Y+=n.y;
+	}
+	X= (int)X/myPaper.connections.get(myNode).size();
+	Y= (int)Y/myPaper.connections.get(myNode).size();
+	myNode.x=X;
+	myNode.y=Y;
+	g.fillRect(myNode.x*squareSize, myNode.y*squareSize,squareSize/10, squareSize/10);
+	
+}
+private void drawLeafNode(node myNode) {
+	g.setColor(Color.orange);
+	g.fill(myNode.getShape(squareSize,0));
+	//g.fillRect(myNode.x*squareSize-myNode.size*squareSize, myNode.y*squareSize-myNode.size*squareSize, myNode.size*2*squareSize, myNode.size*2*squareSize);
+	
 }
 }
