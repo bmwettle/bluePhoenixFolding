@@ -20,18 +20,16 @@ public class origamiDesigner extends JFrame implements ActionListener, MouseList
 	JMenuBar menuBar;
 	JMenu fileMenu; 
 	paper myPaper;
-	int paper_width;
-	int paper_height;
+
 	Oplanner planner;
 	Oeditor myEdit;
 
 public origamiDesigner() {
 	setSize(400,400);
 	setTitle("designer");
-	paper_width=16;
-	paper_height=16;
+	
 	setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-	myPaper= new paper(paper_width,paper_height);
+	myPaper= new paper(16,16);
 	menuBar= new JMenuBar();
 	mouseRect= new Rectangle(0,0,6,6);
 	createMenu();
@@ -42,7 +40,7 @@ public origamiDesigner() {
 	this.addMouseListener(this);
 	this.addMouseMotionListener(this);
 	this.add(planner);
-	myEdit= new Oeditor();
+	myEdit= new Oeditor(this.myPaper);
 	myEdit.setVisible(true);
 	myEdit.setLocation(this.getX()+this.getWidth(),this.getY());
 	
@@ -183,9 +181,6 @@ private void optimizeWithoutCuts() {
 	if(optimized!=null) {
 		myPaper=optimized;
 		myPaper.shrink();
-		//myEdit.setPaperSize(myPaper.width,myPaper.height);
-		paper_width=myPaper.width;
-		paper_height=myPaper.height;
 	}
 	update();
 	
@@ -271,7 +266,7 @@ private void newFile() {
 	JOptionPane.showMessageDialog(this,"new file");
 }
 private int getSquareSize() {
-	return Math.min(planner.getWidth()/paper_width, planner.getHeight()/paper_height);
+	return Math.min(planner.getWidth()/myPaper.width, planner.getHeight()/myPaper.height);
 }
 @Override
 public void mouseClicked(MouseEvent arg0) {
@@ -332,36 +327,6 @@ node newNode= new node(x, y, Integer.parseInt(myEdit.nodeSize.getValue().toStrin
 	if(myEdit.fixRatio.isSelected()) {
 		System.out.print("ratio ");
 	}
-	
-	/*
-	if(myEdit.isNewNode()) {
-		//JOptionPane.showMessageDialog(this,"adding nodes");
-		
-		node newNode= new node(x, y, myEdit.getNodeSize());
-		
-		myPaper.addNode(newNode);
-		myPaper.setSelectedNode(newNode);
-		planDisplay();
-	}
-	else if(myEdit.isSelect()) {
-		
-		node selected= myPaper.getNodeAt(x,y);
-		if(selected==(null)) {
-			
-		}else {
-			myPaper.setSelectedNode(selected);
-		}
-	}else if(myEdit.isCut()) {
-
-		node second= myPaper.getNodeAt(x,y);
-		if (second!=null){
-			myPaper.addCut(second);
-		}
-	}else if(myEdit.getMoving()) {
-		myPaper.moveSelect(x,y);
-		repaint();
-		
-	}*/
 	planner.drawNodes(myPaper);
 	planner.drawCursor(x*squareSize, y*squareSize);
 
@@ -430,7 +395,7 @@ private void update() {
 	planner.repaint();
 	//this.paper_height=myEdit.getPaperWidth();
 	//this.paper_width=myEdit.getPaperHeight();
-	myPaper.setPaperSize(paper_width, paper_height);
+	//myPaper.setPaperSize(paper_width, paper_height);
 	planner.drawNodes(myPaper);
 }
 }

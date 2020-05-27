@@ -10,19 +10,37 @@ public class node implements Serializable{
 	 * 
 	 */
 	private static final long serialVersionUID = 2107895915449290373L;
-public int x;
-public int y;
+private int x;
+private int y;
 int size;
-
+boolean FixedX;
+boolean FixedY;
 int ID;
+public void setX(int newX) {
+	if(!FixedX) {
+	this.x=newX;
+	}
+}
+public void forceX(int newX) {
 
+	this.x=newX;
+}
+public void forceY(int newY) {
 
+	this.y=newY;
+}
+public void setY(int newY) {
+	if(!FixedY) {
+	this.y=newY;
+	}
+}
 public node() {
 	super();
 	x=0;
 	y=0;
 	size=1;
-
+	FixedX=false;
+	FixedY=false;
 	ID=0;
 	
 }

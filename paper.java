@@ -96,23 +96,23 @@ public void shrink() {
 	int ymin=Integer.MAX_VALUE;
 	
 	for(node n:nodes) {
-		if(n.x>xmax) {
-			xmax=n.x;
+		if(n.getX()>xmax) {
+			xmax=n.getX();
 		}
-		if(n.x<xmin) {
-			xmin=n.x;
+		if(n.getX()<xmin) {
+			xmin=n.getX();
 		}
-		if(n.y>ymax) {
-			ymax=n.y;
+		if(n.getY()>ymax) {
+			ymax=n.getY();
 		}
-		if(n.y<ymin) {
-			ymin=n.y;
+		if(n.getY()<ymin) {
+			ymin=n.getY();
 		}
 		
 	}
 	for( node n:nodes) {
-	n.x-=xmin;	
-	n.y-=ymin;
+	n.forceX(n.getX()-xmin);	
+	n.forceY(n.getY()-ymin);;
 	}
 	width=xmax-xmin;
 	height=ymax-ymin;
@@ -126,14 +126,14 @@ public void shrink() {
 public int[] getXcords() {
 	int[] Xcords= new int[nodes.size()];
 	for(int i=0;i<nodes.size();i++) {
-		Xcords[i]=nodes.get(i).x;
+		Xcords[i]=nodes.get(i).getX();
 	}
 	return Xcords;
 }
 public int[] getYcords() {
 	int[] Ycords= new int[nodes.size()];
 	for(int i=0;i<nodes.size();i++) {
-		Ycords[i]=nodes.get(i).y;
+		Ycords[i]=nodes.get(i).getY();
 	}
 	return Ycords;
 }
@@ -148,8 +148,8 @@ public paper(int w,int h) {
 
 
 public void moveSelect(int x, int y) {
-	selected.x=x;
-	selected.y=y;
+	selected.forceX(x);
+	selected.forceY(y);
 }
 public void getTreeDistances() {
 	distances= new HashMap<node,HashMap<node,Integer>>();
@@ -179,8 +179,8 @@ public void setPaperSize(int w, int h) {
 	this.height=h;
 }
 public int getLongestLegWithoutCuts(node one,node two) {
-	int deltaX= Math.abs(one.x-two.x);
-	int deltaY= Math.abs(one.y-two.y);
+	int deltaX= Math.abs(one.getX()-two.getX());
+	int deltaY= Math.abs(one.getY()-two.getY());
 
 	return Math.max(deltaX, deltaY);
 }
@@ -245,7 +245,6 @@ public void addNode(node newNode) {
 		ArrayList<node>newList= new ArrayList<node>();
 		connections.put(newNode,newList);
 		nodes.add(newNode);
-		ArrayList<node> newCuts= new ArrayList<node>();
 		
 		newNode.setID(nodes.indexOf(newNode));
 
@@ -263,7 +262,7 @@ public String toText() {
 		}
 	}
 	for(node n:nodes) {
-		display[n.x][n.y]=n.toString().charAt(1);
+		display[n.getX()][n.getY()]=n.toString().charAt(1);
 	}
 	for(int i=0;i<height+1;i++) {
 		for(int j=0;j<width+1;j++) {
@@ -280,8 +279,8 @@ public boolean isLeaf(node n) {
 }
 public boolean overlaps(node one, node two) {
 	if(isLeaf(one)&&isLeaf(two)) {
-	int deltax= Math.abs(one.x-two.x);
-	int deltay= Math.abs(one.y-two.y);
+	int deltax= Math.abs(one.getX()-two.getX());
+	int deltay= Math.abs(one.getY()-two.getY());
 	if(deltax>=distances.get(one).get(two)) {
 		return false;
 	}
@@ -295,7 +294,7 @@ public boolean overlaps(node one, node two) {
 public node getNodeAt(int x, int y) {
 	//System.out.println("getting node at:"+x+","+y);
 	for(node Node:nodes) {
-		if (Node.x==x&&Node.y==y){
+		if (Node.getX()==x&&Node.getY()==y){
 			System.out.println(Node.toString());
 			return Node;
 		}

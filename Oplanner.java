@@ -100,7 +100,7 @@ private void drawNode(node myNode) {
 	if( p.isSelcted(myNode)) {
 		g.setColor(Color.ORANGE);
 	}
-	g.fillOval(myNode.x*squareSize-myNode.size*smallSquareSize, myNode.y*squareSize-myNode.size*smallSquareSize, myNode.size*2*smallSquareSize, myNode.size*2*smallSquareSize);
+	g.fillOval(myNode.getX()*squareSize-myNode.size*smallSquareSize, myNode.getY()*squareSize-myNode.size*smallSquareSize, myNode.size*2*smallSquareSize, myNode.size*2*smallSquareSize);
 	g.setColor(Color.BLACK);
 	ArrayList<node> connections= p.getConections(myNode);
 	Iterator<node> conIt= connections.iterator();
@@ -138,14 +138,14 @@ private void drawHub(node myNode) {
 	int X=0;
 	int Y=0;
 	for(node n:myPaper.connections.get(myNode)) {
-		X+=n.x;
-		Y+=n.y;
+		X+=n.getX();
+		Y+=n.getY();
 	}
 	X= (int)X/myPaper.connections.get(myNode).size();
 	Y= (int)Y/myPaper.connections.get(myNode).size();
-	myNode.x=X;
-	myNode.y=Y;
-	g.fillRect(myNode.x*squareSize, myNode.y*squareSize,squareSize/10, squareSize/10);
+	myNode.setX(X);
+	myNode.setY(Y);
+	g.fillRect(myNode.getX()*squareSize, myNode.getY()*squareSize,squareSize/10, squareSize/10);
 	
 }
 private void drawLeafNode(node myNode) {

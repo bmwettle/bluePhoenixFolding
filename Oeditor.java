@@ -4,8 +4,10 @@ import java.awt.*;
 import java.awt.event.*;
 
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
-public class Oeditor extends JFrame implements ActionListener{
+public class Oeditor extends JFrame implements ActionListener, ChangeListener{
 
 	/**
 	 * 
@@ -23,7 +25,7 @@ public class Oeditor extends JFrame implements ActionListener{
 	JCheckBox fixY;
 	JLabel nodeSizeLabel;
 	JSpinner nodeSize;
-	
+	paper myPaper;
 	JLabel paper;
 	JSpinner Width;
 	JSpinner Height;
@@ -32,13 +34,13 @@ public class Oeditor extends JFrame implements ActionListener{
 	JRadioButton fixRatio;
 	JRadioButton fixDifference;
 	
-public Oeditor(){
+public Oeditor(paper p){
 	super();
+	myPaper=p;
 	this.setLayout(new GridLayout(16,2));
 	this.setSize(250, 500);
 	createNodeGui();
 	createPaperGui();
-	
 }
 private void createNodeGui() {
 	Node = new JLabel("Node:");
@@ -91,9 +93,11 @@ private void createPaperGui() {
 	Width.setModel(new SpinnerNumberModel(16, 1, Integer.MAX_VALUE, 1));
 	JLabel WidthLabel= new JLabel("Set Width:");
 	this.add(WidthLabel);
+	Width.addChangeListener(this);
 	this.add(Width);
 	Height=new JSpinner();
 	Height.setModel(new SpinnerNumberModel(16, 1, Integer.MAX_VALUE, 1));
+	Height.addChangeListener(this);
 	JLabel HeightLabel= new JLabel("Set Height:");
 	this.add(HeightLabel);
 	this.add(Height);
@@ -115,7 +119,19 @@ private void createPaperGui() {
 }
 @Override
 public void actionPerformed(ActionEvent arg0) {
-	// TODO Auto-generated method stub
 	
-}	
+	
+}
+@Override
+public void stateChanged(ChangeEvent arg0) {
+	
+	if(Width.equals(arg0.getSource())) {
+		myPaper.width=(int) Width.getValue();
+	}	
+	if(Height.equals(arg0.getSource())) {
+		myPaper.height=(int) Height.getValue();
+	}
+	myPaper.selected.FixedX=this.fixX.isSelected();
+	myPaper.selected.FixedY=this.fixY.isSelected();
+}
 }

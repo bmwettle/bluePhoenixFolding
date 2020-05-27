@@ -59,33 +59,7 @@ private void killWeak() {
 	newGen= new ArrayList<paper>(newGen.subList(0,POP_SIZE));
 }
 private void nextGen() {
-	newGen= new ArrayList<paper>();
-		for( int i=0;i<POP_SIZE;i++) {
-			paper Parent=oldGen.get(i);
-			for(int j=0;j<NUM_CHILDREN;j++) {
-				paper child= new paper(Parent);
-				for(node n:child.nodes) {
-					double rand= Math.random();
-					if(rand>CHANCE_MUTATE) {
-						if(Math.random()>1-(CHANCE_MUTATE/2)) {
-							n.x+=1;
-						}else {
-							n.x-=1;
-						}
-					}
-					rand= Math.random();
-					if(rand>CHANCE_MUTATE) {
-						if(Math.random()>1-(CHANCE_MUTATE/2)) {
-							n.y+=1;
-						}else {
-							n.y-=1;
-						}
-					}
-				}
-				child.shrink();
-				newGen.add(child);
-				}
-			}
+	
 		}
 private void createStarter() {
 	// TODO Auto-generated method stub
