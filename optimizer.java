@@ -6,13 +6,11 @@ import java.util.Random;
 
 public class optimizer{
 	paper p;
-	ArrayList<paper> newGen;
-	ArrayList<paper>oldGen;
+	ArrayList<child> newGen;
+	ArrayList<child>oldGen;
 	Random r;
-	public static final int POP_SIZE=1000;
-	public static final int NUM_CHILDREN=50;
-	public static final int NUM_Gen=20;
-	public static final double CHANCE_MUTATE=.8;
+	public static final int POP_SIZE=50;
+	public static final int NUM_Gen=1;
 public optimizer(paper p) {
 	this.p=new paper(p);
 	this.p.getTreeDistances();
@@ -23,6 +21,7 @@ public paper optimizeWithoutCuts() {
 	createStarter();
 	int i=0;
 	while(i<NUM_Gen) {
+		System.out.println("generation:"+i+" , population"+oldGen.size()+" ,size: "+oldGen.get(0).p.getSize());
 		nextGen();
 		killOverlaping();
 		if(newGen.size()<POP_SIZE) {
@@ -30,21 +29,21 @@ public paper optimizeWithoutCuts() {
 			break;
 		}
 		sortBest();
-		killWeak();
 		oldGen=newGen;
 		i++;
 	}
 	sortBest();
-	p=oldGen.get(0);
-	System.out.print(hasOverlap(p));
+	p=oldGen.get(0).p;
+	System.out.println(hasOverlap(p)+"ok,,,");
 	//display();
 	return p;
 }
 private void killOverlaping() {
-	ArrayList<paper> toRemove= new ArrayList<paper>();
-	for(paper gen:newGen) {
+	ArrayList<child> toRemove= new ArrayList<child>();
+	for(child ch:newGen) {
+		paper gen= ch.p;
 		if(hasOverlap(gen)) {
-			toRemove.add(gen);
+			toRemove.add(ch);
 		}
 	}
 	newGen.removeAll(toRemove);
@@ -53,26 +52,69 @@ private void sortBest() {
 	// TODO Auto-generated method stub
 	//System.out.println(newGen);
 	Collections.sort(newGen);
-}
-private void killWeak() {	
-	System.out.println(newGen.size()+",");
-	newGen= new ArrayList<paper>(newGen.subList(0,POP_SIZE));
-}
-private void nextGen() {
 	
+}
+
+private void nextGen() {
+		newGen= new ArrayList<child>();
+		double total_breeding=0;
+		for(int i=0;i<POP_SIZE;i++) {
+			System.out.println(i+": "+oldGen.get(i).p.toString());
+			//double chance=1;
+			double chance=Math.pow(i+1, -1);
+			oldGen.get(i).breeding_number=chance+total_breeding;
+			//System.out.println("i"+i+",chance "+chance+" , number:"+oldGen.get(i).breeding_number);
+			total_breeding+=chance;
 		}
+		for(int i=0;i<POP_SIZE;i++) {
+			newGen.add(newChild(newParent(total_breeding),newParent(total_breeding)));
+		}
+		
+		}
+private child newChild(child newParent1, child newParent2) {
+	child newCh= new child(newParent1,p);
+	for(int i=0;i<newParent1.size;i++) {
+		for(int j=0;j<newParent1.num_steps;j++) {
+			if(Math.random()<.5) {
+				newCh.Xsteps[i][j]=newParent2.Xsteps[i][j];
+			}
+			if(Math.random()<.5) {
+				newCh.Ysteps[i][j]=newParent2.Ysteps[i][j];
+			}
+		}
+	}
+	return newCh;
+}
+private child newParent(double total) {
+	double rand= Math.random()*total;
+	//System.out.println(rand);
+	for(child ch:oldGen) {
+		if(ch.breeding_number>rand) {
+			//System.out.println(true);
+			return(ch);
+		}
+	}
+	return null;
+	//return new child(oldGen.get(0).p);
+}
 private void createStarter() {
 	// TODO Auto-generated method stub
-	oldGen= new ArrayList<paper>();
-	newGen= new ArrayList<paper>();
+	oldGen= new ArrayList<child>();
+	newGen= new ArrayList<child>();
 	p.shrink();
-	paper starter= new paper(p);
-	starter.shrink();
+	/*while(hasOverlap(p)) {
+		for(node n:p.nodes) {
+			n.forceX(n.getX()*2);
+			n.forceY(n.getY()*2);
+		}
+	}*/
+	System.out.println(p.distances);
+	System.out.print(hasOverlap(p));
+	p.shrink();
 	for(int i=0;i<POP_SIZE;i++) {
-		
-	oldGen.add(starter);
+		child newCh= new child(p);
+	oldGen.add(newCh);
 	}
-	System.out.print(starter.distances.toString());
 }
 
 private boolean overlaps(node one, node two, paper test) {

@@ -227,13 +227,10 @@ public boolean isFirstNode() {
 	return nodes.size()==0;
 }
 public void addNode(node newNode, node startNode) {
-	
 	connections.get(startNode).add(newNode);
 	ArrayList<node>newList= new ArrayList<node>();
-	ArrayList<node> newCuts= new ArrayList<node>();
 	newList.add(startNode);
 	connections.put(newNode,newList);
-	
 	nodes.add(newNode);
 	newNode.setID(nodes.indexOf(newNode));
 }
@@ -241,13 +238,10 @@ public void addNode(node newNode) {
 	if(!isFirstNode()) {
 	this.addNode(newNode,selected);
 	}else {
-		
 		ArrayList<node>newList= new ArrayList<node>();
 		connections.put(newNode,newList);
 		nodes.add(newNode);
-		
 		newNode.setID(nodes.indexOf(newNode));
-
 	}
 }
 public String toText() {
@@ -278,6 +272,7 @@ public boolean isLeaf(node n) {
 	return connections.get(n).size()<=1;
 }
 public boolean overlaps(node one, node two) {
+	if(!one.equals(two)) {
 	if(isLeaf(one)&&isLeaf(two)) {
 	int deltax= Math.abs(one.getX()-two.getX());
 	int deltay= Math.abs(one.getY()-two.getY());
@@ -288,6 +283,7 @@ public boolean overlaps(node one, node two) {
 		return false;
 	}
 	return true;
+	}
 	}
 	return false;
 }

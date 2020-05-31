@@ -180,6 +180,7 @@ private void optimizeWithoutCuts() {
 	paper optimized=myop.optimizeWithoutCuts();
 	if(optimized!=null) {
 		myPaper=optimized;
+		System.out.println("ok"+myPaper.width+","+myPaper.height);
 		myPaper.shrink();
 	}
 	update();
@@ -210,6 +211,10 @@ private void verifyAction() {
 	JOptionPane.showMessageDialog(this,"checking geometry");
 }
 private void optimizeAction() {
+	child ch= new child(myPaper);
+	//myPaper=ch.p;
+	update();
+	repaint();
 	// TODO Auto-generated method stub
 	
 	
@@ -222,7 +227,6 @@ private void saveFile() {
 	//JOptionPane.showMessageDialog(this,"saving file");
 	JFileChooser fc = new JFileChooser();
 	int returnVal = fc.showSaveDialog(this);
-
 	if (returnVal == JFileChooser.APPROVE_OPTION) {
 		File file = fc.getSelectedFile();
 		try {
@@ -234,33 +238,26 @@ private void saveFile() {
 			e.printStackTrace();
 		}
 	}
-
 }
-
 private void printFile() {
 	// TODO Auto-generated method stub
 	JOptionPane.showMessageDialog(this,"printing file");
 }
 private void openFile() {
-	// TODO Auto-generated method stub
-	//JOptionPane.showMessageDialog(this,"opening file");
 	JFileChooser fc = new JFileChooser();
 	int returnVal = fc.showOpenDialog(this);
-
 	if (returnVal == JFileChooser.APPROVE_OPTION) {
 		File file = fc.getSelectedFile();
 		try {
 		    ObjectInputStream fileIn = new ObjectInputStream(new FileInputStream(file));
 		    myPaper=(paper)fileIn.readObject();
-		    fileIn.close();
-		    
+		    fileIn.close();  
 		} catch (Exception e) {
 			System.err.println("Could not open the file.");
 			e.printStackTrace();
 		}
 	}
 }
-
 private void newFile() {
 	// TODO Auto-generated method stub
 	JOptionPane.showMessageDialog(this,"new file");
@@ -275,33 +272,39 @@ public void mouseClicked(MouseEvent arg0) {
 	int x= arg0.getX()/squareSize;
 	int y= (arg0.getY()-2*menuBar.getHeight())/squareSize;
 	if(myEdit.leafMode.isSelected()) {
-		System.out.print("leaf ");
-node newNode= new node(x, y, Integer.parseInt(myEdit.nodeSize.getValue().toString()));
-		
+node newNode= new node(x, y, (int)myEdit.nodeSize.getValue());
 		myPaper.addNode(newNode);
 		myPaper.setSelectedNode(newNode);
 		planDisplay();
 	}
 	if(myEdit.riverMode.isSelected()) {
-		System.out.print("river ");
-		
+		node newNode1= new node(x, y-1, 0);
+		node newNode2= new node(x, y, (int)myEdit.nodeSize.getValue());
+		node newNode3= new node(x, y+1, 0);
+		myPaper.addNode(newNode1);
+		myPaper.setSelectedNode(newNode1);
+		myPaper.addNode(newNode2);
+		myPaper.setSelectedNode(newNode2);
+		myPaper.addNode(newNode3);
+		myPaper.setSelectedNode(newNode1);
+		myEdit.nodeSize.setValue(0);
+		planDisplay();
 	}
 	if(myEdit.moveMode.isSelected()) {
-		System.out.print("move ");
 		myPaper.moveSelect(x,y);
 		repaint();
 	}
 	if(myEdit.selectMode.isSelected()) {
-		System.out.print("select ");
 		node selected= myPaper.getNodeAt(x,y);
-		if(selected==(null)) {
-			
+		if(selected==(null)) {	
 		}else {
 			myPaper.setSelectedNode(selected);
+			myEdit.nodeSize.setValue(selected.size);
+			myEdit.fixX.setSelected(selected.FixedX);
+			myEdit.fixY.setSelected(selected.FixedY);
 		}
 	}
 	if(myEdit.deleteMode.isSelected()) {
-		System.out.print("delete ");
 		node selected= myPaper.getNodeAt(x,y);
 		if(selected==(null)) {
 			
@@ -309,15 +312,11 @@ node newNode= new node(x, y, Integer.parseInt(myEdit.nodeSize.getValue().toStrin
 			myPaper.deleteNode(selected);
 		}
 	}
-	if(myEdit.fixX.isSelected()) {
-		System.out.print("X ");
-	}
-	if(myEdit.fixY.isSelected()) {
-		System.out.print("Y ");
-	}
-	System.out.print(myEdit.nodeSize.getValue());
-	System.out.print(myEdit.Width.getValue());
-	System.out.print(myEdit.Height.getValue());
+	myPaper.selected.size=(int)myEdit.nodeSize.getValue();
+	myPaper.selected.FixedX=myEdit.fixX.isSelected();
+	myPaper.selected.FixedY=myEdit.fixY.isSelected();
+	myPaper.width=(int) myEdit.Width.getValue();
+	myPaper.height=(int) myEdit.Height.getValue();
 	if(myEdit.square.isSelected()) {
 		System.out.print("square");
 	}
@@ -331,6 +330,7 @@ node newNode= new node(x, y, Integer.parseInt(myEdit.nodeSize.getValue().toStrin
 	planner.drawCursor(x*squareSize, y*squareSize);
 
 	System.out.println("ok, that worked");
+	
 }
 public void mouseMoved(MouseEvent arg0) {
 	// TODO Auto-generated method stub
@@ -341,10 +341,7 @@ public void mouseMoved(MouseEvent arg0) {
 	this.planner.myPaper=this.myPaper;
 	planner.drawNodes(myPaper);
 	planner.drawCursor(x*squareSize, y*squareSize);	
-
-	
 }
-
 @Override
 public void mouseEntered(MouseEvent arg0) {
 	// TODO Auto-generated method stub
@@ -392,10 +389,8 @@ public void keyTyped(KeyEvent arg0) {
 private void update() {
 	// TODO Auto-generated method stub
 	this.planner.myPaper=this.myPaper;
+	this.myEdit.myPaper=this.myPaper;
 	planner.repaint();
-	//this.paper_height=myEdit.getPaperWidth();
-	//this.paper_width=myEdit.getPaperHeight();
-	//myPaper.setPaperSize(paper_width, paper_height);
 	planner.drawNodes(myPaper);
 }
 }

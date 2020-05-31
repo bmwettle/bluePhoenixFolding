@@ -73,7 +73,7 @@ public void moveX(int x) {
 	this.x += x;
 }
 public String toString() {
-	return("."+ID);
+	return("    id"+ID+", size"+size+",x: "+x+", y: "+y+":");
 }
 public int getY() {
 	return y;

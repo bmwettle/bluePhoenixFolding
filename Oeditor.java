@@ -33,6 +33,7 @@ public class Oeditor extends JFrame implements ActionListener, ChangeListener{
 	JRadioButton square;
 	JRadioButton fixRatio;
 	JRadioButton fixDifference;
+	JButton Update;
 	
 public Oeditor(paper p){
 	super();
@@ -80,9 +81,7 @@ private void createNodeGui() {
 	JLabel nodeSizeLabel= new JLabel("SetNodeSize");
 	this.add(nodeSizeLabel);
 	nodeSize.setModel(new SpinnerNumberModel(1, 0, Integer.MAX_VALUE, 1));
-	this.add(nodeSize);
-
-	
+	this.add(nodeSize);	
 }
 private void createPaperGui() {
 	paper= new JLabel("Paper:");
@@ -101,7 +100,6 @@ private void createPaperGui() {
 	JLabel HeightLabel= new JLabel("Set Height:");
 	this.add(HeightLabel);
 	this.add(Height);
-	
 	optimizeParams= new ButtonGroup();
 	JLabel optimizeLabel= new JLabel("Optimize to:");
 	this.add(optimizeLabel);
@@ -115,7 +113,8 @@ private void createPaperGui() {
 	fixRatio= new JRadioButton("fix ratio");
 	this.add(fixRatio);
 	optimizeParams.add(fixRatio);
-	
+	Update= new JButton("Update");
+	this.add(Update);
 }
 @Override
 public void actionPerformed(ActionEvent arg0) {
@@ -124,14 +123,5 @@ public void actionPerformed(ActionEvent arg0) {
 }
 @Override
 public void stateChanged(ChangeEvent arg0) {
-	
-	if(Width.equals(arg0.getSource())) {
-		myPaper.width=(int) Width.getValue();
-	}	
-	if(Height.equals(arg0.getSource())) {
-		myPaper.height=(int) Height.getValue();
-	}
-	myPaper.selected.FixedX=this.fixX.isSelected();
-	myPaper.selected.FixedY=this.fixY.isSelected();
 }
 }
