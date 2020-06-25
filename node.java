@@ -1,9 +1,14 @@
 package origamiProject;
 
-import java.awt.Polygon;
-import java.awt.Shape;
-import java.awt.geom.Rectangle2D;
+
+
+import java.awt.Point;
+import java.awt.geom.Area;
+import java.awt.geom.Line2D;
 import java.io.Serializable;
+import java.util.ArrayList;
+import javafx.scene.shape.*;
+
 
 public class node implements Serializable{
 /**
@@ -16,6 +21,11 @@ int size;
 boolean FixedX;
 boolean FixedY;
 int ID;
+Area A;
+ArrayList<Point> corners;
+ArrayList<Line2D.Double> creases;
+
+
 public void setX(int newX) {
 	if(!FixedX) {
 	this.x=newX;
@@ -51,12 +61,7 @@ public node(node n) {
 	this.size=n.size;
 	this.ID=n.ID;
 }
-public Shape getShape(int scale, int buffer) {
-	
-	int Size=(size+buffer);
-	Shape poly= new Rectangle2D.Double(scale*(x-Size),scale*(y-Size),2*scale*Size,2*scale*Size);
-	return poly;
-}
+
 public void setID(int id) {
 	this.ID=id;
 }
