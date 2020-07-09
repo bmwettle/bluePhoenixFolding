@@ -63,6 +63,7 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 		this.addMouseListener(this);
 		this.addMouseMotionListener(this);
 		this.add(planner);
+		planner.setVisible(true);
 		makeEdit();
 		this.addKeyListener(this);
 	}
@@ -110,11 +111,13 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 		ButtonGroup design= new ButtonGroup();
 		JMenuItem ShowEditor= new JMenuItem("show Editor");
 		ShowEditor.setActionCommand("showEdit");
-		
+		JMenuItem optimize = new JMenuItem("optimize");
+		optimize.setActionCommand("optimize");
 		creases= new JRadioButton("show crease pattern");
 		treePlan= new JRadioButton("show tree plan");
 		treePlan.setSelected(true);
 		DisplayMenu.add(ShowEditor);
+		DisplayMenu.add(optimize);
 		DisplayMenu.add(treePlan);
 		DisplayMenu.add(creases);
 		design.add(treePlan);
@@ -122,6 +125,7 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 		creases.addActionListener(this);
 		treePlan.addActionListener(this);
 		ShowEditor.addActionListener(this);
+		optimize.addActionListener(this);
 		creases.setActionCommand("creases");
 		menuBar.add(DisplayMenu);
 
@@ -178,8 +182,27 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 	}
 	private void optimizeAction() {
 		// TODO Auto-generated method stub
+		System.out.println("testing");
+		//Optimizer opt= new Optimizer(myPaper);
+		//opt.optimize(myPaper);
+		//myPaper=opt.getBestDesign();
+		for(int i=0;i<10;i++) {
+		for(node n:myPaper.nodes) {
+			int xvel=0;
+			int yvel=0;
+		for(node m:myPaper.nodes) {
+			
+			int[] overlap=myPaper.getOverlap(n, m);
+			xvel+=Math.signum(overlap[0])*Math.signum(n.getX()-m.getX());
+			yvel+=Math.signum(overlap[1])*Math.signum(n.getY()-m.getY());
+		}
+		xvel=(int)Math.signum(xvel);
+		yvel=(int)Math.signum(yvel);
+		n.moveX(xvel);
+		n.moveY(yvel);
 	}
-
+	}
+	}
 	private void saveFile() {
 		//JOptionPane.showMessageDialog(this,"saving file");
 		JFileChooser fc = new JFileChooser();

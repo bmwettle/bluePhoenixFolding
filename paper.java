@@ -39,7 +39,7 @@ public class paper implements Serializable , Comparable<paper>{
 		node start= getFirstLeaf();
 		getArea(start,scale);
 		settled= new ArrayList<node>();
-		getCorners(start,scale);
+		//getCorners(start,scale);
 	}
 	private void getCorners(node n, int scale) {
 		System.out.println("true, good");
@@ -361,9 +361,23 @@ public class paper implements Serializable , Comparable<paper>{
 	public boolean isLeaf(node n) {
 		return connections.get(n).size()<=1;
 	}
+	public int[] getOverlap(node one, node two) {
+		if(!one.equals(two)) {
+			//if(isLeaf(one)&&isLeaf(two)) {
+				int deltax= Math.abs(one.getX()-two.getX());
+				int deltay= Math.abs(one.getY()-two.getY());
+				int overlapX=distances.get(one).get(two)-deltax;
+				int overlapY=distances.get(one).get(two)-deltay;
+				return new int[] {overlapX,overlapY};
+				
+			//}
+		}
+		return new int[] {0,0};
+
+	}
 	public boolean overlaps(node one, node two) {
 		if(!one.equals(two)) {
-			if(isLeaf(one)&&isLeaf(two)) {
+			///if(isLeaf(one)&&isLeaf(two)) {
 				int deltax= Math.abs(one.getX()-two.getX());
 				int deltay= Math.abs(one.getY()-two.getY());
 				if(deltax>=distances.get(one).get(two)) {
@@ -373,7 +387,7 @@ public class paper implements Serializable , Comparable<paper>{
 					return false;
 				}
 				return true;
-			}
+			//}
 		}
 		return false;
 	}
