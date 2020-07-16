@@ -186,22 +186,32 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 		//Optimizer opt= new Optimizer(myPaper);
 		//opt.optimize(myPaper);
 		//myPaper=opt.getBestDesign();
-		for(int i=0;i<10;i++) {
-		for(node n:myPaper.nodes) {
+		//for(int i=0;i<10;i++) {
+		/*for(node n:myPaper.nodes) {
 			int xvel=0;
 			int yvel=0;
 		for(node m:myPaper.nodes) {
-			
 			int[] overlap=myPaper.getOverlap(n, m);
+			if(myPaper.overlaps(n, m)) {
+				xvel+=2*Math.signum(overlap[0])*Math.signum(n.getX()-m.getX());
+				yvel+=2*Math.signum(overlap[1])*Math.signum(n.getY()-m.getY());
+				
+			}
+			if(myPaper.connections.get(n).contains(m)) {
 			xvel+=Math.signum(overlap[0])*Math.signum(n.getX()-m.getX());
 			yvel+=Math.signum(overlap[1])*Math.signum(n.getY()-m.getY());
+			}
 		}
 		xvel=(int)Math.signum(xvel);
 		yvel=(int)Math.signum(yvel);
 		n.moveX(xvel);
 		n.moveY(yvel);
-	}
-	}
+	}*/
+		Optimizer opt= new Optimizer(myPaper);
+		opt.optimize();
+		myPaper=opt.best;
+		myPaper.shrink();
+	//}
 	}
 	private void saveFile() {
 		//JOptionPane.showMessageDialog(this,"saving file");

@@ -87,15 +87,28 @@ public class Oplanner extends JPanel implements Printable    {
 				
 			}
 			for(node m:myP.nodes) {
-				if(myP.overlaps(n, m)) {
-					g.setColor(Color.RED);
-					g.drawLine(m.getX()*squareSize,m.getY()*squareSize, n.getX()*squareSize, n.getY()*squareSize);
-					g.setColor(Color.blue);
-				}
 				int[] overlap=myP.getOverlap(n, m);
+				
+				if(overlap[0]>0&&overlap[1]>0) {
+					g.setColor(Color.RED);
+					
+					xvel+=2*Math.signum(overlap[0])*Math.signum(n.getX()-m.getX());
+					yvel+=2*Math.signum(overlap[1])*Math.signum(n.getY()-m.getY());
+					
+				}else {
+					
+					if(overlap[0]==0||overlap[1]==0) {
+						g.setColor(Color.GREEN);
+					}else {
+						g.setColor(Color.BLUE);
+					}
+				}
+				g.drawLine(m.getX()*squareSize,m.getY()*squareSize, n.getX()*squareSize, n.getY()*squareSize);
+				g.setColor(Color.blue);
+				if(myP.connections.get(n).contains(m)) {
 				xvel+=Math.signum(overlap[0])*Math.signum(n.getX()-m.getX());
 				yvel+=Math.signum(overlap[1])*Math.signum(n.getY()-m.getY());
-				
+				}
 			}
 			xvel=(int)Math.signum(xvel);
 			yvel=(int)Math.signum(yvel);

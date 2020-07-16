@@ -412,4 +412,22 @@ public class paper implements Serializable , Comparable<paper>{
 		connections.get(node1).add(node2);
 		connections.get(node2).add(node1);
 	}
+	public boolean hasOverlap( node N1) {
+		for(node N2:nodes) {
+			if(overlaps(N1,N2)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	public boolean hasOverlap() {
+		for(node N1:nodes) {
+			for(node N2:nodes) {
+				if(overlaps(N1,N2)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 }
