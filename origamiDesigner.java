@@ -135,39 +135,10 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 		origamiDesigner design = new origamiDesigner();
 		design.setVisible(true);
 	}
-	@Override
+/*	@Override
 	public void actionPerformed(ActionEvent action) {
-		if(action.getActionCommand().equals("new")) {
-			newFile();
-		}
-		if(action.getActionCommand().equals("open")) {
-			openFile();
-		}
-		if(action.getActionCommand().equals("print")) {
-			printFile();
-		}
-		if(action.getActionCommand().equals("save")) {
-			saveFile();
-		}
-		if(action.getActionCommand().equals("optimize")) {
-			optimizeAction();
-		}
 
-		if(action.getActionCommand().equals("undo")) {
-			undoAction();
-		}
-		if(action.getActionCommand().equals("showEdit")) {
-			System.out.print(true);
-			makeEdit();
-		}
-		if(action.getActionCommand().equals("creases")) {
-			creasesDisplay();
-		}
-		if(action.getActionCommand().equals("plan")) {
-			planDisplay();
-
-		}
-	}
+	}*/
 	private void planDisplay() {
 		//planner.repaint();
 		//	planner.drawNodes(myPaper);
@@ -254,129 +225,7 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 	private int getSquareSize() {
 		return Math.min(planner.getWidth()/myPaper.width, planner.getHeight()/myPaper.height);
 	}
-	@Override
-	public void mouseClicked(MouseEvent arg0) {
-		
-		// TODO Auto-generated method stub
-		int squareSize= getSquareSize();
-		int x= arg0.getX()/squareSize;
-		int y= (arg0.getY()-2*menuBar.getHeight())/squareSize;
-		if(leafMode.isSelected()) {
-			node newNode= new node(x, y, (int)nodeSize.getValue());
-			myPaper.addNode(newNode);
-			myPaper.setSelectedNode(newNode);
-			planDisplay();
-		}
-		if(riverMode.isSelected()) {
-			node newNode1= new node(x, y-1, 0);
-			node newNode2= new node(x, y, (int)nodeSize.getValue());
-			node newNode3= new node(x, y+1, 0);
-			myPaper.addNode(newNode1);
-			myPaper.setSelectedNode(newNode1);
-			myPaper.addNode(newNode2);
-			myPaper.setSelectedNode(newNode2);
-			myPaper.addNode(newNode3);
-			myPaper.setSelectedNode(newNode1);
-			nodeSize.setValue(0);
-			planDisplay();
-		}
-		if(moveMode.isSelected()) {
-			repaint();
-			myPaper.moveSelect(x,y);
-			
-		}
-		if(selectMode.isSelected()) {
-			node selected= myPaper.getNodeAt(x,y);
-			if(selected==(null)) {	
-			}else {
-				myPaper.setSelectedNode(selected);
-				nodeSize.setValue(selected.size);
-				fixX.setSelected(selected.FixedX);
-				fixY.setSelected(selected.FixedY);
-			}
-		}
-		if(deleteMode.isSelected()) {
-			node selected= myPaper.getNodeAt(x,y);
-			if(selected==(null)) {
 
-			}else {
-				myPaper.deleteNode(selected);
-			}
-		}
-		if(myPaper.selected!=null) {
-			myPaper.selected.size=(int)nodeSize.getValue();
-			myPaper.selected.FixedX=fixX.isSelected();
-			myPaper.selected.FixedY=fixY.isSelected();
-		}
-		myPaper.width=(int) Width.getValue();
-		myPaper.height=(int) Height.getValue();
-		if(square.isSelected()) {
-			System.out.println("square");
-		}
-		if(fixDifference.isSelected()) {
-			System.out.println("difference ");
-		}
-		if(fixRatio.isSelected()) {
-			System.out.println("ratio ");
-		}
-		if(this.creases.isSelected()) {
-			planner.drawCreases(myPaper);
-		}
-		if(this.treePlan.isSelected()) {
-			planner.drawPlan(myPaper);
-		}
-		planner.drawCursor(x*squareSize, y*squareSize);
-
-		System.out.println("ok, that worked");
-
-	}
-	public void mouseMoved(MouseEvent arg0) {
-		
-	}
-	@Override
-	public void mouseEntered(MouseEvent arg0) {
-		// TODO Auto-generated method stub
-
-	}
-	@Override
-	public void mouseExited(MouseEvent arg0) {
-		// TODO Auto-generated method stub
-
-	}
-	@Override
-	public void mousePressed(MouseEvent arg0) {
-		// TODO Auto-generated method stub
-
-	}
-	@Override
-	public void mouseReleased(MouseEvent arg0) {
-		// TODO Auto-generated method stub
-
-	}
-	@Override
-	public void mouseDragged(MouseEvent arg0) {
-		// TODO Auto-generated method stub
-
-	}
-	@Override
-	public void keyPressed(KeyEvent arg0) {
-		// TODO Auto-generated method stub
-
-	}
-	@Override
-	public void keyReleased(KeyEvent arg0) {
-		// TODO Auto-generated method stub
-
-	}
-	@Override
-	public void keyTyped(KeyEvent arg0) {
-		char action =arg0.getKeyChar();
-		System.out.print(action+"ok");
-		if(action==' ') {
-			update();
-		}
-
-	}
 	private void update() {
 		// TODO Auto-generated method stub
 		this.planner.myPaper=this.myPaper;
@@ -462,9 +311,158 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 		Update= new JButton("Update");
 		myEdit.add(Update);
 	}
-	@Override
 	public void stateChanged(ChangeEvent e) {
 		// TODO Auto-generated method stub
 		update();
+	}
+	public void keyPressed(KeyEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+	public void keyReleased(KeyEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+	public void keyTyped(KeyEvent arg0) {
+		// TODO Auto-generated method stub
+		char action =arg0.getKeyChar();
+		System.out.print(action+"ok");
+		if(action==' ') {
+			update();
+		}
+
+	}
+	public void mouseDragged(MouseEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+	public void mouseMoved(MouseEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+	public void mouseClicked(MouseEvent arg0) {
+
+		// TODO Auto-generated method stub
+		int squareSize= getSquareSize();
+		int x= arg0.getX()/squareSize;
+		int y= (arg0.getY()-2*menuBar.getHeight())/squareSize;
+		if(leafMode.isSelected()) {
+			node newNode= new node(x, y, (int) Integer.parseInt(nodeSize.getValue().toString()));
+			myPaper.addNode(newNode);
+			myPaper.setSelectedNode(newNode);
+			planDisplay();
+		}
+		if(riverMode.isSelected()) {
+			node newNode1= new node(x, y-1, 0);
+			node newNode2= new node(x, y, (int) Integer.parseInt(nodeSize.getValue().toString()));
+			node newNode3= new node(x, y+1, 0);
+			myPaper.addNode(newNode1);
+			myPaper.setSelectedNode(newNode1);
+			myPaper.addNode(newNode2);
+			myPaper.setSelectedNode(newNode2);
+			myPaper.addNode(newNode3);
+			myPaper.setSelectedNode(newNode1);
+			nodeSize.setValue(0);
+			planDisplay();
+		}
+		if(moveMode.isSelected()) {
+			repaint();
+			myPaper.moveSelect(x,y);
+			
+		}
+		if(selectMode.isSelected()) {
+			node selected= myPaper.getNodeAt(x,y);
+			if(selected==(null)) {	
+			}else {
+				myPaper.setSelectedNode(selected);
+				nodeSize.setValue(selected.size);
+				fixX.setSelected(selected.FixedX);
+				fixY.setSelected(selected.FixedY);
+			}
+		}
+		if(deleteMode.isSelected()) {
+			node selected= myPaper.getNodeAt(x,y);
+			if(selected==(null)) {
+
+			}else {
+				myPaper.deleteNode(selected);
+			}
+		}
+		if(myPaper.selected!=null) {
+			myPaper.selected.size=(int) Integer.parseInt(nodeSize.getValue().toString());;
+			myPaper.selected.FixedX=fixX.isSelected();
+			myPaper.selected.FixedY=fixY.isSelected();
+		}
+		myPaper.width=(int) Integer.parseInt(Width.getValue().toString());
+		myPaper.height=(int) (int) Integer.parseInt(Height.getValue().toString());;
+		if(square.isSelected()) {
+			System.out.println("square");
+		}
+		if(fixDifference.isSelected()) {
+			System.out.println("difference ");
+		}
+		if(fixRatio.isSelected()) {
+			System.out.println("ratio ");
+		}
+		if(this.creases.isSelected()) {
+			planner.drawCreases(myPaper);
+		}
+		if(this.treePlan.isSelected()) {
+			planner.drawPlan(myPaper);
+		}
+		planner.drawCursor(x*squareSize, y*squareSize);
+
+		System.out.println("ok, that worked");
+
+	}
+	public void mouseEntered(MouseEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+	public void mouseExited(MouseEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+	public void mousePressed(MouseEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+	public void mouseReleased(MouseEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+	public void actionPerformed(ActionEvent arg0) {
+		
+		// TODO Auto-generated method stub
+		if(arg0.getActionCommand().equals("new")) {
+			newFile();
+		}
+		if(arg0.getActionCommand().equals("open")) {
+			openFile();
+		}
+		if(arg0.getActionCommand().equals("print")) {
+			printFile();
+		}
+		if(arg0.getActionCommand().equals("save")) {
+			saveFile();
+		}
+		if(arg0.getActionCommand().equals("optimize")) {
+			optimizeAction();
+		}
+
+		if(arg0.getActionCommand().equals("undo")) {
+			undoAction();
+		}
+		if(arg0.getActionCommand().equals("showEdit")) {
+			System.out.print(true);
+			makeEdit();
+		}
+		if(arg0.getActionCommand().equals("creases")) {
+			creasesDisplay();
+		}
+		if(arg0.getActionCommand().equals("plan")) {
+			planDisplay();
+
+		}
 	}
 }

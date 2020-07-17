@@ -116,12 +116,13 @@ private void createPaperGui() {
 	Update= new JButton("Update");
 	this.add(Update);
 }
-@Override
-public void actionPerformed(ActionEvent arg0) {
-	
-	
-}
-@Override
 public void stateChanged(ChangeEvent arg0) {
+	// TODO Auto-generated method stub
+	
 }
+public void actionPerformed(ActionEvent arg0) {
+	// TODO Auto-generated method stub
+	
+}
+
 }

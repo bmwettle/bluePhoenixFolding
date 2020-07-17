@@ -82,9 +82,9 @@ public class Oplanner extends JPanel implements Printable    {
 			g.draw(new Rectangle2D.Double((n.getX()-size)*squareSize,(n.getY()-size)*squareSize,size*2*squareSize,size*2*squareSize));
 			g.fill(new Rectangle2D.Double(n.getX()*squareSize-size*smallSquareSize,n.getY()*squareSize-size*smallSquareSize,size*2*smallSquareSize,size*2*smallSquareSize));
 			for(node m:myP.connections.get(n)) {
-				
+				g.setStroke(new BasicStroke(3));
 				g.drawLine(m.getX()*squareSize,m.getY()*squareSize, n.getX()*squareSize, n.getY()*squareSize);
-				
+				g.setStroke(new BasicStroke(1));
 			}
 			for(node m:myP.nodes) {
 				int[] overlap=myP.getOverlap(n, m);
@@ -94,6 +94,7 @@ public class Oplanner extends JPanel implements Printable    {
 					
 					xvel+=2*Math.signum(overlap[0])*Math.signum(n.getX()-m.getX());
 					yvel+=2*Math.signum(overlap[1])*Math.signum(n.getY()-m.getY());
+					g.setStroke(new BasicStroke(3));
 					
 				}else {
 					
@@ -105,6 +106,7 @@ public class Oplanner extends JPanel implements Printable    {
 				}
 				g.drawLine(m.getX()*squareSize,m.getY()*squareSize, n.getX()*squareSize, n.getY()*squareSize);
 				g.setColor(Color.blue);
+				g.setStroke(new BasicStroke(1));
 				if(myP.connections.get(n).contains(m)) {
 				xvel+=Math.signum(overlap[0])*Math.signum(n.getX()-m.getX());
 				yvel+=Math.signum(overlap[1])*Math.signum(n.getY()-m.getY());

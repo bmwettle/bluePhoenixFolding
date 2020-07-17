@@ -21,7 +21,7 @@ public class paper implements Serializable , Comparable<paper>{
 	public HashMap<node,HashMap<node, Integer>> distances;
 	ArrayList<node> settled;
 	ArrayList<node> unSettled;
-	@Override
+
 	public int compareTo(paper b) {
 		return this.getSize()-b.getSize();
 	}

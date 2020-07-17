@@ -7,7 +7,7 @@ import java.awt.geom.Area;
 import java.awt.geom.Line2D;
 import java.io.Serializable;
 import java.util.ArrayList;
-import javafx.scene.shape.*;
+
 
 
 public class node implements Serializable{
@@ -23,8 +23,8 @@ boolean FixedY;
 int ID;
 Area A;
 ArrayList<Point> corners;
-ArrayList<Line2D.Double> creases;
 
+ArrayList<Line2D.Double> creases;
 
 public void setX(int newX) {
 	if(!FixedX) {

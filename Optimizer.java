@@ -10,7 +10,7 @@ public class Optimizer{
 	ArrayList<paper> newGen;
 	ArrayList<paper>oldGen;
 	Random r;
-	public static final int MAX_POP_SIZE=5000;
+	public static final int MAX_POP_SIZE=500;
 	public static final int NUM_Gen=10;
 public Optimizer(paper p) {
 	this.p=new paper(p);
