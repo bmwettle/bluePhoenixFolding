@@ -48,6 +48,7 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 	JButton Update;
 	private JRadioButton creases;
 	private JRadioButton treePlan;
+	int squareSize;
 	public origamiDesigner() {
 		setSize(400,400);
 		setTitle("designer");
@@ -60,12 +61,24 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 		this.setJMenuBar(menuBar);
 		planner=new Oplanner(myPaper);
 		planner.setDoubleBuffered(true);
-		this.addMouseListener(this);
-		this.addMouseMotionListener(this);
+		
 		this.add(planner);
+		
 		planner.setVisible(true);
+		planner.addMouseListener(this);
+		planner.addMouseMotionListener(this);
 		makeEdit();
+		myEdit.addMouseListener(this);
+		//myEdit.addComponentListener(l);
 		this.addKeyListener(this);
+		//setComponentZOrder(this.myEdit,1);
+		planner.addComponentListener(new ComponentAdapter() {
+		    public void componentResized(ComponentEvent componentEvent) {
+		    	myEdit.toFront();
+				System.out.println("ok");
+		mouseClicked(null);
+		    }});
+
 	}
 	public void createMenu() {
 		menuBar= new JMenuBar();
@@ -152,37 +165,17 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 		JOptionPane.showMessageDialog(this,"action undone");
 	}
 	private void optimizeAction() {
-		// TODO Auto-generated method stub
-		System.out.println("testing");
-		//Optimizer opt= new Optimizer(myPaper);
-		//opt.optimize(myPaper);
-		//myPaper=opt.getBestDesign();
-		//for(int i=0;i<10;i++) {
-		/*for(node n:myPaper.nodes) {
-			int xvel=0;
-			int yvel=0;
-		for(node m:myPaper.nodes) {
-			int[] overlap=myPaper.getOverlap(n, m);
-			if(myPaper.overlaps(n, m)) {
-				xvel+=2*Math.signum(overlap[0])*Math.signum(n.getX()-m.getX());
-				yvel+=2*Math.signum(overlap[1])*Math.signum(n.getY()-m.getY());
-				
-			}
-			if(myPaper.connections.get(n).contains(m)) {
-			xvel+=Math.signum(overlap[0])*Math.signum(n.getX()-m.getX());
-			yvel+=Math.signum(overlap[1])*Math.signum(n.getY()-m.getY());
-			}
-		}
-		xvel=(int)Math.signum(xvel);
-		yvel=(int)Math.signum(yvel);
-		n.moveX(xvel);
-		n.moveY(yvel);
-	}*/
 		Optimizer opt= new Optimizer(myPaper);
 		opt.optimize();
 		myPaper=opt.best;
 		myPaper.shrink();
-	//}
+		System.out.println("size is"+myPaper.height+" "+myPaper.width);
+		int w=myPaper.width;
+		int h= myPaper.height;
+		this.Height.setValue(h);
+		this.Width.setValue(w);
+		
+		this.escMode.setSelected(true);
 	}
 	private void saveFile() {
 		//JOptionPane.showMessageDialog(this,"saving file");
@@ -217,6 +210,17 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 				e.printStackTrace();
 			}
 		}
+		int w=myPaper.width;
+		int h= myPaper.height;
+		this.Height.setValue(h);
+		this.Width.setValue(w);
+		
+		this.escMode.setSelected(true);
+		if(myPaper.selected!=null) {
+			this.nodeSize.setValue(myPaper.selected.size);
+			this.fixX.setSelected(myPaper.selected.FixedX);
+			this.fixY.setSelected(myPaper.selected.FixedY);
+		}
 	}
 	private void newFile() {
 		// TODO Auto-generated method stub
@@ -230,7 +234,7 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 		// TODO Auto-generated method stub
 		this.planner.myPaper=this.myPaper;
 
-		planner.repaint();
+		//planner.repaint();
 		if(this.creases.isSelected()) {
 			planner.drawCreases(myPaper);
 		}
@@ -268,14 +272,17 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 		myEdit.add(fixXLabel);
 		fixX= new JCheckBox("fix node X");
 		myEdit.add(fixX);
+		fixX.addChangeListener(this);
 		JLabel fixYLabel= new JLabel("Fix Y:");
 		myEdit.add(fixYLabel);
 		fixY= new JCheckBox("fix node Y");
 		myEdit.add(fixY);
+		fixY.addChangeListener(this);
 		nodeSize=new JSpinner();
 		JLabel nodeSizeLabel= new JLabel("SetNodeSize");
 		myEdit.add(nodeSizeLabel);
 		nodeSize.setModel(new SpinnerNumberModel(1, 0, Integer.MAX_VALUE, 1));
+		nodeSize.addChangeListener(this);
 		myEdit.add(nodeSize);	
 	}
 	private void createPaperGui() {
@@ -313,7 +320,7 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 	}
 	public void stateChanged(ChangeEvent e) {
 		// TODO Auto-generated method stub
-		update();
+		this.mouseClicked(null);
 	}
 	public void keyPressed(KeyEvent arg0) {
 		// TODO Auto-generated method stub
@@ -341,11 +348,43 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 		
 	}
 	public void mouseClicked(MouseEvent arg0) {
-
 		// TODO Auto-generated method stub
-		int squareSize= getSquareSize();
-		int x= arg0.getX()/squareSize;
-		int y= (arg0.getY()-2*menuBar.getHeight())/squareSize;
+		squareSize= getSquareSize();
+		int x = 0;
+		int y = 0;
+		if(arg0!=null) {
+		try {
+		x= arg0.getX()/squareSize;
+		y= (arg0.getY())/squareSize;
+		System.out.println(planner.getX()+" "+arg0.getX()+", "+planner.getY()+" "+arg0.getYOnScreen());
+		System.out.println("x is"+x+" y is "+y);
+		} catch (Exception e) { }
+		makeSelectedAction( x, y);
+		}
+		if(myPaper.selected!=null) {
+			myPaper.selected.size=(int) Integer.parseInt(nodeSize.getValue().toString());;
+			myPaper.selected.FixedX=fixX.isSelected();
+			myPaper.selected.FixedY=fixY.isSelected();
+		}
+		myPaper.width=(int) Integer.parseInt(Width.getValue().toString());
+		myPaper.height=(int)Integer.parseInt(Height.getValue().toString());;
+		if(square.isSelected()) {
+			System.out.println("square");
+		}
+		if(fixDifference.isSelected()) {
+			System.out.println("difference ");
+		}
+		if(fixRatio.isSelected()) {
+			System.out.println("ratio ");
+		}
+		drawPlanner();
+		planner.drawCursor(x*squareSize, y*squareSize);
+
+
+
+	}
+	private void makeSelectedAction(int x, int y) {
+
 		if(leafMode.isSelected()) {
 			node newNode= new node(x, y, (int) Integer.parseInt(nodeSize.getValue().toString()));
 			myPaper.addNode(newNode);
@@ -366,7 +405,8 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 			planDisplay();
 		}
 		if(moveMode.isSelected()) {
-			repaint();
+			//repaint();
+			planner.clearNode(myPaper.selected);
 			myPaper.moveSelect(x,y);
 			
 		}
@@ -388,32 +428,6 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 				myPaper.deleteNode(selected);
 			}
 		}
-		if(myPaper.selected!=null) {
-			myPaper.selected.size=(int) Integer.parseInt(nodeSize.getValue().toString());;
-			myPaper.selected.FixedX=fixX.isSelected();
-			myPaper.selected.FixedY=fixY.isSelected();
-		}
-		myPaper.width=(int) Integer.parseInt(Width.getValue().toString());
-		myPaper.height=(int) (int) Integer.parseInt(Height.getValue().toString());;
-		if(square.isSelected()) {
-			System.out.println("square");
-		}
-		if(fixDifference.isSelected()) {
-			System.out.println("difference ");
-		}
-		if(fixRatio.isSelected()) {
-			System.out.println("ratio ");
-		}
-		if(this.creases.isSelected()) {
-			planner.drawCreases(myPaper);
-		}
-		if(this.treePlan.isSelected()) {
-			planner.drawPlan(myPaper);
-		}
-		planner.drawCursor(x*squareSize, y*squareSize);
-
-		System.out.println("ok, that worked");
-
 	}
 	public void mouseEntered(MouseEvent arg0) {
 		// TODO Auto-generated method stub
@@ -464,5 +478,21 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 			planDisplay();
 
 		}
+		drawPlanner();
+		//planner.drawCursor(x*squareSize, y*squareSize);
+
 	}
+	public void drawPlanner() {
+planner.validate();
+//planner.repaint();
+		if(this.creases.isSelected()) {
+			planner.drawCreases(myPaper);
+		}
+		if(this.treePlan.isSelected()) {
+			planner.drawPlan(myPaper);
+		}
+		//planner.drawCursor(x*squareSize, y*squareSize);
+
+	}
+	
 }

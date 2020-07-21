@@ -5,6 +5,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Area;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.print.PageFormat;
@@ -21,7 +22,7 @@ public class Oplanner extends JPanel implements Printable    {
 	paper myPaper;
 	int mouseX=0;
 	int mouseY=0;
-
+	boolean drawCreases;
 	Graphics2D g;
 	int squareSize;
 	int smallSquareSize;
@@ -35,13 +36,17 @@ public class Oplanner extends JPanel implements Printable    {
 		this.setDoubleBuffered(true);
 		
 	}
-	void paintCommponent(Graphics g1){
+public void paintCommponent(Graphics g1){
 		super.paintComponent(g1);
+		
 		//drawNodes(myPaper);
-		//this.drawCreases(p,g1);
+		this.drawCreases(p,g1);
 		//g.drawOval(mouseX-3, mouseY-3, 6, 6);
 
 	}
+public void clearNode(node n) {
+ this.getGraphics().clearRect(squareSize*(n.getX()-n.getSize()),squareSize*(n.getY()-n.getSize()),squareSize*(2*n.getSize()),squareSize*(2*n.getSize()));
+}
 
 	public void drawCursor(int x,int y) {
 		//repaint();
@@ -51,6 +56,9 @@ public class Oplanner extends JPanel implements Printable    {
 
 	}
 	public void drawGrid(int shift) {
+		if(shift==0) {
+	g.clearRect(0, 0, this.getWidth(), this.getHeight());
+		}
 		for (int i=0;i<=height;i++){
 			g.drawLine(0, i*squareSize-shift, width*squareSize, i*squareSize-shift);
 
@@ -79,14 +87,19 @@ public class Oplanner extends JPanel implements Printable    {
 			int size= n.size;
 			int xvel=0;
 			int yvel=0;
+			if(myP.isSelcted(n)) {
+				g.setColor(Color.green);
+			}
 			g.draw(new Rectangle2D.Double((n.getX()-size)*squareSize,(n.getY()-size)*squareSize,size*2*squareSize,size*2*squareSize));
+			
 			g.fill(new Rectangle2D.Double(n.getX()*squareSize-size*smallSquareSize,n.getY()*squareSize-size*smallSquareSize,size*2*smallSquareSize,size*2*smallSquareSize));
+			g.setColor(Color.blue);
 			for(node m:myP.connections.get(n)) {
 				g.setStroke(new BasicStroke(3));
 				g.drawLine(m.getX()*squareSize,m.getY()*squareSize, n.getX()*squareSize, n.getY()*squareSize);
 				g.setStroke(new BasicStroke(1));
 			}
-			for(node m:myP.nodes) {
+			/*for(node m:myP.nodes) {
 				int[] overlap=myP.getOverlap(n, m);
 				
 				if(overlap[0]>0&&overlap[1]>0) {
@@ -119,7 +132,7 @@ public class Oplanner extends JPanel implements Printable    {
 			g.setStroke(new BasicStroke(3));
 			g.drawLine(n.getX()*squareSize,n.getY()*squareSize, (n.getX()+xvel)*squareSize, (n.getY()+yvel)*squareSize);
 			g.setColor(Color.blue);
-			g.setStroke(new BasicStroke(1));
+			g.setStroke(new BasicStroke(1));*/
 		}
 	}
 	public void drawCreases(paper myP, Graphics g1){
@@ -139,8 +152,9 @@ public class Oplanner extends JPanel implements Printable    {
 		g.setStroke(new BasicStroke(1));
 		if(myP.nodes.size()>0) {
 			myP.getAreas(squareSize);
-
+			Area total = new Area(new Rectangle2D.Double(0,0,myP.width*squareSize,myP.height*squareSize));
 			for(node n:myP.nodes) {
+				total.subtract(n.A);
 				if(myP.isLeaf(n)) {
 					
 					g.draw(n.A);
@@ -155,6 +169,8 @@ public class Oplanner extends JPanel implements Printable    {
 				
 				}				
 			}
+			g.setColor(Color.ORANGE);
+			g.fill(total);
 		}
 		g.setColor(Color.BLACK);
 

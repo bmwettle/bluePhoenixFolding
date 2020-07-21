@@ -16,6 +16,10 @@ public class paper implements Serializable , Comparable<paper>{
 	int height;
 	int square_size;
 	node selected;
+	boolean isFixedRatio;
+	boolean isFixedDifference;
+	double ratioX_Y;
+	int differenceX_Y;
 	public HashMap<node, ArrayList<node>> connections;
 	public ArrayList<node> nodes;
 	public HashMap<node,HashMap<node, Integer>> distances;
@@ -27,6 +31,14 @@ public class paper implements Serializable , Comparable<paper>{
 	}
 	public int getSize() {
 		// TODO Auto-generated method stub
+		if(this.isFixedDifference) {
+			return Math.max(width, height+this.differenceX_Y);
+		}
+		else {
+			if(this.isFixedRatio) {
+				return Math.max(width, (int)( height*this.ratioX_Y));
+			}
+		}
 		return Math.max(width, height);
 		//return(width*height);
 	}
@@ -41,34 +53,7 @@ public class paper implements Serializable , Comparable<paper>{
 		settled= new ArrayList<node>();
 		//getCorners(start,scale);
 	}
-	private void getCorners(node n, int scale) {
-		System.out.println("true, good");
-		System.out.println(this.settled.size());
-		settled.add(n);
-		if(isLeaf(n)) {
-			
-		}else {
-
-			for(node m:this.connections.get(n)) {
-				if(!settled.contains(m)) {
-					System.out.println("true, good2");
-					getCorners(m,scale);
-				}	
-			}
-			for(node m:this.connections.get(n)) {
-				if(settled.contains(m)) {
-					
-				}
-
-			}
-		}
-		for(node m:this.connections.get(n)) {
-			if(!settled.contains(m)) {
-				getArea(m,scale);
-				System.out.println("this is ok2");
-			}	
-		}	
-	}
+	
 	public node getFirstLeaf() {
 		for(node n:nodes) {
 			if(isLeaf(n)) {
@@ -110,11 +95,15 @@ public class paper implements Serializable , Comparable<paper>{
 							for(int b=-1;b<=1;b+=2) {
 								Point k= new Point(p.x-2*a,p.y-2*b);
 								if(m.A.contains(k)) {
+									Point d= new Point(p.x+2*a,p.y-2*b);
+									Point e= new Point(p.x-2*a,p.y+2*b);
+									if(m.A.contains(d)==m.A.contains(e)) {
 									//g.drawRect(k.x, k.y, 2, 2);
 									Point l= new Point(p.x+a*n.size*scale,p.y+b*n.size*scale);
 									System.out.println(n.getX()+","+n.getY()+";"+k.x/scale+","+k.y/scale+";"+l.x/scale+","+l.y/scale);
 									n.corners.add(l);
 									n.creases.add(new Line2D.Double(p.x,p.y,l.x,l.y));
+									}
 								}
 							}
 						}
@@ -170,6 +159,10 @@ public class paper implements Serializable , Comparable<paper>{
 		this.height=p.height;
 		this.square_size=p.square_size;
 		this.nodes= new ArrayList<node>();
+		this.isFixedDifference=p.isFixedDifference;
+		this.isFixedRatio=p.isFixedRatio;
+		this.ratioX_Y=p.ratioX_Y;
+		this.differenceX_Y=p.differenceX_Y;
 		this.settled=new ArrayList<node>();
 		this.unSettled= new ArrayList<node>();
 		for(node n: p.nodes) {

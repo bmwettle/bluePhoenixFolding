@@ -75,16 +75,21 @@ public int getX() {
 	return x;
 }
 public void moveX(int x) {
+	if(!this.FixedX) {
 	this.x += x;
+	}
 }
 public String toString() {
 	return("    id"+ID+", size"+size+",x: "+x+", y: "+y+":");
 }
 public int getY() {
+	
 	return y;
 }
 public void moveY(int y) {
+	if(!this.FixedY) {
 	this.y += y;
+	} 
 }
 public int getSize() {
 	return size;
