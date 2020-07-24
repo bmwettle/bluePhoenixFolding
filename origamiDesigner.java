@@ -224,7 +224,9 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 	}
 	private void newFile() {
 		// TODO Auto-generated method stub
-		JOptionPane.showMessageDialog(this,"new file");
+		origamiDesigner design = new origamiDesigner();
+		System.out.println(this.equals(design));
+		design.setVisible(true);
 	}
 	private int getSquareSize() {
 		return Math.min(planner.getWidth()/myPaper.width, planner.getHeight()/myPaper.height);

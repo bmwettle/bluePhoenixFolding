@@ -149,21 +149,22 @@ public void clearNode(node n) {
 		drawGrid(0);
 		drawGrid(squareSize/2);
 		
-		g.setStroke(new BasicStroke(1));
+		g.setStroke(new BasicStroke(2));
 		if(myP.nodes.size()>0) {
 			myP.getAreas(squareSize);
 			Area total = new Area(new Rectangle2D.Double(0,0,myP.width*squareSize,myP.height*squareSize));
 			for(node n:myP.nodes) {
 				total.subtract(n.A);
 				if(myP.isLeaf(n)) {
-					
+					g.setColor(Color.blue);
 					g.draw(n.A);
 				}else {
-					
+					g.setColor(Color.green);
 					g.draw(n.A);
 				}
 				if(n.creases!=null) {
 				for(Line2D.Double l:n.creases) {
+					g.setColor(Color.BLACK);
 					g.draw(l);
 				}
 				

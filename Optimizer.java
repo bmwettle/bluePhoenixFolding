@@ -70,9 +70,23 @@ private void sortBest() {
 
 private void nextGen() {
 		newGen= new ArrayList<paper>();
+		for(node n:best.nodes) {
+			if(n.size==0) {
+				int x=0;
+				int y=0;
+				for(node m:best.connections.get(n)) {
+					x+=m.getX();
+					y+=m.getY();
+				}
+				x=x/best.connections.get(n).size();
+				y=y/best.connections.get(n).size();
+				n.forceX(x);
+				n.forceY(y);
+			}
+		}
 		newGen.add(best);
 		for( int i=0;i<p.nodes.size();i++) {
-			//if(best.isLeaf(best.nodes.get(i))) {
+			if(best.nodes.get(i).size!=0) {
 			ArrayList<paper> toAdd= new ArrayList<paper>();
 			for(paper search:newGen) {
 				for(int j=-1;j<=1;j++) {
@@ -82,7 +96,8 @@ private void nextGen() {
 						m.moveX(j);
 						m.moveY(k);
 						if(!e.hasOverlap(m)) {
-							toAdd.add(e);						
+							toAdd.add(e);		
+							
 						}
 					}
 				}
@@ -90,7 +105,7 @@ private void nextGen() {
 			System.out.println(" adding new"+toAdd.size());
 			newGen=toAdd;
 			sortBest();
-		//}
+		}
 		}
 		System.out.println("new gen size is: "+newGen.size());
 		}

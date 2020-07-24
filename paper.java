@@ -207,7 +207,7 @@ public class paper implements Serializable , Comparable<paper>{
 		int ymax=0;
 		int ymin=Integer.MAX_VALUE;
 		for(node n:nodes) {
-			if(isLeaf(n)) {
+			//if(isLeaf(n)) {
 				if(n.getX()>xmax) {
 					xmax=n.getX();
 				}
@@ -220,7 +220,7 @@ public class paper implements Serializable , Comparable<paper>{
 				if(n.getY()<ymin) {
 					ymin=n.getY();
 				}
-			}
+			//}
 		}
 		for( node n:nodes) {
 			n.forceX(n.getX()-xmin);	
