@@ -10,6 +10,7 @@ import java.io.*;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import java.util.ArrayList;
 
 
 public class origamiDesigner extends JFrame implements ActionListener,ChangeListener, MouseListener,MouseMotionListener, KeyListener{
@@ -18,6 +19,7 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
+	private static ArrayList<origamiDesigner> allDesignerWindows = new ArrayList<>();
 
 	Rectangle mouseRect;
 	String mode;
@@ -52,7 +54,7 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 	public origamiDesigner() {
 		setSize(400,400);
 		setTitle("designer");
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+//		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // MC
 		myPaper= new paper(16,16);
 		menuBar= new JMenuBar();
 		mouseRect= new Rectangle(0,0,6,6);
@@ -79,6 +81,29 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 		mouseClicked(null);
 		    }});
 
+		this.addWindowListener(new WindowAdapter() { // MC
+            @Override
+            public void windowClosing(WindowEvent e) {
+
+				Object closedThing = e.getSource();
+
+				// if the thing that was closed was an origamiDesigner
+				if (closedThing instanceof origamiDesigner) {
+					
+					// remove it from the list of active windows
+					origamiDesigner.allDesignerWindows.remove(closedThing);
+
+					// dispose of the closed window
+					((origamiDesigner) closedThing).setVisible(false);
+					((origamiDesigner) closedThing).dispose();
+
+					// if this was the last active window, end the program
+					if (origamiDesigner.allDesignerWindows.isEmpty()) {
+						System.exit(0);
+					}
+				}
+            }
+        });
 	}
 	public void createMenu() {
 		menuBar= new JMenuBar();
@@ -146,6 +171,7 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 
 	public static void main(String[] args){
 		origamiDesigner design = new origamiDesigner();
+		origamiDesigner.allDesignerWindows.add(design); // MC
 		design.setVisible(true);
 	}
 /*	@Override
@@ -225,6 +251,7 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 	private void newFile() {
 		// TODO Auto-generated method stub
 		origamiDesigner design = new origamiDesigner();
+		origamiDesigner.allDesignerWindows.add(design); // MC
 		System.out.println(this.equals(design));
 		design.setVisible(true);
 	}
