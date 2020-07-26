@@ -26,6 +26,8 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 	JMenuBar menuBar;
 	JMenu fileMenu; 
 	paper myPaper;
+	ArrayList<paper>undoPapers;
+	ArrayList<paper>redoPapers;
 	Oplanner planner;
 	JFrame myEdit;
 	JLabel Node;
@@ -56,6 +58,8 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 		setTitle("designer");
 //		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // MC
 		myPaper= new paper(16,16);
+		redoPapers=new ArrayList<paper>();
+		undoPapers= new ArrayList<paper>();
 		menuBar= new JMenuBar();
 		mouseRect= new Rectangle(0,0,6,6);
 		createMenu();
@@ -89,17 +93,31 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 
 				// if the thing that was closed was an origamiDesigner
 				if (closedThing instanceof origamiDesigner) {
-					
-					// remove it from the list of active windows
-					origamiDesigner.allDesignerWindows.remove(closedThing);
+					if(undoPapers.size()!=0) {
+					int dialogResult = JOptionPane.showConfirmDialog(
+	                        null, "Would you like to save your work?", 
+	                        "Save?", JOptionPane.YES_NO_OPTION);
+	                if (dialogResult == JOptionPane.YES_OPTION) {
+	                    System.out.println("Saving...");
+	                    ((origamiDesigner) closedThing).saveFile();
+	                }else {
+	                	// remove it from the list of active windows
+						origamiDesigner.allDesignerWindows.remove(closedThing);
 
-					// dispose of the closed window
-					((origamiDesigner) closedThing).setVisible(false);
-					((origamiDesigner) closedThing).dispose();
-
-					// if this was the last active window, end the program
-					if (origamiDesigner.allDesignerWindows.isEmpty()) {
-						System.exit(0);
+						// dispose of the closed window
+						((origamiDesigner) closedThing).setVisible(false);
+						((origamiDesigner) closedThing).dispose();
+						((origamiDesigner) closedThing).myEdit.setVisible(false);
+						((origamiDesigner) closedThing).myEdit.dispose();
+						// if this was the last active window, end the program
+						if (origamiDesigner.allDesignerWindows.isEmpty()) {
+							((origamiDesigner) closedThing).setVisible(false);
+							((origamiDesigner) closedThing).dispose();
+							((origamiDesigner) closedThing).myEdit.setVisible(false);
+							((origamiDesigner) closedThing).myEdit.dispose();
+							System.exit(0);
+						}
+	                }
 					}
 				}
             }
@@ -151,6 +169,10 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 		ShowEditor.setActionCommand("showEdit");
 		JMenuItem optimize = new JMenuItem("optimize");
 		optimize.setActionCommand("optimize");
+		JMenuItem undo = new JMenuItem("undo");
+		undo.setActionCommand("undo");
+		JMenuItem redo = new JMenuItem("redo");
+		redo.setActionCommand("redo");
 		creases= new JRadioButton("show crease pattern");
 		treePlan= new JRadioButton("show tree plan");
 		treePlan.setSelected(true);
@@ -158,12 +180,16 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 		DisplayMenu.add(optimize);
 		DisplayMenu.add(treePlan);
 		DisplayMenu.add(creases);
+		DisplayMenu.add(undo);
+		DisplayMenu.add(redo);
 		design.add(treePlan);
 		design.add(creases);
 		creases.addActionListener(this);
 		treePlan.addActionListener(this);
 		ShowEditor.addActionListener(this);
 		optimize.addActionListener(this);
+		undo.addActionListener(this);
+		redo.addActionListener(this);
 		creases.setActionCommand("creases");
 		menuBar.add(DisplayMenu);
 
@@ -188,7 +214,14 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 	}
 	private void undoAction() {
 		// TODO Auto-generated method stub
-		JOptionPane.showMessageDialog(this,"action undone");
+		
+		int last=(undoPapers.size()-1);
+		if(last>0) {
+		redoPapers.add(myPaper);
+		System.out.println(this.myPaper.equals(this.undoPapers.get(last)));
+		this.myPaper=this.undoPapers.get(last);
+		undoPapers.remove(last);
+		}
 	}
 	private void optimizeAction() {
 		Optimizer opt= new Optimizer(myPaper);
@@ -213,6 +246,9 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 				ObjectOutputStream fileOut = new ObjectOutputStream(new FileOutputStream (file));
 				fileOut.writeObject(myPaper);
 				fileOut.close();
+				this.redoPapers= new ArrayList<paper>();
+				this.undoPapers= new ArrayList<paper>();
+				
 			} catch (Exception e) {
 				System.err.println("Could not open the file.");
 				e.printStackTrace();
@@ -258,7 +294,6 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 	private int getSquareSize() {
 		return Math.min(planner.getWidth()/myPaper.width, planner.getHeight()/myPaper.height);
 	}
-
 	private void update() {
 		// TODO Auto-generated method stub
 		this.planner.myPaper=this.myPaper;
@@ -413,16 +448,24 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 
 	}
 	private void makeSelectedAction(int x, int y) {
-
+		
 		if(leafMode.isSelected()) {
-			node newNode= new node(x, y, (int) Integer.parseInt(nodeSize.getValue().toString()));
+			this.undoPapers.add(new paper(myPaper));
+			System.out.println(undoPapers.size());
+		
+			node newNode= new node(x, y,1);
 			myPaper.addNode(newNode);
 			myPaper.setSelectedNode(newNode);
+			nodeSize.setValue(1);
+
 			planDisplay();
 		}
 		if(riverMode.isSelected()) {
+			this.undoPapers.add(new paper(myPaper));
+			System.out.println(undoPapers.size());
+		
 			node newNode1= new node(x, y-1, 0);
-			node newNode2= new node(x, y, (int) Integer.parseInt(nodeSize.getValue().toString()));
+			node newNode2= new node(x, y, 1);
 			node newNode3= new node(x, y+1, 0);
 			myPaper.addNode(newNode1);
 			myPaper.setSelectedNode(newNode1);
@@ -434,7 +477,10 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 			planDisplay();
 		}
 		if(moveMode.isSelected()) {
-			//repaint();
+			
+			this.undoPapers.add(new paper(myPaper));
+			System.out.println(undoPapers.size());
+		
 			planner.clearNode(myPaper.selected);
 			myPaper.moveSelect(x,y);
 			
@@ -454,6 +500,9 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 			if(selected==(null)) {
 
 			}else {
+				this.undoPapers.add(new paper(myPaper));
+				System.out.println(undoPapers.size());
+			
 				myPaper.deleteNode(selected);
 			}
 		}
@@ -492,12 +541,8 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 		if(arg0.getActionCommand().equals("optimize")) {
 			optimizeAction();
 		}
-
-		if(arg0.getActionCommand().equals("undo")) {
-			undoAction();
-		}
 		if(arg0.getActionCommand().equals("showEdit")) {
-			System.out.print(true);
+
 			makeEdit();
 		}
 		if(arg0.getActionCommand().equals("creases")) {
@@ -507,9 +552,27 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 			planDisplay();
 
 		}
+		if(arg0.getActionCommand().equals("undo")) {
+			undoAction();
+
+		}
+		if(arg0.getActionCommand().equals("redo")) {
+			redoAction();
+
+		}
 		drawPlanner();
 		//planner.drawCursor(x*squareSize, y*squareSize);
 
+	}
+	private void redoAction() {
+		// TODO Auto-generated method stub
+		
+		int last=(redoPapers.size()-1);
+		if(last>0) {
+		undoPapers.add(myPaper);
+		this.myPaper=this.redoPapers.get(last);
+		redoPapers.remove(last);
+		}
 	}
 	public void drawPlanner() {
 planner.validate();

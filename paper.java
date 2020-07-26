@@ -25,9 +25,23 @@ public class paper implements Serializable , Comparable<paper>{
 	public HashMap<node,HashMap<node, Integer>> distances;
 	ArrayList<node> settled;
 	ArrayList<node> unSettled;
-
+public int getScore() {
+	int score=0;
+	for(node n:nodes) {
+		for(node m:this.nodes) {
+			int[] overlap= this.getOverlap(n, m);
+			score-=Math.min(overlap[0],overlap[1]);
+		}
+	}
+	return score;
+}
 	public int compareTo(paper b) {
-		return this.getSize()-b.getSize();
+		int size1=this.getSize();
+		int size2=b.getSize();
+		if(size1==size2) {
+			return this.getScore()-b.getScore();
+		}
+		return size1-size2;
 	}
 	public int getSize() {
 		// TODO Auto-generated method stub
@@ -170,7 +184,9 @@ public class paper implements Serializable , Comparable<paper>{
 			this.nodes.add(m);
 			this.unSettled.add(m);
 		}
+		if(p.selected!=null) {
 		this.selected= this.nodes.get(p.nodes.indexOf(p.selected));
+		}
 		this.connections = new HashMap<node, ArrayList<node>>();
 		this.distances= new HashMap<node,HashMap<node, Integer>>();
 		Iterator<node> it= p.distances.keySet().iterator();
@@ -234,20 +250,6 @@ public class paper implements Serializable , Comparable<paper>{
 		if(height==0) {
 			height=1;
 		}
-	}
-	public int[] getXcords() {
-		int[] Xcords= new int[nodes.size()];
-		for(int i=0;i<nodes.size();i++) {
-			Xcords[i]=nodes.get(i).getX();
-		}
-		return Xcords;
-	}
-	public int[] getYcords() {
-		int[] Ycords= new int[nodes.size()];
-		for(int i=0;i<nodes.size();i++) {
-			Ycords[i]=nodes.get(i).getY();
-		}
-		return Ycords;
 	}
 	public paper(int w,int h) {
 		width=w;

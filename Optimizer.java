@@ -48,22 +48,18 @@ private void killOverlaping() {
 }
 private void sortBest() {
 	// TODO Auto-generated method stub
-	for(paper g:newGen) {
-		g.shrink();
-		System.out.print("size"+g.getSize());
-	}
-
+	
 	Collections.sort(newGen);
 	if(newGen.size()>MAX_POP_SIZE) {
 	newGen= new ArrayList<paper>(newGen.subList(0, MAX_POP_SIZE));
 	}
 	System.out.println("next sort");
-	//newGen= new ArrayList<paper>(newGen.subList(0, POP_SIZE));
+
 	for(paper g:newGen) {
 		g.shrink();
-		System.out.print("size"+g.getSize());
+		System.out.print("size"+g.getSize()+",: "+g.getScore());
 	}
-	System.out.println("next sort");
+	
 	
 	//Collections.reverse(newGen);
 }
