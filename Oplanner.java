@@ -3,8 +3,6 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
@@ -85,8 +83,8 @@ public void clearNode(node n) {
 
 		for(node n:myP.nodes) {
 			int size= n.size;
-			int xvel=0;
-			int yvel=0;
+			//int xvel=0;
+			//int yvel=0;
 			if(myP.isSelcted(n)) {
 				g.setColor(Color.green);
 			}
