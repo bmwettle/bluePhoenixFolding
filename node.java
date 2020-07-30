@@ -18,8 +18,6 @@ public class node implements Serializable{
 private int x;
 private int y;
 int size;
-boolean FixedX;
-boolean FixedY;
 int ID;
 Area A;
 ArrayList<Point> corners;
@@ -27,9 +25,7 @@ ArrayList<Point> corners;
 ArrayList<Line2D.Double> creases;
 
 public void setX(int newX) {
-	if(!FixedX) {
 	this.x=newX;
-	}
 }
 public void forceX(int newX) {
 
@@ -40,17 +36,15 @@ public void forceY(int newY) {
 	this.y=newY;
 }
 public void setY(int newY) {
-	if(!FixedY) {
+
 	this.y=newY;
-	}
+
 }
 public node() {
 	super();
 	x=0;
 	y=0;
 	size=1;
-	FixedX=false;
-	FixedY=false;
 	ID=0;
 	
 }
@@ -75,9 +69,9 @@ public int getX() {
 	return x;
 }
 public void moveX(int x) {
-	if(!this.FixedX) {
+	
 	this.x += x;
-	}
+	
 }
 public String toString() {
 	return("    id"+ID+", size"+size+",x: "+x+", y: "+y+":");
@@ -87,9 +81,9 @@ public int getY() {
 	return y;
 }
 public void moveY(int y) {
-	if(!this.FixedY) {
+	
 	this.y += y;
-	} 
+	
 }
 public int getSize() {
 	return size;
