@@ -59,6 +59,10 @@ int baseBuffer;
 				n.forceY(newN.getY());
 				//System.out.println(j+": "+n.size+", "+n.getX()+":"+n.getY());
 				j++;
+			}
+		}
+		for(node n:oldp.nodes) {
+			if(oldp.isLeaf(n)) {
 			}else {
 				int x=0;
 				int y=0;
@@ -129,24 +133,5 @@ public void generate(int index,int buffer) {
 	}
 }
 
-private boolean overlaps(ArrayList<node> nodes, node n, int index) {
-	for(node m:nodes) {
-	if(!m.equals(n)) {
-		
-			int deltax= Math.abs(n.getX()-m.getX());
-			int deltay= Math.abs(n.getY()-m.getY());
-			int dist=distances[index][nodes.indexOf(m)];
-			
-			if(deltax<dist) {
-				if(deltay<dist) {
-					return true;
-				}
-				
-			
-			
-		}
-	}
-	}
-	return false;
-}
+
 }

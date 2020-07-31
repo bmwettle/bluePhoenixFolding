@@ -48,7 +48,9 @@ public class skeleton extends ArrayList<node> implements Comparable<skeleton> {
 	@Override
 	public int compareTo(skeleton o) {
 		// TODO Auto-generated method stub
-		return this.getSize()-o.getSize();
+		return this.getSize()-o.getSize()
+				
+				;
 	}
 	public boolean overlaps(int[][] distances, node n, int index) {
 		for(node m:this) {

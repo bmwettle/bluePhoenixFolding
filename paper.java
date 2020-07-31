@@ -25,6 +25,7 @@ public class paper implements Serializable , Comparable<paper>{
 	public HashMap<node,HashMap<node, Integer>> distances;
 	ArrayList<node> settled;
 	ArrayList<node> unSettled;
+	ArrayList<Condition> conditions;
 public int getScore() {
 	int score=0;
 	for(node n:nodes) {
@@ -169,6 +170,8 @@ public int getScore() {
 		}
 	}
 	public paper(paper p) {
+		conditions = new ArrayList<Condition>();
+		// TODO fix saving connections
 		this.width=p.width;
 		this.height=p.height;
 		this.square_size=p.square_size;
@@ -256,6 +259,7 @@ public int getScore() {
 		height=h;
 		connections= new HashMap<node,ArrayList<node>>();
 		nodes= new ArrayList<node>();
+		conditions = new ArrayList<Condition>();
 	}
 	public void moveSelect(int x, int y) {
 		selected.forceX(x);
@@ -424,5 +428,13 @@ public int getScore() {
 			}
 		}
 		return false;
+	}
+	public void addConditions(node selected2, node selected3, boolean matchX, boolean matchY) {
+		if(this.conditions==null) {
+			conditions = new ArrayList<Condition>();
+		}
+		conditions.add(new Condition(selected2,selected3,matchX,matchY));
+		// TODO Auto-generated method stub
+		
 	}
 }

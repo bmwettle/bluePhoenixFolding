@@ -30,6 +30,7 @@ public static final int STARTING_PAPER_HEIGHT=16;
 	ArrayList<paper>redoPapers;
 	Oplanner planner;
 	JFrame myEdit;
+	
 	JLabel Node;
 	ButtonGroup Mode;
 	JToggleButton leafMode;
@@ -40,6 +41,12 @@ public static final int STARTING_PAPER_HEIGHT=16;
 	JToggleButton escMode;
 	JLabel nodeSizeLabel;
 	JSpinner nodeSize;
+	
+	JLabel conditions;
+	JToggleButton addCondition;
+	JCheckBox matchX;
+	JCheckBox matchY;
+	
 	JLabel paper;
 	JSpinner Width;
 	JSpinner Height;
@@ -60,6 +67,24 @@ public static final int STARTING_PAPER_HEIGHT=16;
 		
 		setUpCloseing();
 		
+	}
+	private void setUpConditions() {
+		this.conditions= new JLabel("add conditions");
+		myEdit.add(conditions);
+		addCondition= new JToggleButton("add conditions");
+		myEdit.add(addCondition);
+		addCondition.setActionCommand("add condition");
+		addCondition.addActionListener(this);
+		 JLabel matchXLabel= new JLabel("match X");
+		 myEdit.add(matchXLabel);
+		 this.matchX= new JCheckBox();
+		 matchX.addActionListener(this);
+		 myEdit.add(matchX);
+		 JLabel matchYLabel= new JLabel("match Y");
+		 myEdit.add(matchYLabel);
+		 this.matchY= new JCheckBox();
+		 myEdit.add(matchY);
+		 matchY.addActionListener(this);
 	}
 	private void setUpCloseing() {
 		planner.addComponentListener(new ComponentAdapter() {
@@ -125,7 +150,6 @@ public static final int STARTING_PAPER_HEIGHT=16;
 	private void initalizeDesigner() {
 		setSize(STARTING_WIDTH,STARTING_HEIGHT);
 		setTitle("designer");
-		//		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // MC
 		myPaper= new paper(STARTING_PAPER_WIDTH,STARTING_PAPER_HEIGHT);
 		redoPapers=new ArrayList<paper>();
 		undoPapers= new ArrayList<paper>();
@@ -169,6 +193,7 @@ public static final int STARTING_PAPER_HEIGHT=16;
 		myEdit.setSize(300, 600);
 		myEdit.setLayout(new GridLayout(16,2));
 		createNodeGui();
+		setUpConditions();
 		createPaperGui();
 		myEdit.setVisible(true);
 	}
@@ -238,22 +263,13 @@ public static final int STARTING_PAPER_HEIGHT=16;
 		}
 	}
 	private void optimizeAction() {
-		//Optimizer opt= new Optimizer(myPaper);
-		//opt.optimize();
-		//myPaper=opt.best;
-		//myPaper.shrink();
 		layout lay= new layout(myPaper);
 		myPaper=lay.getPaper(myPaper);
-		//gene mygene= new gene(new paper(myPaper));
-		//mygene.getForces();
-		//mygene.move();
-		//myPaper=mygene.p;
 		System.out.println("size is"+myPaper.height+" "+myPaper.width);
 		int w=myPaper.width;
 		int h= myPaper.height;
 		this.Height.setValue(h);
 		this.Width.setValue(w);
-
 		this.escMode.setSelected(true);
 	}
 	private void saveFile() {
@@ -456,7 +472,18 @@ public static final int STARTING_PAPER_HEIGHT=16;
 
 	}
 	private void makeSelectedAction(int x, int y) {
+		if(this.addCondition.isSelected()) {
+			escMode.setSelected(true);
+			node selected= myPaper.getNodeAt(x,y);
+			if(selected==(null)) {
 
+			}else {
+				this.undoPapers.add(new paper(myPaper));
+				System.out.println(undoPapers.size());
+
+				myPaper.addConditions(myPaper.selected,selected,this.matchX.isSelected(), this.matchY.isSelected());
+			}
+		}
 		if(leafMode.isSelected()) {
 			this.undoPapers.add(new paper(myPaper));
 			System.out.println(undoPapers.size());
