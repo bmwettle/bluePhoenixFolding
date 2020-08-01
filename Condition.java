@@ -12,7 +12,5 @@ boolean matchY;
 			this.matchX=matchX;
 			this.matchY=matchY;
 		}
-		// TODO Auto-generated constructor stub
 	}
-
 }

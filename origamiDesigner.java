@@ -2,12 +2,14 @@ package origamiProject;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.*;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.util.ArrayList;
-
+import javax.swing.SwingWorker;
 
 public class origamiDesigner extends JFrame implements ActionListener,ChangeListener, MouseListener,MouseMotionListener, KeyListener{
 
@@ -30,7 +32,8 @@ public static final int STARTING_PAPER_HEIGHT=16;
 	ArrayList<paper>redoPapers;
 	Oplanner planner;
 	JFrame myEdit;
-	
+	layout lay;
+
 	JLabel Node;
 	ButtonGroup Mode;
 	JToggleButton leafMode;
@@ -263,7 +266,9 @@ public static final int STARTING_PAPER_HEIGHT=16;
 		}
 	}
 	private void optimizeAction() {
-		layout lay= new layout(myPaper);
+		this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+		lay= new layout(myPaper);
+		lay.optimize();
 		myPaper=lay.getPaper(myPaper);
 		System.out.println("size is"+myPaper.height+" "+myPaper.width);
 		int w=myPaper.width;
@@ -271,6 +276,7 @@ public static final int STARTING_PAPER_HEIGHT=16;
 		this.Height.setValue(h);
 		this.Width.setValue(w);
 		this.escMode.setSelected(true);
+		this.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 	}
 	private void saveFile() {
 		//JOptionPane.showMessageDialog(this,"saving file");
@@ -621,5 +627,6 @@ public static final int STARTING_PAPER_HEIGHT=16;
 		//planner.drawCursor(x*squareSize, y*squareSize);
 
 	}
+
 
 }

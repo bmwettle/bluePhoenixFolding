@@ -81,13 +81,15 @@ public void clearNode(node n) {
 		
 		g.setColor(Color.BLUE);
 		if(myP.conditions!=null&&myP.conditions.size()!=0) {
+			g.setStroke(new BasicStroke(2));
 		for(Condition con:myP.conditions) {
 			g.setColor(Color.PINK);
 			if(con.matchX) {
 				g.setColor(Color.cyan);
 			}
 			g.drawLine(con.node1.getX()*squareSize, con.node1.getY()*squareSize, con.node2.getX()*squareSize, con.node2.getY()*squareSize);
-		g.setColor(Color.BLACK);
+		g.setColor(Color.BLUE);
+		g.setStroke(new BasicStroke(1));
 		}
 		}
 		for(node n:myP.nodes) {

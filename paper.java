@@ -26,6 +26,7 @@ public class paper implements Serializable , Comparable<paper>{
 	ArrayList<node> settled;
 	ArrayList<node> unSettled;
 	ArrayList<Condition> conditions;
+	ArrayList<node>edgeNodes;
 public int getScore() {
 	int score=0;
 	for(node n:nodes) {
@@ -170,7 +171,8 @@ public int getScore() {
 		}
 	}
 	public paper(paper p) {
-		conditions = new ArrayList<Condition>();
+		
+		
 		// TODO fix saving connections
 		this.width=p.width;
 		this.height=p.height;
@@ -189,6 +191,20 @@ public int getScore() {
 		}
 		if(p.selected!=null) {
 		this.selected= this.nodes.get(p.nodes.indexOf(p.selected));
+		}
+		edgeNodes= new ArrayList<node>();
+		if(p.edgeNodes!=null) {
+			for(node e:p.edgeNodes) {
+				edgeNodes.add(this.nodes.get(p.nodes.indexOf(e)));
+			}
+		}
+		conditions = new ArrayList<Condition>();
+		if(p.conditions!=null) {
+			for(Condition con:p.conditions) {
+				node one= this.nodes.get(p.nodes.indexOf(con.node1));
+				node two= this.nodes.get(p.nodes.indexOf(con.node2));
+				this.conditions.add(new Condition(one,two,con.matchX,con.matchY));
+			}
 		}
 		this.connections = new HashMap<node, ArrayList<node>>();
 		this.distances= new HashMap<node,HashMap<node, Integer>>();
@@ -260,6 +276,7 @@ public int getScore() {
 		connections= new HashMap<node,ArrayList<node>>();
 		nodes= new ArrayList<node>();
 		conditions = new ArrayList<Condition>();
+		edgeNodes= new ArrayList<node>();
 	}
 	public void moveSelect(int x, int y) {
 		selected.forceX(x);
