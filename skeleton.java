@@ -1,32 +1,44 @@
 package origamiProject;
 
 import java.util.ArrayList;
-
+/**
+ * 
+ * @author Benjamin Wettle
+ * This Class stores the basic data of a design. 
+ * it is a list of nodes, and a few functions needed. 
+ * this speeds up the optimization, over suing the paper class,
+ * since the paper class contains a lot of extra information and computation.
+ */
 public class skeleton extends ArrayList<node> implements Comparable<skeleton> {
 /**
 	 * 
 	 */
 	int score;
+	boolean isFixedRatio;
+	boolean isFixedDifference;
+	double ratioX_Y;
+	int differenceX_Y;
 	private static final long serialVersionUID = 1L;
-	public skeleton() {
-		super();
-		score=0;
-		// TODO Auto-generated constructor stub
-	}
-	public skeleton(ArrayList<node> nodes, int score) {
-		super(nodes);
-		this.score=score;
-		// TODO Auto-generated constructor stub
-	}
-	
-	public int getSize() {
+	public skeleton(boolean isFixedRatio,
+	boolean isFixedDifference,
+	double ratioX_Y,
+	int differenceX_Y) {
 		
+		super();
+		this.isFixedRatio= isFixedRatio;
+		this.isFixedDifference=isFixedDifference;
+		this.ratioX_Y=ratioX_Y;
+		this.differenceX_Y= differenceX_Y;
+		score=0;
+	}
+	//gets the minimum box that contains all the nodes.
+	//also keeps the ratios or differences specified from the layout
+	public int getSize() {
 			int xmax=0;
 			int xmin=Integer.MAX_VALUE;
 			int ymax=0;
 			int ymin=Integer.MAX_VALUE;
 			for(node n:this) {
-				//if(isLeaf(n)) {
 					if(n.getX()>xmax) {
 						xmax=n.getX();
 					}
@@ -39,7 +51,12 @@ public class skeleton extends ArrayList<node> implements Comparable<skeleton> {
 					if(n.getY()<ymin) {
 						ymin=n.getY();
 					}
-				//}
+			}
+			if(isFixedRatio) {
+				return Math.max(xmax-xmin,(int)((ymax-ymin)*this.ratioX_Y));
+			}
+			if(this.isFixedDifference) {
+				return Math.max(xmax-xmin,ymax-ymin+this.differenceX_Y);
 			}
 			return Math.max(xmax-xmin,ymax-ymin);
 			
@@ -47,15 +64,13 @@ public class skeleton extends ArrayList<node> implements Comparable<skeleton> {
 	}
 	@Override
 	public int compareTo(skeleton o) {
-		// TODO Auto-generated method stub
-		return this.getSize()-o.getSize()
-				
-				;
+	//smaller skeletons are better
+		return this.getSize()-o.getSize();
 	}
+	//this checks to see if node n overlaps with anything already on the skeleton
 	public boolean overlaps(int[][] distances, node n, int index) {
 		for(node m:this) {
 		if(!m.equals(n)) {
-			
 				int deltax= Math.abs(n.getX()-m.getX());
 				int deltay= Math.abs(n.getY()-m.getY());
 				int dist=distances[index][this.indexOf(m)];

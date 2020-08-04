@@ -1,27 +1,51 @@
 package origamiProject;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.io.*;
-import javax.swing.*;
+import java.awt.Cursor;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JRadioButton;
+import javax.swing.JSpinner;
+import javax.swing.JToggleButton;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import java.util.ArrayList;
-import javax.swing.SwingWorker;
 
-public class origamiDesigner extends JFrame implements ActionListener,ChangeListener, MouseListener,MouseMotionListener, KeyListener{
+public class origamiDesigner extends JFrame implements ActionListener,ChangeListener, MouseListener{
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
 	private static ArrayList<origamiDesigner> allDesignerWindows = new ArrayList<>();
-public static final int STARTING_WIDTH=400;
-public static final int STARTING_HEIGHT=400;
-public static final int STARTING_PAPER_WIDTH=16;
-public static final int STARTING_PAPER_HEIGHT=16;
+	public static final int STARTING_WIDTH=400;
+	public static final int STARTING_HEIGHT=400;
+	public static final int STARTING_PAPER_WIDTH=16;
+	public static final int STARTING_PAPER_HEIGHT=16;
 
 
 	String mode;
@@ -32,6 +56,7 @@ public static final int STARTING_PAPER_HEIGHT=16;
 	ArrayList<paper>redoPapers;
 	Oplanner planner;
 	JFrame myEdit;
+	JFrame advanded;
 	layout lay;
 
 	JLabel Node;
@@ -41,15 +66,15 @@ public static final int STARTING_PAPER_HEIGHT=16;
 	JToggleButton selectMode;
 	JToggleButton deleteMode;
 	JToggleButton moveMode;
-	JToggleButton escMode;
+
 	JLabel nodeSizeLabel;
 	JSpinner nodeSize;
-	
+
 	JLabel conditions;
 	JToggleButton addCondition;
 	JCheckBox matchX;
 	JCheckBox matchY;
-	
+
 	JLabel paper;
 	JSpinner Width;
 	JSpinner Height;
@@ -62,14 +87,9 @@ public static final int STARTING_PAPER_HEIGHT=16;
 	private JRadioButton treePlan;
 	int squareSize;
 	public origamiDesigner() {
-		
-		
 		initalizeDesigner();
-		
 		setUpPlanner();
-		
 		setUpCloseing();
-		
 	}
 	private void setUpConditions() {
 		this.conditions= new JLabel("add conditions");
@@ -78,22 +98,21 @@ public static final int STARTING_PAPER_HEIGHT=16;
 		myEdit.add(addCondition);
 		addCondition.setActionCommand("add condition");
 		addCondition.addActionListener(this);
-		 JLabel matchXLabel= new JLabel("match X");
-		 myEdit.add(matchXLabel);
-		 this.matchX= new JCheckBox();
-		 matchX.addActionListener(this);
-		 myEdit.add(matchX);
-		 JLabel matchYLabel= new JLabel("match Y");
-		 myEdit.add(matchYLabel);
-		 this.matchY= new JCheckBox();
-		 myEdit.add(matchY);
-		 matchY.addActionListener(this);
+		JLabel matchXLabel= new JLabel("match X");
+		myEdit.add(matchXLabel);
+		this.matchX= new JCheckBox();
+		matchX.addActionListener(this);
+		myEdit.add(matchX);
+		JLabel matchYLabel= new JLabel("match Y");
+		myEdit.add(matchYLabel);
+		this.matchY= new JCheckBox();
+		myEdit.add(matchY);
+		matchY.addActionListener(this);
 	}
 	private void setUpCloseing() {
 		planner.addComponentListener(new ComponentAdapter() {
 			public void componentResized(ComponentEvent componentEvent) {
 				myEdit.toFront();
-				System.out.println("ok");
 				mouseClicked(null);
 			}});
 
@@ -110,7 +129,6 @@ public static final int STARTING_PAPER_HEIGHT=16;
 							null, "Would you like to save your work?", 
 							"Save?", JOptionPane.YES_NO_OPTION);
 					if (dialogResult == JOptionPane.YES_OPTION) {
-						System.out.println("Saving...");
 						((origamiDesigner) closedThing).saveFile();
 					}else {
 						// remove it from the list of active windows
@@ -138,17 +156,12 @@ public static final int STARTING_PAPER_HEIGHT=16;
 	private void setUpPlanner() {
 		planner=new Oplanner(myPaper);
 		planner.setDoubleBuffered(true);
-
 		this.add(planner);
-
 		planner.setVisible(true);
 		planner.addMouseListener(this);
-		planner.addMouseMotionListener(this);
+
 		makeEdit();
 		myEdit.addMouseListener(this);
-		//myEdit.addComponentListener(l);
-		this.addKeyListener(this);
-		//setComponentZOrder(this.myEdit,1);
 	}
 	private void initalizeDesigner() {
 		setSize(STARTING_WIDTH,STARTING_HEIGHT);
@@ -202,7 +215,6 @@ public static final int STARTING_PAPER_HEIGHT=16;
 	}
 	private void createDisplayMenu() {
 		JMenu DisplayMenu= new JMenu("Display");
-		
 		ButtonGroup design= new ButtonGroup();
 		JMenuItem ShowEditor= new JMenuItem("show Editor");
 		ShowEditor.setActionCommand("showEdit");
@@ -215,7 +227,7 @@ public static final int STARTING_PAPER_HEIGHT=16;
 		creases= new JRadioButton("show crease pattern");
 		treePlan= new JRadioButton("show tree plan");
 		treePlan.setSelected(true);
-		
+
 		DisplayMenu.add(ShowEditor);
 		DisplayMenu.add(optimize);
 		DisplayMenu.add(treePlan);
@@ -239,28 +251,13 @@ public static final int STARTING_PAPER_HEIGHT=16;
 	public static void main(String[] args){
 		origamiDesigner design = new origamiDesigner();
 		origamiDesigner.allDesignerWindows.add(design); // MC
-		
+
 		design.setVisible(true);
 	}
-	/*	@Override
-	public void actionPerformed(ActionEvent action) {
-
-	}*/
-	private void planDisplay() {
-		//planner.repaint();
-		//	planner.drawNodes(myPaper);
-
-	}
-	private void creasesDisplay() {
-		// TODO Auto-generated method stub
-	}
 	private void undoAction() {
-		// TODO Auto-generated method stub
-
 		int last=(undoPapers.size()-1);
 		if(last>0) {
 			redoPapers.add(myPaper);
-			System.out.println(this.myPaper.equals(this.undoPapers.get(last)));
 			this.myPaper=this.undoPapers.get(last);
 			undoPapers.remove(last);
 		}
@@ -270,16 +267,14 @@ public static final int STARTING_PAPER_HEIGHT=16;
 		lay= new layout(myPaper);
 		lay.optimize();
 		myPaper=lay.getPaper(myPaper);
-		System.out.println("size is"+myPaper.height+" "+myPaper.width);
 		int w=myPaper.width;
 		int h= myPaper.height;
 		this.Height.setValue(h);
 		this.Width.setValue(w);
-		this.escMode.setSelected(true);
+		Mode.clearSelection();
 		this.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 	}
 	private void saveFile() {
-		//JOptionPane.showMessageDialog(this,"saving file");
 		JFileChooser fc = new JFileChooser();
 		int returnVal = fc.showSaveDialog(this);
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -318,34 +313,19 @@ public static final int STARTING_PAPER_HEIGHT=16;
 		int h= myPaper.height;
 		this.Height.setValue(h);
 		this.Width.setValue(w);
-
-		this.escMode.setSelected(true);
+		Mode.clearSelection();
 		if(myPaper.selected!=null) {
 			this.nodeSize.setValue(myPaper.selected.size);
-			
+
 		}
 	}
 	private void newFile() {
-		// TODO Auto-generated method stub
 		origamiDesigner design = new origamiDesigner();
-		origamiDesigner.allDesignerWindows.add(design); // MC
-		System.out.println(this.equals(design));
+		origamiDesigner.allDesignerWindows.add(design);
 		design.setVisible(true);
 	}
 	private int getSquareSize() {
 		return Math.min(planner.getWidth()/myPaper.width, planner.getHeight()/myPaper.height);
-	}
-	private void update() {
-		// TODO Auto-generated method stub
-		this.planner.myPaper=this.myPaper;
-
-		//planner.repaint();
-		if(this.creases.isSelected()) {
-			planner.drawCreases(myPaper);
-		}
-		if(this.treePlan.isSelected()) {
-			planner.drawPlan(myPaper);
-		}
 	}
 	private void createNodeGui() {
 		Node = new JLabel("Node:");
@@ -370,9 +350,6 @@ public static final int STARTING_PAPER_HEIGHT=16;
 		moveMode= new JToggleButton("move node");
 		Mode.add(moveMode);
 		myEdit.add(moveMode);
-		escMode= new JToggleButton("ecsape");
-		Mode.add(escMode);
-		myEdit.add(escMode);
 		nodeSize=new JSpinner();
 		JLabel nodeSizeLabel= new JLabel("SetNodeSize");
 		myEdit.add(nodeSizeLabel);
@@ -414,36 +391,12 @@ public static final int STARTING_PAPER_HEIGHT=16;
 		myEdit.add(Update);
 	}
 	public void stateChanged(ChangeEvent e) {
-		// TODO Auto-generated method stub
 		this.mouseClicked(null);
 	}
-	public void keyPressed(KeyEvent arg0) {
-		// TODO Auto-generated method stub
 
-	}
-	public void keyReleased(KeyEvent arg0) {
-		// TODO Auto-generated method stub
-
-	}
-	public void keyTyped(KeyEvent arg0) {
-		// TODO Auto-generated method stub
-		char action =arg0.getKeyChar();
-		System.out.print(action+"ok");
-		if(action==' ') {
-			update();
-		}
-
-	}
-	public void mouseDragged(MouseEvent arg0) {
-		// TODO Auto-generated method stub
-
-	}
-	public void mouseMoved(MouseEvent arg0) {
-		// TODO Auto-generated method stub
-
-	}
+	public void mouseDragged(MouseEvent arg0) {}
+	public void mouseMoved(MouseEvent arg0) {}
 	public void mouseClicked(MouseEvent arg0) {
-		// TODO Auto-generated method stub
 		squareSize= getSquareSize();
 		int x = 0;
 		int y = 0;
@@ -451,121 +404,95 @@ public static final int STARTING_PAPER_HEIGHT=16;
 			try {
 				x= arg0.getX()/squareSize;
 				y= (arg0.getY())/squareSize;
-				System.out.println(planner.getX()+" "+arg0.getX()+", "+planner.getY()+" "+arg0.getYOnScreen());
-				System.out.println("x is"+x+" y is "+y);
 			} catch (Exception e) { }
 			makeSelectedAction( x, y);
 		}
 		if(myPaper.selected!=null) {
 			myPaper.selected.size=(int) Integer.parseInt(nodeSize.getValue().toString());;
-			
+
 		}
+		myPaper.isFixedDifference=this.fixDifference.isSelected();
+		myPaper.isFixedRatio=this.fixRatio.isSelected();
+	
 		myPaper.width=(int) Integer.parseInt(Width.getValue().toString());
 		myPaper.height=(int)Integer.parseInt(Height.getValue().toString());;
-		if(square.isSelected()) {
-			System.out.println("square");
-		}
-		if(fixDifference.isSelected()) {
-			System.out.println("difference ");
-		}
-		if(fixRatio.isSelected()) {
-			System.out.println("ratio ");
-		}
+		myPaper.ratioX_Y=myPaper.width/myPaper.height;
+		myPaper.differenceX_Y=myPaper.width-myPaper.height;
 		drawPlanner();
-		planner.drawCursor(x*squareSize, y*squareSize);
-
-
-
 	}
 	private void makeSelectedAction(int x, int y) {
 		if(this.addCondition.isSelected()) {
-			escMode.setSelected(true);
-			node selected= myPaper.getNodeAt(x,y);
-			if(selected==(null)) {
-
-			}else {
-				this.undoPapers.add(new paper(myPaper));
-				System.out.println(undoPapers.size());
-
-				myPaper.addConditions(myPaper.selected,selected,this.matchX.isSelected(), this.matchY.isSelected());
-			}
+			addCondition(x,y);	
 		}
 		if(leafMode.isSelected()) {
-			this.undoPapers.add(new paper(myPaper));
-			System.out.println(undoPapers.size());
-
-			node newNode= new node(x, y,1);
-			myPaper.addNode(newNode);
-			myPaper.setSelectedNode(newNode);
-			nodeSize.setValue(1);
-
-			planDisplay();
+			addLeaf(x,y);
 		}
 		if(riverMode.isSelected()) {
-			this.undoPapers.add(new paper(myPaper));
-			System.out.println(undoPapers.size());
-
-			node newNode1= new node(x, y-1, 0);
-			node newNode2= new node(x, y, 1);
-			node newNode3= new node(x, y+1, 0);
-			myPaper.addNode(newNode1);
-			myPaper.setSelectedNode(newNode1);
-			myPaper.addNode(newNode2);
-			myPaper.setSelectedNode(newNode2);
-			myPaper.addNode(newNode3);
-			myPaper.setSelectedNode(newNode1);
-			nodeSize.setValue(0);
-			planDisplay();
+			addRiver(x,y);
 		}
 		if(moveMode.isSelected()) {
-
-			this.undoPapers.add(new paper(myPaper));
-			System.out.println(undoPapers.size());
-
-			planner.clearNode(myPaper.selected);
-			myPaper.moveSelect(x,y);
-
+			moveNode(x,y);
 		}
 		if(selectMode.isSelected()) {
-			node selected= myPaper.getNodeAt(x,y);
-			if(selected==(null)) {	
-			}else {
-				myPaper.setSelectedNode(selected);
-				nodeSize.setValue(selected.size);
-				
-			}
+			selectNode(x,y);
 		}
 		if(deleteMode.isSelected()) {
-			node selected= myPaper.getNodeAt(x,y);
-			if(selected==(null)) {
-
-			}else {
-				this.undoPapers.add(new paper(myPaper));
-				System.out.println(undoPapers.size());
-
-				myPaper.deleteNode(selected);
-			}
+			deleteNode(x,y);
 		}
 	}
-	public void mouseEntered(MouseEvent arg0) {
-		// TODO Auto-generated method stub
 
+	private void deleteNode(int x, int y) {
+		node selected= myPaper.getNodeAt(x,y);
+		if(selected==(null)) {
+		}else {
+			this.undoPapers.add(new paper(myPaper));
+			myPaper.deleteNode(selected);
+		}
 	}
-	public void mouseExited(MouseEvent arg0) {
-		// TODO Auto-generated method stub
+	private void selectNode(int x, int y) {
+		node selected= myPaper.getNodeAt(x,y);
+		if(selected==(null)) {	
+		}else {
+			myPaper.setSelectedNode(selected);
+			nodeSize.setValue(selected.size);
 
+		}
 	}
-	public void mousePressed(MouseEvent arg0) {
-		// TODO Auto-generated method stub
-
+	private void moveNode(int x, int y) {
+		this.undoPapers.add(new paper(myPaper));
+		myPaper.moveSelect(x,y);
 	}
-	public void mouseReleased(MouseEvent arg0) {
-		// TODO Auto-generated method stub
+	private void addRiver(int x, int y) {
+		this.undoPapers.add(new paper(myPaper));
+		node newNode1= new node(x, y-1, 0);
+		node newNode2= new node(x, y, 1);
+		node newNode3= new node(x, y+1, 0);
+		myPaper.addNode(newNode1);
+		myPaper.setSelectedNode(newNode1);
+		myPaper.addNode(newNode2);
+		myPaper.setSelectedNode(newNode2);
+		myPaper.addNode(newNode3);
+		myPaper.setSelectedNode(newNode1);
+		nodeSize.setValue(0);
+	}
+	private void addLeaf(int x, int y) {
+		this.undoPapers.add(new paper(myPaper));
+		node newNode= new node(x, y,1);
+		myPaper.addNode(newNode);
+		myPaper.setSelectedNode(newNode);
+		nodeSize.setValue(1);
+	}
+	private void addCondition(int x, int y) {
+		Mode.clearSelection();
+		node selected= myPaper.getNodeAt(x,y);
+		if(selected==(null)) {
 
+		}else {
+			this.undoPapers.add(new paper(myPaper));
+			myPaper.addConditions(myPaper.selected,selected,this.matchX.isSelected(), this.matchY.isSelected());
+		}
 	}
 	public void actionPerformed(ActionEvent arg0) {
-
-		// TODO Auto-generated method stub
 		if(arg0.getActionCommand().equals("new")) {
 			newFile();
 		}
@@ -582,31 +509,17 @@ public static final int STARTING_PAPER_HEIGHT=16;
 			optimizeAction();
 		}
 		if(arg0.getActionCommand().equals("showEdit")) {
-
 			makeEdit();
-		}
-		if(arg0.getActionCommand().equals("creases")) {
-			creasesDisplay();
-		}
-		if(arg0.getActionCommand().equals("plan")) {
-			planDisplay();
-
 		}
 		if(arg0.getActionCommand().equals("undo")) {
 			undoAction();
-
 		}
 		if(arg0.getActionCommand().equals("redo")) {
 			redoAction();
-
 		}
-		
 		this.mouseClicked(null);
-		//drawPlanner();
-		//planner.drawCursor(x*squareSize, y*squareSize);
-
 	}
-	
+
 	private void redoAction() {
 		int last=(redoPapers.size()-1);
 		if(last>0) {
@@ -617,16 +530,20 @@ public static final int STARTING_PAPER_HEIGHT=16;
 	}
 	public void drawPlanner() {
 		planner.validate();
-		//planner.repaint();
 		if(this.creases.isSelected()) {
 			planner.drawCreases(myPaper);
 		}
 		if(this.treePlan.isSelected()) {
 			planner.drawPlan(myPaper);
 		}
-		//planner.drawCursor(x*squareSize, y*squareSize);
-
 	}
-
+	@Override
+	public void mouseEntered(MouseEvent e) {}
+	@Override
+	public void mouseExited(MouseEvent e) {}
+	@Override
+	public void mousePressed(MouseEvent e) {}
+	@Override
+	public void mouseReleased(MouseEvent e) {}
 
 }

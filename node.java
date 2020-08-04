@@ -9,36 +9,31 @@ import java.io.Serializable;
 import java.util.ArrayList;
 
 
-
+/**
+ * 
+ * @author Benjamin Wettle
+ * this class store that data for a origami node.
+ */
 public class node implements Serializable{
 /**
 	 * 
 	 */
 	private static final long serialVersionUID = 2107895915449290373L;
+	
 private int x;
 private int y;
 int size;
 int ID;
 Area A;
+// these are set during crease generation.
 ArrayList<Point> corners;
-
 ArrayList<Line2D.Double> creases;
 
 public void setX(int newX) {
 	this.x=newX;
 }
-public void forceX(int newX) {
-
-	this.x=newX;
-}
-public void forceY(int newY) {
-
-	this.y=newY;
-}
 public void setY(int newY) {
-
 	this.y=newY;
-
 }
 public node() {
 	super();

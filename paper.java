@@ -46,7 +46,6 @@ public int getScore() {
 		return size1-size2;
 	}
 	public int getSize() {
-		// TODO Auto-generated method stub
 		if(this.isFixedDifference) {
 			return Math.max(width, height+this.differenceX_Y);
 		}
@@ -56,7 +55,6 @@ public int getScore() {
 			}
 		}
 		return Math.max(width, height);
-		//return(width*height);
 	}
 	public void getAreas(int scale) {
 		settled= new ArrayList<node>();
@@ -67,7 +65,6 @@ public int getScore() {
 		node start= getFirstLeaf();
 		getArea(start,scale);
 		settled= new ArrayList<node>();
-		//getCorners(start,scale);
 	}
 	
 	public node getFirstLeaf() {
@@ -95,7 +92,7 @@ public int getScore() {
 			for(node m:this.connections.get(n)) {
 				if(settled.contains(m)) {
 					Area sub=m.A;
-					//System.out.println(sub.equals(new Area()));
+					
 					for(int i=-Size;i<=Size;i++) {
 						for (int j=-Size;j<=Size;j++) {
 							AffineTransform t= new AffineTransform();
@@ -114,9 +111,7 @@ public int getScore() {
 									Point d= new Point(p.x+2*a,p.y-2*b);
 									Point e= new Point(p.x-2*a,p.y+2*b);
 									if(m.A.contains(d)==m.A.contains(e)) {
-									//g.drawRect(k.x, k.y, 2, 2);
 									Point l= new Point(p.x+a*n.size*scale,p.y+b*n.size*scale);
-									System.out.println(n.getX()+","+n.getY()+";"+k.x/scale+","+k.y/scale+";"+l.x/scale+","+l.y/scale);
 									n.corners.add(l);
 									n.creases.add(new Line2D.Double(p.x,p.y,l.x,l.y));
 									}
@@ -133,7 +128,6 @@ public int getScore() {
 		for(node m:this.connections.get(n)) {
 			if(!settled.contains(m)) {
 				getArea(m,scale);
-				System.out.println("this is ok");
 			}	
 		}
 
@@ -154,8 +148,6 @@ public int getScore() {
 				n.creases.add(new Line2D.Double(s.getX(),s.getY(),p.getX(),p.getY()));
 			}
 		}
-
-		System.out.println("ok leaf"+n);
 	}
 	public void deleteNode(node delete) {
 		if(delete.equals(selected)) {
@@ -171,9 +163,6 @@ public int getScore() {
 		}
 	}
 	public paper(paper p) {
-		
-		
-		// TODO fix saving connections
 		this.width=p.width;
 		this.height=p.height;
 		this.square_size=p.square_size;
@@ -242,8 +231,7 @@ public int getScore() {
 		int ymax=0;
 		int ymin=Integer.MAX_VALUE;
 		for(node n:nodes) {
-			//if(isLeaf(n)) {
-				if(n.getX()>xmax) {
+			if(n.getX()>xmax) {
 					xmax=n.getX();
 				}
 				if(n.getX()<xmin) {
@@ -255,11 +243,10 @@ public int getScore() {
 				if(n.getY()<ymin) {
 					ymin=n.getY();
 				}
-			//}
 		}
 		for( node n:nodes) {
-			n.forceX(n.getX()-xmin);	
-			n.forceY(n.getY()-ymin);;
+			n.setX(n.getX()-xmin);	
+			n.setY(n.getY()-ymin);;
 		}
 		width=xmax-xmin;
 		height=ymax-ymin;
@@ -279,8 +266,8 @@ public int getScore() {
 		edgeNodes= new ArrayList<node>();
 	}
 	public void moveSelect(int x, int y) {
-		selected.forceX(x);
-		selected.forceY(y);
+		selected.setX(x);
+		selected.setY(y);
 	}
 	public void getTreeDistances() {
 		distances= new HashMap<node,HashMap<node,Integer>>();
@@ -288,8 +275,7 @@ public int getScore() {
 			HashMap<node,Integer> selfMap= new HashMap<node,Integer>();
 			selfMap.put(one,0);
 			distances.put(one,selfMap);
-			//System.out.println(one.toString()+","+connections.get(one).toString());
-		}
+			}
 		for (node start:this.nodes){
 			for(node end:this.nodes) {
 				searchNodes(start,start,end,0,new ArrayList<node>());
@@ -307,7 +293,6 @@ public int getScore() {
 		return Math.max(deltaX, deltaY);
 	}
 	private void searchNodes(node start, node current,node end,int length, ArrayList<node> mySearched) {
-		//System.out.println("now at:"+nodes.indexOf(start)+","+nodes.indexOf(current)+","+nodes.indexOf(end)+","+ length);
 		ArrayList<node> searched= new ArrayList<node>();
 		searched.addAll(mySearched);
 		searched.add(current);
@@ -319,7 +304,6 @@ public int getScore() {
 			ArrayList<node> nearby= new ArrayList<node>();
 			nearby.addAll(connections.get(current));
 			nearby.removeAll(searched);
-			//System.out.println("now at:"+start.toString()+","+current.toString()+","+end.toString()+",nearby"+nearby.toString()+"searched:"+searched.toString()+","+ length);
 			for(node connect:nearby) {
 				searchNodes(start,connect,end,length+current.size,searched);
 			}
@@ -352,49 +336,23 @@ public int getScore() {
 			newNode.setID(nodes.indexOf(newNode));
 		}
 	}
-	public String toText() {
-		this.shrink();
-		System.out.println("width"+width+" , hieght"+height);
-		String text="";
-		char[][]display=new char[this.width+1][this.height+1];
-
-		for(int i=0;i<width+1;i++) {
-			for(int j=0;j<height+1;j++) {
-				display[i][j]='.';
-			}
-		}
-		for(node n:nodes) {
-			display[n.getX()][n.getY()]=n.toString().charAt(1);
-		}
-		for(int i=0;i<height+1;i++) {
-			for(int j=0;j<width+1;j++) {
-				text+=display[j][i];
-			}
-			text+=System.lineSeparator();
-		}
-		return text;
-	}
 	public boolean isLeaf(node n) {
 		return connections.get(n).size()<=1;
 	}
 	public int[] getOverlap(node one, node two) {
 		if(!one.equals(two)) {
-			//if(isLeaf(one)&&isLeaf(two)) {
-				int deltax= Math.abs(one.getX()-two.getX());
+			int deltax= Math.abs(one.getX()-two.getX());
 				int deltay= Math.abs(one.getY()-two.getY());
 				int overlapX=distances.get(one).get(two)-deltax;
 				int overlapY=distances.get(one).get(two)-deltay;
 				return new int[] {overlapX,overlapY};
-				
-			//}
 		}
 		return new int[] {0,0};
 
 	}
 	public boolean overlaps(node one, node two) {
 		if(!one.equals(two)) {
-			///if(isLeaf(one)&&isLeaf(two)) {
-				int deltax= Math.abs(one.getX()-two.getX());
+			int deltax= Math.abs(one.getX()-two.getX());
 				int deltay= Math.abs(one.getY()-two.getY());
 				if(deltax>=distances.get(one).get(two)) {
 					return false;
@@ -403,15 +361,13 @@ public int getScore() {
 					return false;
 				}
 				return true;
-			//}
+
 		}
 		return false;
 	}
 	public node getNodeAt(int x, int y) {
-		//System.out.println("getting node at:"+x+","+y);
 		for(node Node:nodes) {
 			if (Node.getX()==x&&Node.getY()==y){
-				System.out.println(Node.toString());
 				return Node;
 			}
 		}
@@ -451,7 +407,6 @@ public int getScore() {
 			conditions = new ArrayList<Condition>();
 		}
 		conditions.add(new Condition(selected2,selected3,matchX,matchY));
-		// TODO Auto-generated method stub
 		
 	}
 }
