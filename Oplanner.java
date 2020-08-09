@@ -87,7 +87,7 @@ private void drawConditions() {
 	g.setStroke(new BasicStroke(2));
 	for(Condition con:p.conditions) {
 		g.setColor(Color.PINK);
-		if(con.matchX) {
+		if(p.isXsymmetry) {
 			g.setColor(Color.cyan);
 		}
 		g.drawLine(con.node1.getX()*squareSize, con.node1.getY()*squareSize, con.node2.getX()*squareSize, con.node2.getY()*squareSize);
@@ -123,7 +123,7 @@ private void drawConditions() {
 			Area total = new Area(new Rectangle2D.Double(0,0,myP.width*squareSize,myP.height*squareSize));
 			for(node n:myP.nodes) {
 				drawNodeCreases(n);	
-				//total.subtract(n.A);
+				total.subtract(n.A);
 			}
 			g.setColor(Color.ORANGE);
 			g.fill(total);
@@ -134,11 +134,14 @@ private void drawConditions() {
 	private void drawNodeCreases(node n) {
 		if(p.isLeaf(n)) {
 			g.setColor(Color.blue);
+			g.draw(n.A);
 		}else {
 			g.setColor(Color.green);
+			g.setStroke(new BasicStroke(3));
+			g.draw(n.A);
+			g.setStroke(new BasicStroke(1));
 		}
-		g.draw(n.A);
-		
+
 		if(n.creases!=null) {
 			for(Line2D.Double l:n.creases) {
 				g.setColor(Color.BLACK);
@@ -150,7 +153,6 @@ private void drawConditions() {
 
 	public int print(Graphics g1, PageFormat pf, int page) throws
 	PrinterException {
-
 		if (page > 0) { /* We have only one page, and 'page' is zero-based */
 			return NO_SUCH_PAGE;
 		}

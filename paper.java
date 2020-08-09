@@ -17,9 +17,10 @@ public class paper implements Serializable , Comparable<paper>{
 	int square_size;
 	node selected;
 	boolean isFixedRatio;
-	boolean isFixedDifference;
+	
 	double ratioX_Y;
-	int differenceX_Y;
+	boolean hasSymmetry;
+	boolean isXsymmetry;
 	public HashMap<node, ArrayList<node>> connections;
 	public ArrayList<node> nodes;
 	public HashMap<node,HashMap<node, Integer>> distances;
@@ -46,14 +47,9 @@ public int getScore() {
 		return size1-size2;
 	}
 	public int getSize() {
-		if(this.isFixedDifference) {
-			return Math.max(width, height+this.differenceX_Y);
-		}
-		else {
 			if(this.isFixedRatio) {
 				return Math.max(width, (int)( height*this.ratioX_Y));
 			}
-		}
 		return Math.max(width, height);
 	}
 	public void getAreas(int scale) {
@@ -61,6 +57,7 @@ public int getScore() {
 		for(node n:nodes) {
 			n.corners=new ArrayList<Point>();
 			n.creases=new ArrayList<Line2D.Double>();
+			n.A= new Area();
 		}
 		node start= getFirstLeaf();
 		getArea(start,scale);
@@ -134,6 +131,31 @@ public int getScore() {
 
 	}
 
+	private Area expandNodeArea(node n, int scale) {
+		Area Poly= new Area();
+			for(int a=-1;a<=1;a+=2) {
+				for(int b=-1;b<=1;b+=2) {
+					AffineTransform t= new AffineTransform();
+					t.translate(scale*a, scale*b);
+					Poly.add(n.A.createTransformedArea(t));
+					n.A=Poly;
+					
+					for(Point p:n.corners) {
+					Point k= new Point(p.x-2*a,p.y-2*b);
+					if(n.A.contains(k)) {
+						Point d= new Point(p.x+2*a,p.y-2*b);
+						Point e= new Point(p.x-2*a,p.y+2*b);
+						if(n.A.contains(d)==n.A.contains(e)) {
+						Point l= new Point(p.x+a*n.size*scale,p.y+b*n.size*scale);
+						n.corners.add(l);
+						n.creases.add(new Line2D.Double(p.x,p.y,l.x,l.y));
+						}
+					}
+				}
+			}
+	}
+		return Poly;
+	}
 	private void makeLeaf(node n, int scale, int Size) {
 		Area poly= new Area(new Rectangle2D.Double(scale*(n.getX()-Size),scale*(n.getY()-Size),2*scale*Size,2*scale*Size));
 		settled.add(n);
@@ -150,12 +172,14 @@ public int getScore() {
 		}
 	}
 	public void deleteNode(node delete) {
-		if(delete.equals(selected)) {
-			selected= nodes.get(0);
-		}
+		
 		nodes.remove(delete);
 		if(delete.equals(selected)) {
-			selected= nodes.get(0);
+			if(nodes.size()>0) {
+			selected= nodes.get(nodes.size()-1);
+			}else {
+				selected=null;
+			}
 		}
 		connections.remove(delete);
 		for(node n:nodes) {
@@ -167,10 +191,8 @@ public int getScore() {
 		this.height=p.height;
 		this.square_size=p.square_size;
 		this.nodes= new ArrayList<node>();
-		this.isFixedDifference=p.isFixedDifference;
 		this.isFixedRatio=p.isFixedRatio;
 		this.ratioX_Y=p.ratioX_Y;
-		this.differenceX_Y=p.differenceX_Y;
 		this.settled=new ArrayList<node>();
 		this.unSettled= new ArrayList<node>();
 		for(node n: p.nodes) {
@@ -192,7 +214,7 @@ public int getScore() {
 			for(Condition con:p.conditions) {
 				node one= this.nodes.get(p.nodes.indexOf(con.node1));
 				node two= this.nodes.get(p.nodes.indexOf(con.node2));
-				this.conditions.add(new Condition(one,two,con.matchX,con.matchY));
+				this.conditions.add(new Condition(one,two));
 			}
 		}
 		this.connections = new HashMap<node, ArrayList<node>>();
@@ -402,11 +424,24 @@ public int getScore() {
 		}
 		return false;
 	}
-	public void addConditions(node selected2, node selected3, boolean matchX, boolean matchY) {
+	public void addConditions(node selected2, node selected3) {
 		if(this.conditions==null) {
 			conditions = new ArrayList<Condition>();
 		}
-		conditions.add(new Condition(selected2,selected3,matchX,matchY));
+		conditions.add(new Condition(selected2,selected3));
 		
+	}
+	public void removeConditions(node selected2, node selected3) {
+		if(this.conditions==null) {
+			conditions = new ArrayList<Condition>();
+		}
+		for(Condition con:this.conditions) {
+			if(con.node1.equals(selected3)||con.node1.equals(selected2)) {
+				if(con.node2.equals(selected3)||con.node2.equals(selected2)) {
+					conditions.remove(con);
+					break;
+				}
+			}
+		}
 	}
 }

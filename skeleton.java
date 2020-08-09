@@ -15,20 +15,15 @@ public class skeleton extends ArrayList<node> implements Comparable<skeleton> {
 	 */
 	int score;
 	boolean isFixedRatio;
-	boolean isFixedDifference;
 	double ratioX_Y;
-	int differenceX_Y;
 	private static final long serialVersionUID = 1L;
 	public skeleton(boolean isFixedRatio,
-	boolean isFixedDifference,
-	double ratioX_Y,
-	int differenceX_Y) {
+	double ratioX_Y) {
 		
 		super();
 		this.isFixedRatio= isFixedRatio;
-		this.isFixedDifference=isFixedDifference;
+		
 		this.ratioX_Y=ratioX_Y;
-		this.differenceX_Y= differenceX_Y;
 		score=0;
 	}
 	//gets the minimum box that contains all the nodes.
@@ -55,9 +50,6 @@ public class skeleton extends ArrayList<node> implements Comparable<skeleton> {
 			if(isFixedRatio) {
 				return Math.max(xmax-xmin,(int)((ymax-ymin)*this.ratioX_Y));
 			}
-			if(this.isFixedDifference) {
-				return Math.max(xmax-xmin,ymax-ymin+this.differenceX_Y);
-			}
 			return Math.max(xmax-xmin,ymax-ymin);
 			
 		
@@ -80,9 +72,6 @@ public class skeleton extends ArrayList<node> implements Comparable<skeleton> {
 					if(deltay<dist) {
 						return true;
 					}
-					
-				
-				
 			}
 		}
 		}

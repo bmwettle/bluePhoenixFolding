@@ -18,9 +18,10 @@ public class layout  extends SwingWorker<paper,Void>{
 	private static final int BASE_BUFFER_SIZE=0;
 	private static final int MAX_POP_SIZE=50000;
 	boolean isFixedRatio;
-	boolean isFixedDifference;
+	boolean hasSymetry;
+	boolean isXSymmetric;
 	double ratioX_Y;
-	int differenceX_Y;
+
 	//leafNodes is a list of the nodes in paper p that are leaf nodes
 	//it is used to make sure that all the skeletons are working on the same paper,
 	//without affecting the paper
@@ -51,9 +52,7 @@ public class layout  extends SwingWorker<paper,Void>{
 		addLeafNodes();
 		size= this.leafNodes.size();
 		isFixedRatio=p.isFixedRatio;
-		isFixedDifference=p.isFixedDifference;
 		ratioX_Y=p.ratioX_Y;
-		differenceX_Y=p.differenceX_Y;
 		addDiststances();
 		addXandYConditions();
 		addEdgeConditions();
@@ -102,11 +101,8 @@ public class layout  extends SwingWorker<paper,Void>{
 				if(p.isLeaf(one)&&p.isLeaf(two)) {
 					int index1= this.leafNodes.indexOf(one);
 					int index2= this.leafNodes.indexOf(two);
-					Xcon[index1][index2]=condition.matchX;
-					Ycon[index1][index2]=condition.matchY;
-					Xcon[index2][index1]=condition.matchX;
-					Ycon[index2][index1]=condition.matchY;
-
+					this.Xcon[index1][index2]=this.isXSymmetric;
+					this.Ycon[index1][index2]=!this.isXSymmetric;
 				}
 			}
 		}else {
@@ -190,7 +186,7 @@ public class layout  extends SwingWorker<paper,Void>{
 		return papers.get(0);
 	}
 	public void generateFirst() {
-		skeleton design= new skeleton(isFixedRatio, isFixedDifference, ratioX_Y,differenceX_Y);
+		skeleton design= new skeleton(isFixedRatio, ratioX_Y);
 		node n= new node(leafNodes.get(0));
 		design.add(n);
 		this.generated.add(design);
@@ -203,7 +199,8 @@ public class layout  extends SwingWorker<paper,Void>{
 		for(skeleton design:generated) {
 			//get the last node we made
 			//we know there is one, since the first one is made separately
-			node m=design.get(index-1);
+			for(node m:design) {
+			//node m=design.get(index-1);
 
 			// this is the "radius" we will check around the last node for this new one
 			//since we are using squares, this is a radius*2 square around the last node
@@ -222,25 +219,17 @@ public class layout  extends SwingWorker<paper,Void>{
 						//Great!, it"s a candidate
 						if(!design.overlaps(distances, n, index)) {
 							//we store it in a new skeleton
-							skeleton newDesign=new skeleton(isFixedRatio, isFixedDifference, ratioX_Y,differenceX_Y);
+							skeleton newDesign=new skeleton(isFixedRatio, ratioX_Y);
 							for(node old:design) {
 								newDesign.add(new node(old));
 							}
 							newDesign.score=design.score;
 							newDesign.add(n);
-
-							//now we check if it meets the conditions
-							//these can force two nodes to match X or Y coordinates,
-							//or to be on the Y or X axis
-
-							//we must check up to index+1, so we check the last node added
-							if(meetsConditions(newDesign,index+1)) {
-								//add it to the list of designs under consideration
-								newGen.add(newDesign);
-							}
+							
 						}
 					}
 				}
+			}
 			}
 		}
 
@@ -267,38 +256,7 @@ public class layout  extends SwingWorker<paper,Void>{
 	}
 
 
-	private boolean meetsConditions(skeleton design,int index) {
-		//don't check the nodes we didn't add yet, only up the the latest
-		for(int i=0;i<index;i++) {
-			for(int j=0;j<index;j++) {
-				//X con stores if nodes i and j need to have the same X cords,
-				if(Xcon[i][j]) {
-					if(design.get(i).getX()!=design.get(j).getX()) {
-						//if one pair is wrong, the skeleton will not work
-						return false;
-					}
-				}
-				//same thing, for y cords
-				if(Ycon[i][j]) {
-					if(design.get(i).getY()!=design.get(j).getY()) {
-						return false;
-					}
-				}
-			}
-			//if the node needs to be on the edge, make sure it is
-			if(isEdge[i]) {
-				node n= design.get(i);
-				if(n.getX()==0||n.getY()==0) {
-					System.out.println("ok");
-				}else {
-					//if its not, the design will not work
-					return false;
-				}
-			}
-		}
-		//if all the conditions are met, or the were none, it's a good design
-		return true;
-	}
+	
 
 	//this lets the optimization run in the background.
 	//for big designs, it can take a few minutes.
