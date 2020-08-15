@@ -14,6 +14,7 @@ public class skeleton extends ArrayList<node> implements Comparable<skeleton> {
 	 * 
 	 */
 	int score;
+	int size;
 	boolean isFixedRatio;
 	double ratioX_Y;
 	private static final long serialVersionUID = 1L;
@@ -47,9 +48,9 @@ public class skeleton extends ArrayList<node> implements Comparable<skeleton> {
 						ymin=n.getY();
 					}
 			}
-			if(isFixedRatio) {
-				return Math.max(xmax-xmin,(int)((ymax-ymin)*this.ratioX_Y));
-			}
+			//if(isFixedRatio) {
+				//return Math.max(xmax-xmin,(int)((ymax-ymin)*this.ratioX_Y));
+			//}
 			return Math.max(xmax-xmin,ymax-ymin);
 			
 		
@@ -57,8 +58,12 @@ public class skeleton extends ArrayList<node> implements Comparable<skeleton> {
 	@Override
 	public int compareTo(skeleton o) {
 	//smaller skeletons are better
-		return this.getSize()-o.getSize();
-	}
+		int size= this.getSize();
+		int osize=o.getSize();
+		
+			return(size-osize);
+		
+		}
 	//this checks to see if node n overlaps with anything already on the skeleton
 	public boolean overlaps(int[][] distances, node n, int index) {
 		for(node m:this) {

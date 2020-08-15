@@ -57,7 +57,9 @@ public class Oplanner extends JPanel implements Printable    {
 	public void drawPlan(paper myP) {
 		this.p=myP;
 		setUp(myP);
+		drawSymmetry();
 		if(myP.conditions!=null&&myP.conditions.size()!=0) {
+			
 			drawConditions();
 		}
 		for(node n:myP.nodes) {
@@ -65,6 +67,21 @@ public class Oplanner extends JPanel implements Printable    {
 			drawConnections(n);
 		}
 	}
+private void drawSymmetry() {
+	if(p.hasSymmetry) {
+		System.out.print("ok");
+		g.setColor(Color.red);
+		if(p.isXsymmetry) {
+			g.drawLine((int)(p.width*.5*squareSize), 0, (int)(p.width*.5*squareSize),p.height*squareSize);
+		}else {
+			g.drawLine(0,(int)(p.height*.5*squareSize),p.width*squareSize, (int)(p.height*.5*squareSize));
+			
+		}
+	}
+	// TODO Auto-generated method stub
+	
+}
+
 private void drawConnections(node n) {
 	for(node m:p.connections.get(n)) {
 		g.setStroke(new BasicStroke(3));
@@ -74,7 +91,10 @@ private void drawConnections(node n) {
 }
 
 private void drawNode(node n) {
-	int size= n.size;
+	double size= n.size;
+	if(size==0) {
+		size=.5;
+	}
 	if(p.isSelcted(n)) {
 		g.setColor(Color.green);
 	}

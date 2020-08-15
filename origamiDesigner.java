@@ -78,6 +78,7 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 	JRadioButton Xsymmetry;
 	JRadioButton Ysymmetry;
 	
+	
 	JLabel paper;
 	JSpinner Width;
 	JSpinner Height;
@@ -92,6 +93,7 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 		initalizeDesigner();
 		setUpPlanner();
 		setUpCloseing();
+		makeAdvanced();
 	}
 	private void setUpCloseing() {
 		planner.addComponentListener(new ComponentAdapter() {
@@ -157,7 +159,7 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 		createMenu();
 		menuBar.setDoubleBuffered(true);
 		this.setJMenuBar(menuBar);
-		this.advanced=new JFrame();
+		
 	}
 	public void createMenu() {
 		menuBar= new JMenuBar();
@@ -434,7 +436,12 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 	
 		}
 	public void stateChanged(ChangeEvent e) {
-		this.mouseClicked(null);
+		System.out.print("changing");
+		if(this.advanced.isActive()) {
+		myPaper.hasSymmetry=!this.nosymmetry.isSelected();
+		myPaper.isXsymmetry=this.Xsymmetry.isSelected();
+		System.out.println("here we go"+myPaper.hasSymmetry+",: "+myPaper.isXsymmetry);
+		}
 	}
 
 	public void mouseDragged(MouseEvent arg0) {}
@@ -464,7 +471,8 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 		drawPlanner();
 	}
 	private void makeSelectedAction(int x, int y) {
-		if(addsymmetry!=null) {
+		if(this.advanced!=null) {
+			
 			if(this.addsymmetry.isSelected()) {
 				addsymmetry(x,y);	
 			}
@@ -606,6 +614,7 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 		nosymmetry= new JRadioButton("no symmetry");
 		symmetryCon.add(nosymmetry);
 		nosymmetry.addActionListener(this);
+		nosymmetry.addChangeListener(this);
 		this.advanced.add(nosymmetry);
 		nosymmetry.setSelected(true);
 		Xsymmetry= new JRadioButton("X symmetry");
@@ -616,6 +625,8 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 		symmetryCon.add(Ysymmetry);
 		Ysymmetry.addActionListener(this);
 		this.advanced.add(Ysymmetry);
+		Ysymmetry.addChangeListener(this);
+		Xsymmetry.addChangeListener(this);
 	}
 
 	private void setUpAdvanced() {
