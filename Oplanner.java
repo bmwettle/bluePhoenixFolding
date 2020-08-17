@@ -18,7 +18,7 @@ import javax.swing.JPanel;
  * this class handles the display of the paper.
  * depending on the mode, it can display the plan, or the creases.
  */
-public class Oplanner extends JPanel implements Printable    {
+public class Oplanner extends JPanel implements Printable,ColorSettings    {
 	/**
 	 * 
 	 */
@@ -29,6 +29,7 @@ public class Oplanner extends JPanel implements Printable    {
 	paper p;
 	int width;
 	int height;
+	
 	private static final long serialVersionUID = -1071442708667655401L;
 	
 	public Oplanner(paper p) {
@@ -41,6 +42,9 @@ public class Oplanner extends JPanel implements Printable    {
 	public void drawGrid(int shift) {
 		if(shift==0) {
 			g.clearRect(0, 0, this.getWidth(), this.getHeight());
+			g.setStroke(AREA_STROKE);
+		}else {
+			g.setStroke(CONDITION_STROKE);
 		}
 		for (int i=0;i<=height;i++){
 			g.drawLine(0, i*squareSize-shift, width*squareSize, i*squareSize-shift);
@@ -70,7 +74,8 @@ public class Oplanner extends JPanel implements Printable    {
 private void drawSymmetry() {
 	if(p.hasSymmetry) {
 		System.out.print("ok");
-		g.setColor(Color.red);
+		g.setColor(SYMMERTY_LINE_COLOR);
+		g.setStroke(SYMMERTY_LINE_STROKE);
 		if(p.isXsymmetry) {
 			g.drawLine((int)(p.width*.5*squareSize), 0, (int)(p.width*.5*squareSize),p.height*squareSize);
 		}else {
@@ -78,11 +83,14 @@ private void drawSymmetry() {
 			
 		}
 	}
+	
+
 	// TODO Auto-generated method stub
 	
 }
 
 private void drawConnections(node n) {
+	g.setStroke(CONNECTION_STROKE);
 	for(node m:p.connections.get(n)) {
 		g.setStroke(new BasicStroke(3));
 		g.drawLine(m.getX()*squareSize,m.getY()*squareSize, n.getX()*squareSize, n.getY()*squareSize);
@@ -91,28 +99,26 @@ private void drawConnections(node n) {
 }
 
 private void drawNode(node n) {
+	g.setColor(NODE_COLOR);
+	g.setStroke(AREA_STROKE);
 	double size= n.size;
 	if(size==0) {
 		size=.5;
 	}
 	if(p.isSelcted(n)) {
-		g.setColor(Color.green);
+		g.setColor(SELECTED_NODE_COLOR);
 	}
 	g.draw(new Rectangle2D.Double((n.getX()-size)*squareSize,(n.getY()-size)*squareSize,size*2*squareSize,size*2*squareSize));
 	g.fill(new Rectangle2D.Double(n.getX()*squareSize-size*smallSquareSize,n.getY()*squareSize-size*smallSquareSize,size*2*smallSquareSize,size*2*smallSquareSize));
-	g.setColor(Color.blue);
+	
 }
 
 private void drawConditions() {
-	g.setStroke(new BasicStroke(2));
+	g.setStroke(CONDITION_STROKE);
+	g.setColor(CONDITION_LINE_COLOR);
 	for(Condition con:p.conditions) {
-		g.setColor(Color.PINK);
-		if(p.isXsymmetry) {
-			g.setColor(Color.cyan);
-		}
 		g.drawLine(con.node1.getX()*squareSize, con.node1.getY()*squareSize, con.node2.getX()*squareSize, con.node2.getY()*squareSize);
 		g.setColor(Color.BLUE);
-		g.setStroke(new BasicStroke(1));
 	}
 }
 
@@ -129,12 +135,14 @@ private void drawConditions() {
 		squareSize= Math.min(getWidth()/width,getHeight()/height);
 		smallSquareSize=squareSize/6;
 		drawGrid(0);
-		g.setColor(Color.BLUE);
+		
 }
 
 	public void drawCreases(paper myP, Graphics g1){
 		setUp(myP);
 		drawGrid(squareSize/2);
+		g.setStroke(AREA_STROKE);
+		g.setColor(CREASE_COLOR);
 		if(myP.nodes.size()>0) {
 			myP.getAreas(squareSize);
 			//total stores all the area on the paper to start
@@ -145,18 +153,15 @@ private void drawConditions() {
 				drawNodeCreases(n);	
 				total.subtract(n.A);
 			}
-			g.setColor(Color.ORANGE);
+			g.setColor(UN_USED_AREA_COLOR);
 			g.fill(total);
 		}
-		g.setColor(Color.BLACK);
 
 	}
 	private void drawNodeCreases(node n) {
 		if(p.isLeaf(n)) {
-			g.setColor(Color.blue);
 			g.draw(n.A);
 		}else {
-			g.setColor(Color.green);
 			g.setStroke(new BasicStroke(3));
 			g.draw(n.A);
 			g.setStroke(new BasicStroke(1));
@@ -164,7 +169,6 @@ private void drawConditions() {
 
 		if(n.creases!=null) {
 			for(Line2D.Double l:n.creases) {
-				g.setColor(Color.BLACK);
 				g.draw(l);
 			}
 

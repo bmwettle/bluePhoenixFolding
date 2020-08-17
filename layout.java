@@ -15,8 +15,7 @@ import javax.swing.SwingWorker;
  */
 
 public class layout  extends SwingWorker<paper,Void>{
-	private static final int BASE_BUFFER_SIZE=0;
-	private static final int MAX_POP_SIZE=50000;
+
 	boolean isFixedRatio;
 	boolean hasSymetry;
 	boolean isXSymmetric;
@@ -26,6 +25,8 @@ public class layout  extends SwingWorker<paper,Void>{
 	int globalSize;
 	int globalScore;
 	skeleton globalBest;
+	int rejections;
+	int sorts;
 	//leafNodes is a list of the nodes in paper p that are leaf nodes
 	//it is used to make sure that all the skeletons are working on the same paper,
 	//without affecting the paper
@@ -35,37 +36,33 @@ public class layout  extends SwingWorker<paper,Void>{
 	//the skeleton class is the bare bones of it- just the leaf nodes
 	//this lets the optimizer run quickly, without worrying about redoing a lot of computation
 	ArrayList<skeleton>generated;
-	//index shows what leaf node is being added in each step of the optimization
-	int index;
+	ArrayList<skeleton> minor;
 
 	//these keep track of the data needed from the original paper
 	int[][] distances;
 	paper p;
 	int size;
 	int baseBuffer;
-	boolean[][]Xcon;
-	boolean[][]Ycon;
-	boolean[] isEdge;
+
 
 	//this sets up the layout, and make it ready to optimize
 	public layout(paper p) {
 
 		this.p=p;
-		baseBuffer=BASE_BUFFER_SIZE;
+
 		generated= new ArrayList<skeleton>();
 		addLeafNodes();
 		size= this.leafNodes.size();
 		isFixedRatio=p.isFixedRatio;
 		ratioX_Y=p.ratioX_Y;
 		addDiststances();
-		addXandYConditions();
-		addEdgeConditions();
 		globalSize=Integer.MAX_VALUE;
 		globalScore=Integer.MAX_VALUE;
 		tree= new Generation[size];
 		for(int i=0;i<size;i++) {
 			tree[i]=new Generation();
 		}
+		minor= new ArrayList<skeleton>();
 	}
 
 	private void addDiststances() {
@@ -86,62 +83,39 @@ public class layout  extends SwingWorker<paper,Void>{
 		}
 	}
 
-	private void addEdgeConditions() {
-		isEdge= new boolean[leafNodes.size()];
-		if(p.edgeNodes!=null) {
-
-			for(node e:p.edgeNodes) {
-				if(p.isLeaf(e)) {
-					isEdge[leafNodes.indexOf(e)]=true;
-				}
-			}
-		}else {
-			p.edgeNodes= new ArrayList<node>();
-		}
-	}
-
-	private void addXandYConditions() {
-		Xcon= new boolean[leafNodes.size()][leafNodes.size()];
-		Ycon= new boolean[leafNodes.size()][leafNodes.size()];
-		if(p.conditions!=null) {
-
-			for(Condition condition:p.conditions) {
-				node one= condition.node1;
-				node two= condition.node2;
-				if(p.isLeaf(one)&&p.isLeaf(two)) {
-					int index1= this.leafNodes.indexOf(one);
-					int index2= this.leafNodes.indexOf(two);
-					this.Xcon[index1][index2]=this.isXSymmetric;
-					this.Ycon[index1][index2]=!this.isXSymmetric;
-				}
-			}
-		}else {
-			p.conditions= new ArrayList<Condition>();
-		}
-	}
-
 	/**
 	 *this function handles the core part of the program
 	 * it takes given paper, and optimizes it to the best shape and size,
 	 * subject to the constraints given by the paper.
 	 */
-	private void optimizeDF(int index2, skeleton parent) {
-		
+	private void optimizeDF(int index2, skeleton parent) {	
 		Generation newGen= makeNewGen(parent,index2);
-	
-		enforceConditions(newGen);
 		sortNewGen(newGen);
 		if(newGen.size()>=1) {
 		skeleton myBest= newGen.get(0);
 		index2++;
 		if(index2==size) {
+			if(p.hasSymmetry) {
+			newGen=enforceConditions(newGen);
+			newGen=newGen.checkFixed(p.isXsymmetry);
+			sortNewGen(newGen);
+			
+			}
+			if(newGen.size()>=1) {
+			myBest= newGen.get(0);
 			int mySize=myBest.getSize();
 			//System.out.println("checking best"+index2+","+newGen.size());
-			if(mySize<globalSize||(mySize==globalSize&&myBest.score<globalScore)) {
+			if(mySize<globalSize) {
 				System.out.println("updating best"+index2+": "+myBest.getSize()+",>" +myBest.score);
 				globalBest=myBest;
 				globalSize=myBest.getSize();
+				minor = new ArrayList<skeleton>();
 				//globalScore=myBest.score;
+			}else {
+				if(mySize==globalSize&&myBest.score<globalScore) {
+					minor.add(myBest);
+				}
+			}
 			}
 		}else {
 			for(skeleton design:newGen) {
@@ -149,6 +123,9 @@ public class layout  extends SwingWorker<paper,Void>{
 				if(designSize<globalSize) {
 					optimizeDF(index2,design);
 				}else {
+					if(designSize==globalSize&&design.score<globalScore) {
+						minor.add(design);
+					}
 				}
 			}
 		}
@@ -158,9 +135,14 @@ public class layout  extends SwingWorker<paper,Void>{
 		Collections.sort(newGen);
 	}
 
-	private void enforceConditions(Generation newGen) {
-		// TODO Auto-generated method stub
-
+	private Generation enforceConditions(Generation newGen) {
+		Generation checkGen= new Generation();
+		for(skeleton sk:newGen) {
+			if(this.meetsConditions(sk)) {
+				checkGen.add(sk);
+			}
+		}
+		return checkGen;
 	}
 
 	private Generation makeNewGen(skeleton design, int index2) {
@@ -168,8 +150,8 @@ public class layout  extends SwingWorker<paper,Void>{
 		Generation newGen= new Generation();
 		for(node m:design) {
 			int radius= this.distances[index2-1][index2];
-			for(int i=radius;i>=-radius;i--) {
-				for(int j=radius;j>=-radius;j--) {
+			for(int i=radius+baseBuffer;i>=-radius+baseBuffer;i--) {
+				for(int j=radius+baseBuffer;j>=-radius+baseBuffer;j--) {
 					if(Math.abs(i)>=radius||Math.abs(j)>=radius) {
 						node n= new node(leafNodes.get(index2));
 						n.setX(i+m.getX());
@@ -180,43 +162,35 @@ public class layout  extends SwingWorker<paper,Void>{
 								newDesign.add(new node(old));
 							}
 							newDesign.score=design.score+n.getX()+n.getY();
-							
 							newDesign.add(n);
 							newGen.add(newDesign);
-							
 						}
 					}
 				}
 			}
 		}
-	
 		return newGen;
 	}
 
-	public void optimize() {
-
-		index=0;
+	public void optimize(int buffer, boolean checkminor) {
+		System.out.println(checkminor);
 		//first we add the first node
 		//it doesn't matter where it goes, since all the locations are relative
+		this.baseBuffer=buffer;
 		generateFirst();
 		
-		this.optimizeDF(index, generated.get(0));
-		//assuming we have more the one node, we need to find the best spots for the rest
-
-		/*if(leafNodes.size()>1) {
-			for(int i=1;i<leafNodes.size();i++) {
-				//we will do this for each node in sequence
-				//the order does not make a big difference.
-				index=i;
-				generate(i,baseBuffer);
-			}
-			//as in the generation function, we don't need to keep all the designs
-			Collections.sort(this.generated);
-			if(generated.size()>MAX_POP_SIZE) {
-				generated= new ArrayList<skeleton>(generated.subList(0, MAX_POP_SIZE));
-
-			}
-		}*/
+		this.optimizeDF(1, generated.get(0));
+		if(checkminor) {
+			checkMinorImprovements();
+		}
+		
+	}
+	private void checkMinorImprovements() {
+		System.out.println("checking for minor improvements");
+		ArrayList<skeleton> toCheck= new ArrayList<skeleton>(this.minor);
+		for(skeleton sk:toCheck) {
+			this.optimizeDF(sk.size(), sk);
+		}
 	}
 
 	//now that we have the best designs, we need to get the best paper.
@@ -269,85 +243,9 @@ public class layout  extends SwingWorker<paper,Void>{
 		node n= new node(leafNodes.get(0));
 		design.add(n);
 		this.generated.add(design);
-		index++;
+
 	}
-	//here we generate the next node
-	public void generate(int index,int buffer) {
-
-		// we start by setting up a place to store the new generated skeletons
-		ArrayList<skeleton>newGen= new ArrayList<skeleton>();
-		//for all the designs we have
-		for(skeleton design:generated) {
-			//get the last node we made
-			//we know there is one, since the first one is made separately
-			for(node m:design) {
-				//node m=design.get(index-1);
-
-				// this is the "radius" we will check around the last node for this new one
-				//since we are using squares, this is a radius*2 square around the last node
-				// we could search more area, but that is slow and not that useful
-				int radius= this.distances[index-1][index]+buffer;
-				for(int i=radius;i>=-radius;i--) {
-					for(int j=radius;j>=-radius;j--) {
-						//we only want to search the parts of the square
-						//that are far enough away to not overlap the last node
-						if(Math.abs(i)>=radius||Math.abs(j)>=radius) {
-							//now we put a node at that spot
-							node n= new node(leafNodes.get(index));
-							n.setX(i+m.getX());
-							n.setY(j+m.getY());
-							//if it doesn't overlap with anything else,
-							//Great!, it"s a candidate
-							if(!design.overlaps(distances, n, index)) {
-								//we store it in a new skeleton
-								skeleton newDesign=new skeleton(isFixedRatio, ratioX_Y);
-								for(node old:design) {
-									newDesign.add(new node(old));
-								}
-								newDesign.score=design.score;
-								newDesign.add(n);
-
-								//now we check if it meets the conditions
-								//these can force two nodes to match X or Y coordinates,
-								//or to be on the Y or X axis
-
-								//we must check up to index+1, so we check the last node added
-								//if(meetsConditions(newDesign,index)) {
-								//add it to the list of designs under consideration
-								newGen.add(newDesign);
-								//}
-
-							}
-						}
-					}
-				}
-			}
-		}
-		System.out.println("now at: "+newGen.size()+", "+buffer+", "+index);
-		if(newGen.size()!=0) {
-			generated=newGen;
-			//once we have all the possible placements of this node, we have a problem
-			//if we looked at all of them in the next step, the problem would become huge
-			// so, we will only look at the best
-			// the skeleton class can compare itself to other skeletons.
-			Collections.sort(this.generated);
-			//now that we know what skeletons are best, we only need to keep some
-			//MAX_POP_SIZE is set by default to 50,000. for simple designs, this is over kill
-			//for huge designs, this might need to be increased
-			if(newGen.size()>MAX_POP_SIZE) {
-				generated= new ArrayList<skeleton>(newGen.subList(0, MAX_POP_SIZE));
-			}
-
-		}else {
-
-			//if we have no designs, we have to search a bigger area
-			System.out.println("adding buffer: "+buffer+1);
-			generate(index,buffer+1);
-		}
-	}
-
-
-	private boolean meetsConditions(skeleton design,int index) {
+private boolean meetsConditions(skeleton design) {
 		if(!p.hasSymmetry) {
 			return true;
 		}
@@ -358,11 +256,18 @@ public class layout  extends SwingWorker<paper,Void>{
 			if(p.isLeaf(one)&&p.isLeaf(two)) {
 				int index1 =leafNodes.indexOf(one);
 				int index2 =leafNodes.indexOf(two);
-				if(index1<=index&&index2<=index) {
-					if(design.get(index2).getX()!=-1*design.get(index1).getX()) {
+				int index0=design.getSize()-1;
+				if(index1<=index0&&index2<=index0) {
+					int xscale=1;
+					int yscale=-1;
+					if(p.isXsymmetry) {
+						xscale=-1;
+						yscale=1;
+					}
+					if(design.get(index2).getX()!=xscale*design.get(index1).getX()) {
 						return false;
 					}
-					if(design.get(index2).getY()!=design.get(index1).getY()) {
+					if(design.get(index2).getY()!=yscale*design.get(index1).getY()) {
 						return false;
 					}
 				}
@@ -376,7 +281,8 @@ public class layout  extends SwingWorker<paper,Void>{
 	//for big designs, it can take a few minutes.
 	@Override
 	protected paper doInBackground() throws Exception {
-		this.optimize();
+		this.optimize(baseBuffer, hasSymetry);
+		
 		return this.getPaper(p);
 	}
 }

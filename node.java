@@ -24,6 +24,8 @@ private int x;
 private int y;
 int size;
 int ID;
+boolean isFixedToEdge;
+boolean isFixedToSymmetryLine;
 Area A;
 // these are set during crease generation.
 ArrayList<Point> corners;
@@ -41,7 +43,8 @@ public node() {
 	y=0;
 	size=1;
 	ID=0;
-	
+	isFixedToEdge=false;
+	isFixedToSymmetryLine=false;
 }
 public node(node n) {
 	super();
@@ -49,6 +52,8 @@ public node(node n) {
 	this.y=n.y;
 	this.size=n.size;
 	this.ID=n.ID;
+	this.isFixedToEdge=n.isFixedToEdge;
+	this.isFixedToSymmetryLine=n.isFixedToSymmetryLine;
 }
 
 public void setID(int id) {

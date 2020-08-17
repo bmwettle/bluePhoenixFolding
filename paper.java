@@ -38,6 +38,35 @@ public int getScore() {
 	}
 	return score;
 }
+public void refreshNodes() {
+	this.settled= new ArrayList<node>();
+	for(node n:nodes) {
+		refreshNode(n);
+	}
+}
+	private void refreshNode(node n) {
+		if(!settled.contains(n)) {
+	if(isLeaf(n)) {
+		settled.add(n);
+	}else {
+		int xpos=0;
+		int ypos=0;
+		int count=0;
+		for(node m :this.connections.get(n)) {
+			if(settled.contains(m)) {
+				xpos+=m.getX();
+				ypos+=m.getY();
+				count++;
+			}
+		}
+		if(count!=0) {
+		n.setX((int)xpos/count);
+		n.setY((int)ypos/count);
+		}
+		settled.add(n);
+	}
+		}
+}
 	public int compareTo(paper b) {
 		int size1=this.getSize();
 		int size2=b.getSize();
@@ -81,11 +110,19 @@ public int getScore() {
 			Area poly = new Area();	
 			n.A=poly;
 			settled.add(n);
+			int totalX=0;
+			int totalY=0;
+			int count=0;
 			for(node m:this.connections.get(n)) {
 				if(!settled.contains(m)) {
+					count++;
+					totalX+=m.getX();
+					totalY=m.getY();
 					getArea(m,scale);
 				}	
 			}
+			n.setX((int)(totalX/count));
+			n.setY((int)(totalY/count));
 			for(node m:this.connections.get(n)) {
 				if(settled.contains(m)) {
 					Area sub=m.A;
@@ -125,36 +162,11 @@ public int getScore() {
 		for(node m:this.connections.get(n)) {
 			if(!settled.contains(m)) {
 				getArea(m,scale);
+				System.out.print("dont delete me");
 			}	
 		}
 
 
-	}
-
-	private Area expandNodeArea(node n, int scale) {
-		Area Poly= new Area();
-			for(int a=-1;a<=1;a+=2) {
-				for(int b=-1;b<=1;b+=2) {
-					AffineTransform t= new AffineTransform();
-					t.translate(scale*a, scale*b);
-					Poly.add(n.A.createTransformedArea(t));
-					n.A=Poly;
-					
-					for(Point p:n.corners) {
-					Point k= new Point(p.x-2*a,p.y-2*b);
-					if(n.A.contains(k)) {
-						Point d= new Point(p.x+2*a,p.y-2*b);
-						Point e= new Point(p.x-2*a,p.y+2*b);
-						if(n.A.contains(d)==n.A.contains(e)) {
-						Point l= new Point(p.x+a*n.size*scale,p.y+b*n.size*scale);
-						n.corners.add(l);
-						n.creases.add(new Line2D.Double(p.x,p.y,l.x,l.y));
-						}
-					}
-				}
-			}
-	}
-		return Poly;
 	}
 	private void makeLeaf(node n, int scale, int Size) {
 		Area poly= new Area(new Rectangle2D.Double(scale*(n.getX()-Size),scale*(n.getY()-Size),2*scale*Size,2*scale*Size));
@@ -424,6 +436,7 @@ public int getScore() {
 		}
 		return false;
 	}
+
 	public void addConditions(node selected2, node selected3) {
 		if(this.conditions==null) {
 			conditions = new ArrayList<Condition>();
