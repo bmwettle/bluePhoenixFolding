@@ -1,6 +1,8 @@
 package origamiProject;
 
+import java.rmi.server.UID;
 import java.util.ArrayList;
+import java.util.HashMap;
 /**
  * 
  * @author Benjamin Wettle
@@ -22,6 +24,7 @@ public class skeleton extends ArrayList<node> implements Comparable<skeleton> {
 	boolean isFixedRatio;
 	double ratioX_Y;
 	private static final long serialVersionUID = 1L;
+	ArrayList<node> paired;
 	public skeleton(boolean isFixedRatio,
 			double ratioX_Y) {
 
@@ -34,6 +37,7 @@ public class skeleton extends ArrayList<node> implements Comparable<skeleton> {
 		 xmin=Integer.MAX_VALUE;
 		 ymax=0;
 		 ymin=Integer.MAX_VALUE;
+		 paired= new ArrayList<node>();
 	}
 	//gets the minimum box that contains all the nodes.
 	//also keeps the ratios or differences specified from the layout
@@ -74,12 +78,26 @@ public class skeleton extends ArrayList<node> implements Comparable<skeleton> {
 
 	}
 	//this checks to see if node n overlaps with anything already on the skeleton
-	public boolean overlaps(int[][] distances, node n, int index) {
+	public boolean overlaps(HashMap<UID,Integer> distance, node n, int index) {
 		for(node m:this) {
 			if(!m.equals(n)) {
 				int deltax= Math.abs(n.getX()-m.getX());
 				int deltay= Math.abs(n.getY()-m.getY());
-				int dist=distances[index][this.indexOf(m)];
+				int dist=distance.get(m.ID);
+				int gap=deltax+deltay;
+				this.score+=gap;
+				if(deltax<dist) {
+					if(deltay<dist) {
+						return true;
+					}
+				}
+			}
+		}
+		for( node m:this.paired) {
+			if(!m.equals(n)) {
+				int deltax= Math.abs(n.getX()-m.getX());
+				int deltay= Math.abs(n.getY()-m.getY());
+				int dist=distance.get(m.ID);
 				int gap=deltax+deltay;
 				this.score+=gap;
 				if(deltax<dist) {
@@ -90,6 +108,22 @@ public class skeleton extends ArrayList<node> implements Comparable<skeleton> {
 			}
 		}
 		return false;
+	}
+	public boolean addPaired(node n) {
+		if(n.getX()>xmax) {
+			xmax=n.getX();
+		}
+		if(n.getX()<xmin) {
+			xmin=n.getX();
+		}
+		if(n.getY()>ymax) {
+			ymax=n.getY();
+		}
+		if(n.getY()<ymin) {
+			ymin=n.getY();
+		}
+		size=Math.max(xmax-xmin,ymax-ymin);
+		return(this.paired.add(n));
 	}
 	@Override
 

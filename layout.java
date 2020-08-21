@@ -1,7 +1,10 @@
 package origamiProject;
 
+import java.rmi.server.UID;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+
 import javax.swing.SwingWorker;
 
 /**
@@ -39,11 +42,12 @@ public class layout  extends SwingWorker<paper,Void>{
 	ArrayList<skeleton> minor;
 
 	//these keep track of the data needed from the original paper
-	int[][] distances;
+	HashMap<UID,HashMap<UID,Integer>> distances;
+	//[][] distances;
 	paper p;
 	int size;
 	int baseBuffer;
-
+node [] paired;
 
 	//this sets up the layout, and make it ready to optimize
 	public layout(paper p) {
@@ -63,14 +67,27 @@ public class layout  extends SwingWorker<paper,Void>{
 			tree[i]=new Generation();
 		}
 		minor= new ArrayList<skeleton>();
+		System.out.println(leafNodes);
+		for(int i=0;i<leafNodes.size();i++) {
+			if(paired[i]!=null) {
+				System.out.println(paired[i].toString()+": "+leafNodes.get(i).toString());	
+			}
+			
+		}
 	}
 
 	private void addDiststances() {
-		distances= new int[size][size];
-		for(int i=0;i<size;i++) {
-			for(int j=0;j<size;j++) {
-				this.distances[i][j]=p.distances.get(leafNodes.get(i)).get(leafNodes.get(j));
+		distances= new HashMap<UID,HashMap<UID,Integer>>();
+		for (node n:p.nodes) {
+			HashMap<UID,Integer> ndist= new HashMap<UID,Integer>();
+			for( node m:p.nodes) {
+				
+				if(p.isLeaf(n)&&p.isLeaf(m)) {
+					int dist= p.distances.get(n).get(m);
+					ndist.put(m.ID, dist);
+				}
 			}
+			distances.put(n.ID,ndist );
 		}
 	}
 
@@ -81,6 +98,23 @@ public class layout  extends SwingWorker<paper,Void>{
 				leafNodes.add(n);
 			}
 		}
+		for (Condition c:p.conditions){
+			node one= c.node1;
+			node two= c.node2;
+			if(p.isLeaf(one)&&p.isLeaf(two)) {
+				leafNodes.remove(two);
+			}
+		}
+		paired= new node[leafNodes.size()];
+		for (Condition c:p.conditions){
+			node one= c.node1;
+			node two= c.node2;
+			if(p.isLeaf(one)&&p.isLeaf(two)) {
+				paired[leafNodes.indexOf(one)]=two;
+			}
+		}
+		
+		
 	}
 
 	/**
@@ -95,14 +129,6 @@ public class layout  extends SwingWorker<paper,Void>{
 		skeleton myBest= newGen.get(0);
 		index2++;
 		if(index2==size) {
-			if(p.hasSymmetry) {
-			newGen=enforceConditions(newGen);
-			newGen=newGen.checkFixed(p.isXsymmetry);
-			sortNewGen(newGen);
-			
-			}
-			if(newGen.size()>=1) {
-			myBest= newGen.get(0);
 			int mySize=myBest.getSize();
 			//System.out.println("checking best"+index2+","+newGen.size());
 			if(mySize<globalSize) {
@@ -115,7 +141,7 @@ public class layout  extends SwingWorker<paper,Void>{
 				if(mySize==globalSize&&myBest.score<globalScore) {
 					minor.add(myBest);
 				}
-			}
+			
 			}
 		}else {
 			for(skeleton design:newGen) {
@@ -135,35 +161,43 @@ public class layout  extends SwingWorker<paper,Void>{
 		Collections.sort(newGen);
 	}
 
-	private Generation enforceConditions(Generation newGen) {
-		Generation checkGen= new Generation();
-		for(skeleton sk:newGen) {
-			if(this.meetsConditions(sk)) {
-				checkGen.add(sk);
-			}
-		}
-		return checkGen;
-	}
+	
 
 	private Generation makeNewGen(skeleton design, int index2) {
 		// we start by setting up a place to store the new generated skeletons
 		Generation newGen= new Generation();
 		for(node m:design) {
-			int radius= this.distances[index2-1][index2];
-			for(int i=radius+baseBuffer;i>=-radius+baseBuffer;i--) {
-				for(int j=radius+baseBuffer;j>=-radius+baseBuffer;j--) {
+			int radius= this.distances.get(m.ID).get(leafNodes.get(index2).ID);
+			for(int i=radius+baseBuffer;i>=-radius-baseBuffer;i--) {
+				for(int j=radius+baseBuffer;j>=-radius-baseBuffer;j--) {
 					if(Math.abs(i)>=radius||Math.abs(j)>=radius) {
 						node n= new node(leafNodes.get(index2));
 						n.setX(i+m.getX());
 						n.setY(j+m.getY());
-						if(!design.overlaps(distances, n, index2)) {
+						
+						if(!design.overlaps(distances.get(n.ID), n, index2)) {
 							skeleton newDesign=new skeleton(isFixedRatio, ratioX_Y);
 							for(node old:design) {
 								newDesign.add(new node(old));
 							}
-							newDesign.score=design.score+n.getX()+n.getY();
+							for( node old:design.paired) {
+								newDesign.addPaired(new node(old));
+							}
+							newDesign.score=design.score+Math.abs(n.getX())+Math.abs(n.getY());
 							newDesign.add(n);
+							if(paired[index2]!=null) {
+								node pair= new node( paired[index2]);
+								pair.setX(-1*n.getX());
+								pair.setY(n.getY());
+								if(!newDesign.overlaps(distances.get(pair.ID), pair, index2)) {
+									newDesign.score+=Math.abs(pair.getX())+Math.abs(pair.getY());
+									newDesign.addPaired(pair);
+									newGen.add(newDesign);
+									//System.out.println("checking"+pair.getX()+","+pair.getY()+";"+n.getX()+","+n.getY());
+								}
+							}else {
 							newGen.add(newDesign);
+						}
 						}
 					}
 				}
@@ -202,35 +236,40 @@ public class layout  extends SwingWorker<paper,Void>{
 		
 		// we don't really care about designs bigger than the smallest, only equal.
 		skeleton top=globalBest;
+		for(node M:top.paired) {
+			
+				System.out.println(M.ID);
+				
+		
+		}
 				paper oldp= new paper(p);
-				int j=0;
+				
+				
 				//we will set the nodes to the locations found in optimization
 				for(node n:oldp.nodes) {
 					if(oldp.isLeaf(n)) {
-						node newN= top.get(j);
-						n.setX(newN.getX());
-						n.setY(newN.getY());
-						//System.out.println(j+": "+n.size+", "+n.getX()+":"+n.getY());
-						j++;
-					}
-				}
-				//now we want to place the rivers and hubs.
-				//the locations don't really matter, 
-				//but its nice to see how things connect in the plan display
-				//TODO finish this method
-				for(node n:oldp.nodes) {
-					if(oldp.isLeaf(n)) {
-					}else {
-						int x=0;
-						int y=0;
-						for(node m:oldp.connections.get(n)) {
-							x+=m.getX();
-							y+=n.getY();
+						for(node M:top) {
+							if(n.ID==M.ID) {
+								
+								n.setX(M.getX());
+								n.setY(M.getY());
+								//System.out.println(j+": "+n.size+", "+n.getX()+":"+n.getY());
+							
+							}
 						}
-						n.setX((int)(x/oldp.connections.get(n).size()));
-						n.setY((int)(y/oldp.connections.get(n).size()));
+						for(node M:top.paired) {
+							if(n.ID==M.ID) {
+								
+								n.setX(M.getX());
+								n.setY(M.getY());
+								System.out.println("ok");
+								
+							}
+						}
+						
 					}
 				}
+				oldp.refreshNodes();
 				oldp.shrink();
 			
 			
@@ -241,48 +280,21 @@ public class layout  extends SwingWorker<paper,Void>{
 	public void generateFirst() {
 		skeleton design= new skeleton(isFixedRatio, ratioX_Y);
 		node n= new node(leafNodes.get(0));
+		n.setY(1);
+		n.setX(1);
 		design.add(n);
 		this.generated.add(design);
 
 	}
-private boolean meetsConditions(skeleton design) {
-		if(!p.hasSymmetry) {
-			return true;
-		}
-		//don't check the nodes we didn't add yet, only up the the latest
-		for(Condition con:p.conditions) {
-			node one=con.node1;
-			node two=con.node2;
-			if(p.isLeaf(one)&&p.isLeaf(two)) {
-				int index1 =leafNodes.indexOf(one);
-				int index2 =leafNodes.indexOf(two);
-				int index0=design.getSize()-1;
-				if(index1<=index0&&index2<=index0) {
-					int xscale=1;
-					int yscale=-1;
-					if(p.isXsymmetry) {
-						xscale=-1;
-						yscale=1;
-					}
-					if(design.get(index2).getX()!=xscale*design.get(index1).getX()) {
-						return false;
-					}
-					if(design.get(index2).getY()!=yscale*design.get(index1).getY()) {
-						return false;
-					}
-				}
-			}
-		}
-		//if all the conditions are met, or the were none, it's a good design
-		return true;
-	}
+
+	
 
 	//this lets the optimization run in the background.
 	//for big designs, it can take a few minutes.
 	@Override
 	protected paper doInBackground() throws Exception {
 		this.optimize(baseBuffer, hasSymetry);
-		
+		System.out.println("is overlaping:"+p.hasOverlap());
 		return this.getPaper(p);
 	}
 }

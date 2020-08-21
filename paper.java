@@ -3,6 +3,7 @@ import java.awt.Point;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.awt.geom.Line2D;
+import java.awt.geom.PathIterator;
 import java.awt.geom.Rectangle2D;
 import java.io.Serializable;
 import java.util.*;
@@ -28,6 +29,8 @@ public class paper implements Serializable , Comparable<paper>{
 	ArrayList<node> unSettled;
 	ArrayList<Condition> conditions;
 	ArrayList<node>edgeNodes;
+	Area Unused;
+	Area Used;
 public int getScore() {
 	int score=0;
 	for(node n:nodes) {
@@ -82,6 +85,8 @@ public void refreshNodes() {
 		return Math.max(width, height);
 	}
 	public void getAreas(int scale) {
+		Unused= new Area(new Rectangle2D.Double(0,0,width*scale,height*scale));
+		Used= new Area();
 		settled= new ArrayList<node>();
 		for(node n:nodes) {
 			n.corners=new ArrayList<Point>();
@@ -90,9 +95,53 @@ public void refreshNodes() {
 		}
 		node start= getFirstLeaf();
 		getArea(start,scale);
+		for(node n:nodes) {
+			n.A.intersect(Unused);
+		}
+		ArrayList<Point >activeCorners= new ArrayList<Point>();
+		for(node n:nodes) {
+			Unused.subtract(n.A);;
+			Used.add(n.A);
+			activeCorners.addAll(n.corners);
+		}
+		int[][]directions= new int[activeCorners.size()][2];
+		for( Point p:activeCorners) {
+			Point l= expand(p,Used,scale);
+			if(l!=null) {
+				int x=l.x-p.x;
+				int y=l.y-p.y;
+				directions[activeCorners.indexOf(p)]= new int[] {x,y};
+			}
+		}
+		
+			for(Point p1:activeCorners) {
+				
+				System.out.println("now at "+p1.x/scale+", "+p1.y/scale);
+				int [] dir= directions[activeCorners.indexOf(p1)];
+				System.out.println("moving to "+(p1.x+dir[0])/scale+", "+(p1.y+dir[1])/scale);
+				
+			
+		
+		}
+		
 		settled= new ArrayList<node>();
 	}
-	
+	private Point expand(Point p, Area expand, int scale) {
+		for(int a=-1;a<=1;a+=2) {
+			for(int b=-1;b<=1;b+=2) {
+				Point k= new Point(p.x-2*a,p.y-2*b);
+				if(expand.contains(k)) {
+					Point d= new Point(p.x+2*a,p.y-2*b);
+					Point e= new Point(p.x-2*a,p.y+2*b);
+					if(expand.contains(d)==expand.contains(e)) {
+					 return new Point(p.x+a*scale,p.y+b*scale);
+					
+					}
+				}
+			}
+		}
+		return null;
+	}
 	public node getFirstLeaf() {
 		for(node n:nodes) {
 			if(isLeaf(n)) {
@@ -138,7 +187,12 @@ public void refreshNodes() {
 						}
 					}
 					for(Point p:m.corners) {
-						for(int a=-1;a<=1;a+=2) {
+						Point k=expand(p,m.A,scale);
+						if(k!=null) {
+						n.corners.add(k);
+						n.creases.add(new Line2D.Double(p.x,p.y,k.x,k.y));
+						}
+						/*for(int a=-1;a<=1;a+=2) {
 							for(int b=-1;b<=1;b+=2) {
 								Point k= new Point(p.x-2*a,p.y-2*b);
 								if(m.A.contains(k)) {
@@ -151,7 +205,7 @@ public void refreshNodes() {
 									}
 								}
 							}
-						}
+						}*/
 
 					}
 				}
@@ -169,19 +223,33 @@ public void refreshNodes() {
 
 	}
 	private void makeLeaf(node n, int scale, int Size) {
-		Area poly= new Area(new Rectangle2D.Double(scale*(n.getX()-Size),scale*(n.getY()-Size),2*scale*Size,2*scale*Size));
+		Area poly= new Area();
+		poly= new Area(new Rectangle2D.Double(scale*(n.getX()-Size),scale*(n.getY()-Size),2*scale*Size,2*scale*Size));
 		settled.add(n);
 		n.A=poly;
 		n.corners=new ArrayList<Point>();
 		n.creases= new ArrayList<Line2D.Double>();
+		Point s=new Point(scale*(n.getX()),scale*(n.getY()));
 		for(int i=-1;i<=1;i+=2) {
 			for(int j=-1;j<=1;j+=2) {
-				Point s=new Point(scale*(n.getX()),scale*(n.getY()));
-				Point p=new Point(scale*(n.getX()-i*n.size),scale*(n.getY()-j*n.size));
+				Point p = new Point(s);
+				boolean active=true;
+				for( int k=0;k<=n.size;k++) {
+				
+					
+				if((((n.getX()+i*k)>width)||((n.getX()+i*k)<0))||(((n.getY()+j*k)>width)||((n.getY()+j*k)<0))) {
+					active=false;
+					break;
+				}
+				p=new Point(scale*(n.getX()+i*k),scale*(n.getY()+j*k));
+				}
+				if(active) {
 				n.corners.add(p);
+				}
 				n.creases.add(new Line2D.Double(s.getX(),s.getY(),p.getX(),p.getY()));
 			}
 		}
+		
 	}
 	public void deleteNode(node delete) {
 		
@@ -358,7 +426,7 @@ public void refreshNodes() {
 		newList.add(startNode);
 		connections.put(newNode,newList);
 		nodes.add(newNode);
-		newNode.setID(nodes.indexOf(newNode));
+		
 	}
 	public void addNode(node newNode) {
 		if(!isFirstNode()) {
@@ -367,7 +435,7 @@ public void refreshNodes() {
 			ArrayList<node>newList= new ArrayList<node>();
 			connections.put(newNode,newList);
 			nodes.add(newNode);
-			newNode.setID(nodes.indexOf(newNode));
+			
 		}
 	}
 	public boolean isLeaf(node n) {
@@ -386,8 +454,9 @@ public void refreshNodes() {
 	}
 	public boolean overlaps(node one, node two) {
 		if(!one.equals(two)) {
+			if(isLeaf(one)&&isLeaf(two)) {
 			int deltax= Math.abs(one.getX()-two.getX());
-				int deltay= Math.abs(one.getY()-two.getY());
+			int deltay= Math.abs(one.getY()-two.getY());
 				if(deltax>=distances.get(one).get(two)) {
 					return false;
 				}
@@ -395,7 +464,7 @@ public void refreshNodes() {
 					return false;
 				}
 				return true;
-
+			}
 		}
 		return false;
 	}
@@ -421,6 +490,7 @@ public void refreshNodes() {
 	public boolean hasOverlap( node N1) {
 		for(node N2:nodes) {
 			if(overlaps(N1,N2)) {
+				System.out.println("overlap at:"+N1.ID+", "+N2.ID);
 				return true;
 			}
 		}

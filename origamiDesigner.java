@@ -6,9 +6,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
@@ -18,6 +15,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.rmi.server.UID;
 import java.util.ArrayList;
 
 import javax.swing.ButtonGroup;
@@ -263,6 +261,13 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 		myEdit.setLayout(new GridLayout(10,2));
 		createNodeGui();
 		createPaperGui();
+		if(myPaper!=null) {
+			this.Width.setValue(myPaper.width);
+			this.Height.setValue(myPaper.height);
+			if(myPaper.selected!=null) {
+				this.nodeSize.setValue(myPaper.selected.size);
+			}
+		}
 		myEdit.setVisible(true);
 	}
 	private void createDisplayMenu() {
@@ -294,7 +299,6 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 		design.add(treePlan);
 		design.add(creases);
 	}
-
 	private void makeUndoActions() {
 		JMenuItem undo = new JMenuItem("undo");
 		undo.addActionListener(new ActionListener() { 
@@ -313,9 +317,7 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 		DisplayMenu.add(undo);
 		DisplayMenu.add(redo);
 	}
-
 	private void makeDisplayActions() {
-		
 		JMenuItem optimize = new JMenuItem("optimize");
 		optimize.addActionListener(new ActionListener() { 
 			public void actionPerformed(ActionEvent e) { 
@@ -325,7 +327,6 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 		} );
 		DisplayMenu.add(optimize);
 	}
-
 	public static void main(String[] args){
 		origamiDesigner design = new origamiDesigner();
 		origamiDesigner.allDesignerWindows.add(design); // MC
@@ -352,7 +353,13 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 			System.out.println(","+buffer+","+checkminor);
 		}
 		long start_time=System.currentTimeMillis();
-		lay.optimize(buffer,checkminor);
+		//lay.optimize(buffer,checkminor);
+try {
+	lay.doInBackground();
+} catch (Exception e) {
+	// TODO Auto-generated catch block
+	e.printStackTrace();
+}
 		long end_time=System.currentTimeMillis();
 		long time=end_time-start_time;
 		System.out.print("optimized in" +time +"milli seconds");
@@ -365,6 +372,7 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 		this.Width.setValue(w);
 		escapeMode.setSelected(true);
 		this.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+		drawPlanner();
 	}
 	private void saveFile() {
 		for(node n:myPaper.nodes) {
@@ -413,12 +421,14 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 			this.nodeSize.setValue(myPaper.selected.size);
 
 		}
+		planner.hasChanged=true;
 		drawPlanner();
 	}
 	private void newFile() {
 		origamiDesigner design = new origamiDesigner();
 		origamiDesigner.allDesignerWindows.add(design);
 		design.setVisible(true);
+		planner.hasChanged=true;
 	}
 	private int getSquareSize() {
 		return Math.min(planner.getWidth()/myPaper.width, planner.getHeight()/myPaper.height);
@@ -477,10 +487,7 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 		myEdit.add(Height);
 	
 		}
-	public void stateChanged(ChangeEvent e) {
-		
-	}
-
+	public void stateChanged(ChangeEvent e) {}
 	public void mouseDragged(MouseEvent arg0) {}
 	public void mouseMoved(MouseEvent arg0) {}
 	public void mouseClicked(MouseEvent arg0) {
@@ -509,35 +516,41 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 	}
 	private void makeSelectedAction(int x, int y) {
 		if(this.symmetryEditor!=null) {
-			
 			if(this.addsymmetry.isSelected()) {
 				addsymmetry(x,y);	
+				planner.hasChanged=true;
 			}
 			if(this.removesymmetry.isSelected()) {
-				removesymmetry(x,y);	
+				removesymmetry(x,y);
+				planner.hasChanged=true;
 			}
 			if(this.selectNode.isSelected()) {
 				selectNode(x,y);	
+				planner.hasChanged=true;
 			}
 		}
 		if(leafMode.isSelected()) {
 			addLeaf(x,y);
+			planner.hasChanged=true;
 		}
 		if(riverMode.isSelected()) {
 			addRiver(x,y);
+			planner.hasChanged=true;
 		}
 		if(moveMode.isSelected()) {
 			moveNode(x,y);
+			planner.hasChanged=true;
 		}
 		if(selectMode.isSelected()) {
 			selectNode(x,y);
+			planner.hasChanged=true;
 		}
 
 		if(deleteMode.isSelected()) {
 			deleteNode(x,y);
+			planner.hasChanged=true;
 		}
 	}
-
 	private void removesymmetry(int x, int y) {
 		node selected= myPaper.getNodeAt(x,y);
 		if(selected==(null)) {	
@@ -545,7 +558,6 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 			myPaper.removeConditions(selected, myPaper.selected);
 		}
 	}
-
 	private void addsymmetry(int x, int y) {
 		node selected= myPaper.getNodeAt(x,y);
 		if(selected==(null)) {	
@@ -553,7 +565,6 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 			myPaper.addConditions(selected, myPaper.selected);
 		}
 	}
-
 	private void deleteNode(int x, int y) {
 		node selected= myPaper.getNodeAt(x,y);
 		if(selected==(null)) {
@@ -577,9 +588,9 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 	}
 	private void addRiver(int x, int y) {
 		this.undoPapers.add(new paper(myPaper));
-		node newNode1= new node(x, y-1, 0);
-		node newNode2= new node(x, y, 1);
-		node newNode3= new node(x, y+1, 0);
+		node newNode1= new node(x, y-1, 0,new UID());
+		node newNode2= new node(x, y, 1,new UID());
+		node newNode3= new node(x, y+1, 0,new UID());
 		myPaper.addNode(newNode1);
 		myPaper.setSelectedNode(newNode1);
 		myPaper.addNode(newNode2);
@@ -590,12 +601,11 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 	}
 	private void addLeaf(int x, int y) {
 		this.undoPapers.add(new paper(myPaper));
-		node newNode= new node(x, y,1);
+		node newNode= new node(x, y,1, new UID());
 		myPaper.addNode(newNode);
 		myPaper.setSelectedNode(newNode);
 		nodeSize.setValue(1);
 	}
-
 	public void actionPerformed(ActionEvent arg0) {
 		
 		this.mouseClicked(null);
@@ -610,7 +620,6 @@ private void makeOptimizeSettings(){
 	this.optimizeSettings.setLocation(this.getWidth()+this.getX(), this.getY());
 	this.optimizeSettings.setLayout(new GridLayout(10,1));
 	makeOptimizeConditions();
-	
 	optimizeSettings.setVisible(true);
 	optimizeSettings.addComponentListener(new ComponentAdapter() {
 		public void componentResized(ComponentEvent componentEvent) {
@@ -624,7 +633,10 @@ private void makeOptimizeSettings(){
 		makeSymmetryConditions();
 		makeSymmetryActions();
 		finishAdvancedSetup();
-		
+		if(myPaper.selected!=null) {
+			this.fixToEdge.setSelected(myPaper.selected.isFixedToEdge);
+			this.fixToSymmetry.setSelected(myPaper.selected.isFixedToSymmetryLine);
+		}
 		ShowSymmetryEditor.addActionListener(new ActionListener() { 
 			public void actionPerformed(ActionEvent e) { 
 				makeSymmetryEditor();
@@ -660,7 +672,7 @@ private void makeOptimizeSettings(){
 		optimizeSettings.add(new JLabel("increase area searched in optimization"));
 		optimizeSettings.add(new JLabel("warning: may slow optimization speed"));
 		this.buffer= new JSpinner();
-		buffer.setModel(new SpinnerNumberModel(1, 1, Integer.MAX_VALUE, 1));
+		buffer.setModel(new SpinnerNumberModel(0, 0, Integer.MAX_VALUE, 1));
 		optimizeSettings.add(buffer);
 		
 	}
@@ -784,8 +796,11 @@ private void updateSymmetryConditions() {
 			planner.drawCreases(myPaper);
 		}
 		if(this.treePlan.isSelected()) {
+			
 			planner.drawPlan(myPaper);
 		}
+		System.out.println("overlaps: "+myPaper.hasOverlap());
+		planner.hasChanged=false;
 	}
 	@Override
 	public void mouseEntered(MouseEvent e) {}

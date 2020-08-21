@@ -5,6 +5,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.geom.Area;
 import java.awt.geom.Line2D;
+import java.awt.geom.PathIterator;
 import java.awt.geom.Rectangle2D;
 import java.awt.print.PageFormat;
 import java.awt.print.Printable;
@@ -29,7 +30,7 @@ public class Oplanner extends JPanel implements Printable,ColorSettings    {
 	paper p;
 	int width;
 	int height;
-	
+	boolean hasChanged;
 	private static final long serialVersionUID = -1071442708667655401L;
 	
 	public Oplanner(paper p) {
@@ -42,7 +43,7 @@ public class Oplanner extends JPanel implements Printable,ColorSettings    {
 	public void drawGrid(int shift) {
 		if(shift==0) {
 			g.clearRect(0, 0, this.getWidth(), this.getHeight());
-			g.setStroke(AREA_STROKE);
+			g.setStroke(LINE_STROKE);
 		}else {
 			g.setStroke(CONDITION_STROKE);
 		}
@@ -69,6 +70,8 @@ public class Oplanner extends JPanel implements Printable,ColorSettings    {
 		for(node n:myP.nodes) {
 			drawNode(n);
 			drawConnections(n);
+			g.setColor(NODE_COLOR);
+			g.setStroke(AREA_STROKE);
 		}
 	}
 private void drawSymmetry() {
@@ -108,6 +111,8 @@ private void drawNode(node n) {
 	if(p.isSelcted(n)) {
 		g.setColor(SELECTED_NODE_COLOR);
 	}
+	
+	//g.drawChars(n.ID.toString().toCharArray(), 0, n.ID.toString().length(), n.getX()*squareSize, n.getY()*squareSize);
 	g.draw(new Rectangle2D.Double((n.getX()-size)*squareSize,(n.getY()-size)*squareSize,size*2*squareSize,size*2*squareSize));
 	g.fill(new Rectangle2D.Double(n.getX()*squareSize-size*smallSquareSize,n.getY()*squareSize-size*smallSquareSize,size*2*smallSquareSize,size*2*smallSquareSize));
 	
@@ -144,35 +149,38 @@ private void drawConditions() {
 		g.setStroke(AREA_STROKE);
 		g.setColor(CREASE_COLOR);
 		if(myP.nodes.size()>0) {
-			myP.getAreas(squareSize);
+			
+			if(hasChanged||myP.nodes.get(0).A==null) {
+				myP.getAreas(squareSize);
+				System.out.println(hasChanged);
+				}
 			//total stores all the area on the paper to start
 			//as nodes are drawn, their areas are removed. since all
 			//since all areas must be used, we mark unused areas in orange(142)
-			Area total = new Area(new Rectangle2D.Double(0,0,myP.width*squareSize,myP.height*squareSize));
 			for(node n:myP.nodes) {
 				drawNodeCreases(n);	
-				total.subtract(n.A);
+				
 			}
 			g.setColor(UN_USED_AREA_COLOR);
-			g.fill(total);
+			g.fill(p.Unused);
 		}
 
 	}
 	private void drawNodeCreases(node n) {
-		if(p.isLeaf(n)) {
-			g.draw(n.A);
-		}else {
-			g.setStroke(new BasicStroke(3));
-			g.draw(n.A);
-			g.setStroke(new BasicStroke(1));
-		}
-
 		if(n.creases!=null) {
 			for(Line2D.Double l:n.creases) {
 				g.draw(l);
+				
 			}
 
-		}			
+		}	
+		PathIterator borders= n.A.getPathIterator(null);
+		while(!borders.isDone()) {
+			double [] coords= new double[6];
+			borders.currentSegment(coords);
+			//g.fillOval((int)coords[0], (int)coords[1], 5, 5);
+			borders.next();
+		}
 	}
 
 	public int print(Graphics g1, PageFormat pf, int page) throws

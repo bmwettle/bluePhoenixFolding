@@ -6,6 +6,7 @@ import java.awt.Point;
 import java.awt.geom.Area;
 import java.awt.geom.Line2D;
 import java.io.Serializable;
+import java.rmi.server.UID;
 import java.util.ArrayList;
 
 
@@ -23,7 +24,7 @@ public class node implements Serializable{
 private int x;
 private int y;
 int size;
-int ID;
+UID ID;;
 boolean isFixedToEdge;
 boolean isFixedToSymmetryLine;
 Area A;
@@ -37,12 +38,11 @@ public void setX(int newX) {
 public void setY(int newY) {
 	this.y=newY;
 }
-public node() {
-	super();
+public node(UID id) {
 	x=0;
 	y=0;
 	size=1;
-	ID=0;
+	ID=id;
 	isFixedToEdge=false;
 	isFixedToSymmetryLine=false;
 }
@@ -56,14 +56,11 @@ public node(node n) {
 	this.isFixedToSymmetryLine=n.isFixedToSymmetryLine;
 }
 
-public void setID(int id) {
-	this.ID=id;
-}
-public node(int X,int Y, int Size) {
+public node(int X,int Y, int Size, UID id) {
 	x=X;
 	y=Y;
 	size=Size;
-	
+	this.ID=id;
 }
 public int getX() {
 	return x;
@@ -74,7 +71,7 @@ public void moveX(int x) {
 	
 }
 public String toString() {
-	return("    id"+ID+", size"+size+",x: "+x+", y: "+y+":");
+	return("    id"+ID);
 }
 public int getY() {
 	
