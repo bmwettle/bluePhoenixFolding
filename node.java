@@ -27,10 +27,9 @@ int size;
 UID ID;;
 boolean isFixedToEdge;
 boolean isFixedToSymmetryLine;
-Area A;
+
 // these are set during crease generation.
-ArrayList<Point> corners;
-ArrayList<Line2D.Double> creases;
+Creases c;
 
 public void setX(int newX) {
 	this.x=newX;
@@ -87,6 +86,12 @@ public int getSize() {
 }
 public void setSize(int size) {
 	this.size = size;
+}
+public void makeCreases(int scale, Area a){
+	if(size!=0) {
+	c= new Creases(scale,a);
+	c.makeCreases();
+	}
 }
 
 

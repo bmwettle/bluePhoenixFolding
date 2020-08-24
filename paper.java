@@ -31,6 +31,7 @@ public class paper implements Serializable , Comparable<paper>{
 	ArrayList<node>edgeNodes;
 	Area Unused;
 	Area Used;
+	HashMap<node,Area> areas;
 public int getScore() {
 	int score=0;
 	for(node n:nodes) {
@@ -85,47 +86,62 @@ public void refreshNodes() {
 		return Math.max(width, height);
 	}
 	public void getAreas(int scale) {
+		
 		Unused= new Area(new Rectangle2D.Double(0,0,width*scale,height*scale));
 		Used= new Area();
 		settled= new ArrayList<node>();
-		for(node n:nodes) {
-			n.corners=new ArrayList<Point>();
-			n.creases=new ArrayList<Line2D.Double>();
-			n.A= new Area();
-		}
+		//get all the leaf nodes
+		//get all their connections.
+		//ad river nodes
+		
+		/*ArrayList<node> newNextNodes= new ArrayList<node>();
+		for(node m:nextNodes) {
+			if(isLeaf(m)) {
+				makeLeaf(m,scale);
+				newNextNodes.add(this.connections.get(m).get(0));
+			}else {
+				if(m.size==0) {
+					for(node k:this.connections.get(m)) {
+						m.A.add(k.A);
+					}
+				}else {
+					
+				}
+				
+			}
+		}*/
+		
 		node start= getFirstLeaf();
+		areas= new HashMap<node,Area>();
 		getArea(start,scale);
 		for(node n:nodes) {
-			n.A.intersect(Unused);
+			n.makeCreases(scale, areas.get(n));
 		}
-		ArrayList<Point >activeCorners= new ArrayList<Point>();
-		for(node n:nodes) {
-			Unused.subtract(n.A);;
-			Used.add(n.A);
-			activeCorners.addAll(n.corners);
-		}
-		int[][]directions= new int[activeCorners.size()][2];
+		/*
+		while(activeCorners.size()>0) {
+			ArrayList<Point> newActive= new ArrayList<Point>();
 		for( Point p:activeCorners) {
 			Point l= expand(p,Used,scale);
+			
 			if(l!=null) {
-				int x=l.x-p.x;
-				int y=l.y-p.y;
-				directions[activeCorners.indexOf(p)]= new int[] {x,y};
+				double x=(l.getX()+p.getX()-scale)/2;
+				double y=(l.getY()+p.getY()-scale)/2;
+				Area added= new Area (new Rectangle2D.Double(x,y,scale,scale));
+				Used.add(added);
+				Unused.subtract(added);
+				if(l.x<=width*scale&&l.x>=0&&l.y<=width*scale&&l.y>=0) {
+				newActive.add(l);
+				System.out.println("expanded"+l.getX()/scale+", "+l.getY()/scale);
+				}
 			}
 		}
 		
-			for(Point p1:activeCorners) {
-				
-				System.out.println("now at "+p1.x/scale+", "+p1.y/scale);
-				int [] dir= directions[activeCorners.indexOf(p1)];
-				System.out.println("moving to "+(p1.x+dir[0])/scale+", "+(p1.y+dir[1])/scale);
-				
-			
-		
+		activeCorners= newActive;
 		}
-		
+		*/
 		settled= new ArrayList<node>();
 	}
+	
 	private Point expand(Point p, Area expand, int scale) {
 		for(int a=-1;a<=1;a+=2) {
 			for(int b=-1;b<=1;b+=2) {
@@ -154,64 +170,35 @@ public void refreshNodes() {
 		int Size=n.size;
 
 		if(isLeaf(n)) {
-			makeLeaf(n,scale,Size);
+			makeLeaf(n,scale);
 		}else {
 			Area poly = new Area();	
-			n.A=poly;
+			areas.put(n, poly);
 			settled.add(n);
-			int totalX=0;
-			int totalY=0;
-			int count=0;
 			for(node m:this.connections.get(n)) {
 				if(!settled.contains(m)) {
-					count++;
-					totalX+=m.getX();
-					totalY=m.getY();
 					getArea(m,scale);
+					System.out.print("dont delete me");
 				}	
 			}
-			n.setX((int)(totalX/count));
-			n.setY((int)(totalY/count));
 			for(node m:this.connections.get(n)) {
 				if(settled.contains(m)) {
-					Area sub=m.A;
-					
-					for(int i=-Size;i<=Size;i++) {
-						for (int j=-Size;j<=Size;j++) {
-							AffineTransform t= new AffineTransform();
-							t.translate(scale*i, scale*j);
-							poly.add(sub.createTransformedArea(t));
-							n.A=poly;
-							
-
-						}
-					}
-					for(Point p:m.corners) {
-						Point k=expand(p,m.A,scale);
-						if(k!=null) {
-						n.corners.add(k);
-						n.creases.add(new Line2D.Double(p.x,p.y,k.x,k.y));
-						}
-						/*for(int a=-1;a<=1;a+=2) {
-							for(int b=-1;b<=1;b+=2) {
-								Point k= new Point(p.x-2*a,p.y-2*b);
-								if(m.A.contains(k)) {
-									Point d= new Point(p.x+2*a,p.y-2*b);
-									Point e= new Point(p.x-2*a,p.y+2*b);
-									if(m.A.contains(d)==m.A.contains(e)) {
-									Point l= new Point(p.x+a*n.size*scale,p.y+b*n.size*scale);
-									n.corners.add(l);
-									n.creases.add(new Line2D.Double(p.x,p.y,l.x,l.y));
-									}
-								}
-							}
-						}*/
-
-					}
+					Area sub=areas.get(m);
+					poly.add(sub);
 				}
-
 			}
-			n.A=poly;
+			Area finished= new Area();
+			for(int i=-Size;i<=Size;i++) {
+				for (int j=-Size;j<=Size;j++) {
+					AffineTransform t= new AffineTransform();
+					t.translate(scale*i, scale*j);
+					finished.add(poly.createTransformedArea(t));
+				}
+			}
+			if(Size!=0) {
+			finished.subtract(poly);
+			}
+			areas.replace(n, finished);
 		}
 		for(node m:this.connections.get(n)) {
 			if(!settled.contains(m)) {
@@ -222,34 +209,10 @@ public void refreshNodes() {
 
 
 	}
-	private void makeLeaf(node n, int scale, int Size) {
-		Area poly= new Area();
-		poly= new Area(new Rectangle2D.Double(scale*(n.getX()-Size),scale*(n.getY()-Size),2*scale*Size,2*scale*Size));
+	private void makeLeaf(node n, int scale) {
+		Area poly= new Area(new Rectangle2D.Double(scale*(n.getX()-n.size),scale*(n.getY()-n.size),2*scale*n.size,2*scale*n.size));
 		settled.add(n);
-		n.A=poly;
-		n.corners=new ArrayList<Point>();
-		n.creases= new ArrayList<Line2D.Double>();
-		Point s=new Point(scale*(n.getX()),scale*(n.getY()));
-		for(int i=-1;i<=1;i+=2) {
-			for(int j=-1;j<=1;j+=2) {
-				Point p = new Point(s);
-				boolean active=true;
-				for( int k=0;k<=n.size;k++) {
-				
-					
-				if((((n.getX()+i*k)>width)||((n.getX()+i*k)<0))||(((n.getY()+j*k)>width)||((n.getY()+j*k)<0))) {
-					active=false;
-					break;
-				}
-				p=new Point(scale*(n.getX()+i*k),scale*(n.getY()+j*k));
-				}
-				if(active) {
-				n.corners.add(p);
-				}
-				n.creases.add(new Line2D.Double(s.getX(),s.getY(),p.getX(),p.getY()));
-			}
-		}
-		
+		areas.put(n, poly);
 	}
 	public void deleteNode(node delete) {
 		

@@ -3,6 +3,7 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Point;
 import java.awt.geom.Area;
 import java.awt.geom.Line2D;
 import java.awt.geom.PathIterator;
@@ -150,7 +151,7 @@ private void drawConditions() {
 		g.setColor(CREASE_COLOR);
 		if(myP.nodes.size()>0) {
 			
-			if(hasChanged||myP.nodes.get(0).A==null) {
+			if(hasChanged||myP.nodes.get(0).c==null) {
 				myP.getAreas(squareSize);
 				System.out.println(hasChanged);
 				}
@@ -162,25 +163,30 @@ private void drawConditions() {
 				
 			}
 			g.setColor(UN_USED_AREA_COLOR);
-			g.fill(p.Unused);
+			//g.fill(p.Unused);
+			
 		}
 
 	}
 	private void drawNodeCreases(node n) {
-		if(n.creases!=null) {
-			for(Line2D.Double l:n.creases) {
+		if(n.c!=null) {
+			g.setColor(new Color((int)(225*Math.random()),(int)(225*Math.random()),(int)(225*Math.random())));
+			g.setStroke(AREA_STROKE);
+			for(Line2D.Double l:n.c.creases) {
 				g.draw(l);
 				
 			}
-
+			//if(p.isLeaf(n)) {
+				g.setStroke(AREA_STROKE);
+				g.draw(n.c);
+				
+				g.setStroke(LINE_STROKE);
+			//}
+			for(Point p:n.c.activeCorners) {
+				g.drawOval(p.x,p.y,3,3);
+			}
 		}	
-		PathIterator borders= n.A.getPathIterator(null);
-		while(!borders.isDone()) {
-			double [] coords= new double[6];
-			borders.currentSegment(coords);
-			//g.fillOval((int)coords[0], (int)coords[1], 5, 5);
-			borders.next();
-		}
+
 	}
 
 	public int print(Graphics g1, PageFormat pf, int page) throws

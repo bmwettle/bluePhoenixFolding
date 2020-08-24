@@ -146,10 +146,11 @@ node [] paired;
 		}else {
 			for(skeleton design:newGen) {
 				int designSize=design.getSize();
+				int designScore=design.score;
 				if(designSize<globalSize) {
 					optimizeDF(index2,design);
 				}else {
-					if(designSize==globalSize&&design.score<globalScore) {
+					if(designSize==globalSize&&designScore<globalScore) {
 						minor.add(design);
 					}
 				}

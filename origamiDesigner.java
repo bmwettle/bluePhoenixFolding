@@ -375,9 +375,6 @@ try {
 		drawPlanner();
 	}
 	private void saveFile() {
-		for(node n:myPaper.nodes) {
-			n.A=null;
-		}
 		JFileChooser fc = new JFileChooser();
 		int returnVal = fc.showSaveDialog(this);
 		if (returnVal == JFileChooser.APPROVE_OPTION) {

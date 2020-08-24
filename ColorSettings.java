@@ -7,7 +7,7 @@ public interface ColorSettings {
 	public final static BasicStroke CONNECTION_STROKE= new BasicStroke(1,BasicStroke.CAP_ROUND,BasicStroke.JOIN_ROUND);
 	public final static BasicStroke LINE_STROKE= new BasicStroke(1,BasicStroke.CAP_SQUARE,BasicStroke.JOIN_MITER);
 	
-	public final static BasicStroke AREA_STROKE= new BasicStroke(2,BasicStroke.CAP_SQUARE,BasicStroke.JOIN_MITER);
+	public final static BasicStroke AREA_STROKE= new BasicStroke(4,BasicStroke.CAP_SQUARE,BasicStroke.JOIN_MITER);
 	final static float dash1[] = {1.0f};
 	public final static BasicStroke CONDITION_STROKE= new BasicStroke(1.0f,BasicStroke.CAP_BUTT,BasicStroke.JOIN_MITER,10.0f, dash1, 0.0f);
 public final static Color NODE_COLOR=new Color(0,128,192);
