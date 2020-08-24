@@ -28,8 +28,8 @@ public class layout  extends SwingWorker<paper,Void>{
 	int globalSize;
 	int globalScore;
 	skeleton globalBest;
-	int rejections;
-	int sorts;
+	int max_checked;
+	int checked;
 	//leafNodes is a list of the nodes in paper p that are leaf nodes
 	//it is used to make sure that all the skeletons are working on the same paper,
 	//without affecting the paper
@@ -47,13 +47,14 @@ public class layout  extends SwingWorker<paper,Void>{
 	paper p;
 	int size;
 	int baseBuffer;
-node [] paired;
-
+	node [] paired;
+	boolean checkminor;
 	//this sets up the layout, and make it ready to optimize
-	public layout(paper p) {
-
+	public layout(paper p, int base_buffer,int max_checked,boolean check_minor) {
+		this.max_checked=max_checked;
+		this.baseBuffer=base_buffer;
 		this.p=p;
-
+		this.checkminor=check_minor;
 		generated= new ArrayList<skeleton>();
 		addLeafNodes();
 		size= this.leafNodes.size();
@@ -72,7 +73,7 @@ node [] paired;
 			if(paired[i]!=null) {
 				System.out.println(paired[i].toString()+": "+leafNodes.get(i).toString());	
 			}
-			
+
 		}
 	}
 
@@ -81,7 +82,7 @@ node [] paired;
 		for (node n:p.nodes) {
 			HashMap<UID,Integer> ndist= new HashMap<UID,Integer>();
 			for( node m:p.nodes) {
-				
+
 				if(p.isLeaf(n)&&p.isLeaf(m)) {
 					int dist= p.distances.get(n).get(m);
 					ndist.put(m.ID, dist);
@@ -113,8 +114,8 @@ node [] paired;
 				paired[leafNodes.indexOf(one)]=two;
 			}
 		}
-		
-		
+
+
 	}
 
 	/**
@@ -126,43 +127,46 @@ node [] paired;
 		Generation newGen= makeNewGen(parent,index2);
 		sortNewGen(newGen);
 		if(newGen.size()>=1) {
-		skeleton myBest= newGen.get(0);
-		index2++;
-		if(index2==size) {
-			int mySize=myBest.getSize();
-			//System.out.println("checking best"+index2+","+newGen.size());
-			if(mySize<globalSize) {
-				System.out.println("updating best"+index2+": "+myBest.getSize()+",>" +myBest.score);
-				globalBest=myBest;
-				globalSize=myBest.getSize();
-				minor = new ArrayList<skeleton>();
-				//globalScore=myBest.score;
-			}else {
-				if(mySize==globalSize&&myBest.score<globalScore) {
-					minor.add(myBest);
-				}
-			
-			}
-		}else {
-			for(skeleton design:newGen) {
-				int designSize=design.getSize();
-				int designScore=design.score;
-				if(designSize<globalSize) {
-					optimizeDF(index2,design);
+			checked++;
+			skeleton myBest= newGen.get(0);
+			index2++;
+			if(index2==size) {
+				int mySize=myBest.getSize();
+				//System.out.println("checking best"+index2+","+newGen.size());
+				if(mySize<globalSize) {
+					System.out.println("updating best"+index2+": "+myBest.getSize()+",>" +myBest.score);
+					globalBest=myBest;
+					globalSize=myBest.getSize();
+					checked=0;
+					minor = new ArrayList<skeleton>();
+					//globalScore=myBest.score;
 				}else {
-					if(designSize==globalSize&&designScore<globalScore) {
-						minor.add(design);
+					if(mySize==globalSize&&myBest.score<globalScore) {
+						minor.add(myBest);
+					}
+
+				}
+			}else {
+				if(checked<max_checked) {
+				for(skeleton design:newGen) {
+					int designSize=design.getSize();
+					int designScore=design.score;
+					if(designSize<globalSize&&((designScore*size/index2)<globalScore)) {
+						optimizeDF(index2,design);
+					}else {
+						if(designSize==globalSize&&designScore<globalScore) {
+							minor.add(design);
+						}
 					}
 				}
-			}
-		}
+			}}
 		}
 	}
 	private void sortNewGen(Generation newGen) {
 		Collections.sort(newGen);
 	}
 
-	
+
 
 	private Generation makeNewGen(skeleton design, int index2) {
 		// we start by setting up a place to store the new generated skeletons
@@ -172,33 +176,41 @@ node [] paired;
 			for(int i=radius+baseBuffer;i>=-radius-baseBuffer;i--) {
 				for(int j=radius+baseBuffer;j>=-radius-baseBuffer;j--) {
 					if(Math.abs(i)>=radius||Math.abs(j)>=radius) {
-						node n= new node(leafNodes.get(index2));
-						n.setX(i+m.getX());
-						n.setY(j+m.getY());
-						
-						if(!design.overlaps(distances.get(n.ID), n, index2)) {
-							skeleton newDesign=new skeleton(isFixedRatio, ratioX_Y);
-							for(node old:design) {
-								newDesign.add(new node(old));
-							}
-							for( node old:design.paired) {
-								newDesign.addPaired(new node(old));
-							}
-							newDesign.score=design.score+Math.abs(n.getX())+Math.abs(n.getY());
-							newDesign.add(n);
-							if(paired[index2]!=null) {
-								node pair= new node( paired[index2]);
-								pair.setX(-1*n.getX());
-								pair.setY(n.getY());
-								if(!newDesign.overlaps(distances.get(pair.ID), pair, index2)) {
-									newDesign.score+=Math.abs(pair.getX())+Math.abs(pair.getY());
-									newDesign.addPaired(pair);
-									newGen.add(newDesign);
-									//System.out.println("checking"+pair.getX()+","+pair.getY()+";"+n.getX()+","+n.getY());
+						if(index2!=1||(i<=0&&j>=0)) {
+							node n= new node(leafNodes.get(index2));
+							n.setX(i+m.getX());
+							n.setY(j+m.getY());
+							if(Math.abs(n.getX())<=globalSize&&Math.abs(n.getY())<=globalSize){
+
+
+								if(!design.overlaps(distances.get(n.ID), n, index2)) {
+									skeleton newDesign=new skeleton(isFixedRatio, ratioX_Y);
+									for(node old:design) {
+										newDesign.add(new node(old));
+									}
+									for( node old:design.paired) {
+										newDesign.addPaired(new node(old));
+									}
+									newDesign.score=design.score+Math.abs(n.getX())+Math.abs(n.getY());
+									if((newDesign.score*size/index2)<globalScore) {
+									newDesign.add(n);
+									}
+									if(paired[index2]!=null) {
+										node pair= new node( paired[index2]);
+										pair.setX(-1*n.getX());
+										pair.setY(n.getY());
+										if(!newDesign.overlaps(distances.get(pair.ID), pair, index2)) {
+											newDesign.score+=Math.abs(pair.getX())+Math.abs(pair.getY());
+											newDesign.addPaired(pair);
+											if((newDesign.score*size/index2)<globalScore) {
+												newDesign.add(n);
+												}
+										}
+									}else {
+										newGen.add(newDesign);
+									}
 								}
-							}else {
-							newGen.add(newDesign);
-						}
+							}
 						}
 					}
 				}
@@ -207,18 +219,20 @@ node [] paired;
 		return newGen;
 	}
 
-	public void optimize(int buffer, boolean checkminor) {
+	public void optimize() {
 		System.out.println(checkminor);
 		//first we add the first node
 		//it doesn't matter where it goes, since all the locations are relative
-		this.baseBuffer=buffer;
-		generateFirst();
 		
+		this.checked=0;
+
+		generateFirst();
+
 		this.optimizeDF(1, generated.get(0));
 		if(checkminor) {
 			checkMinorImprovements();
 		}
-		
+
 	}
 	private void checkMinorImprovements() {
 		System.out.println("checking for minor improvements");
@@ -234,48 +248,48 @@ node [] paired;
 	//this also lets us compare two papers together
 	//this could give us more insight as to which is better
 	public paper getPaper(paper p) {
-		
+
 		// we don't really care about designs bigger than the smallest, only equal.
 		skeleton top=globalBest;
 		for(node M:top.paired) {
-			
-				System.out.println(M.ID);
-				
-		
+
+			System.out.println(M.ID);
+
+
 		}
-				paper oldp= new paper(p);
-				
-				
-				//we will set the nodes to the locations found in optimization
-				for(node n:oldp.nodes) {
-					if(oldp.isLeaf(n)) {
-						for(node M:top) {
-							if(n.ID==M.ID) {
-								
-								n.setX(M.getX());
-								n.setY(M.getY());
-								//System.out.println(j+": "+n.size+", "+n.getX()+":"+n.getY());
-							
-							}
-						}
-						for(node M:top.paired) {
-							if(n.ID==M.ID) {
-								
-								n.setX(M.getX());
-								n.setY(M.getY());
-								System.out.println("ok");
-								
-							}
-						}
-						
+		paper oldp= new paper(p);
+
+
+		//we will set the nodes to the locations found in optimization
+		for(node n:oldp.nodes) {
+			if(oldp.isLeaf(n)) {
+				for(node M:top) {
+					if(n.ID==M.ID) {
+
+						n.setX(M.getX());
+						n.setY(M.getY());
+						//System.out.println(j+": "+n.size+", "+n.getX()+":"+n.getY());
+
 					}
 				}
-				oldp.refreshNodes();
-				oldp.shrink();
-			
-			
+				for(node M:top.paired) {
+					if(n.ID==M.ID) {
+
+						n.setX(M.getX());
+						n.setY(M.getY());
+						System.out.println("ok");
+
+					}
+				}
+
+			}
+		}
+		oldp.refreshNodes();
+		oldp.shrink();
+
+
 		//now we sort the papers, and pick the best one
-		
+
 		return oldp;
 	}
 	public void generateFirst() {
@@ -288,13 +302,13 @@ node [] paired;
 
 	}
 
-	
+
 
 	//this lets the optimization run in the background.
 	//for big designs, it can take a few minutes.
 	@Override
 	protected paper doInBackground() throws Exception {
-		this.optimize(baseBuffer, hasSymetry);
+		this.optimize();
 		System.out.println("is overlaping:"+p.hasOverlap());
 		return this.getPaper(p);
 	}

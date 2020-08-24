@@ -1,12 +1,12 @@
 package origamiProject;
-import java.awt.Point;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
-import java.awt.geom.Line2D;
-import java.awt.geom.PathIterator;
 import java.awt.geom.Rectangle2D;
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
 public class paper implements Serializable , Comparable<paper>{
 
 	/**
@@ -18,7 +18,7 @@ public class paper implements Serializable , Comparable<paper>{
 	int square_size;
 	node selected;
 	boolean isFixedRatio;
-	
+
 	double ratioX_Y;
 	boolean hasSymmetry;
 	boolean isXsymmetry;
@@ -29,48 +29,54 @@ public class paper implements Serializable , Comparable<paper>{
 	ArrayList<node> unSettled;
 	ArrayList<Condition> conditions;
 	ArrayList<node>edgeNodes;
-	Area Unused;
-	Area Used;
-	HashMap<node,Area> areas;
-public int getScore() {
-	int score=0;
-	for(node n:nodes) {
-		for(node m:this.nodes) {
-			int[] overlap= this.getOverlap(n, m);
-			score-=Math.min(overlap[0],overlap[1]);
-		}
-	}
-	return score;
-}
-public void refreshNodes() {
-	this.settled= new ArrayList<node>();
-	for(node n:nodes) {
-		refreshNode(n);
-	}
-}
-	private void refreshNode(node n) {
-		if(!settled.contains(n)) {
-	if(isLeaf(n)) {
-		settled.add(n);
-	}else {
-		int xpos=0;
-		int ypos=0;
-		int count=0;
-		for(node m :this.connections.get(n)) {
-			if(settled.contains(m)) {
-				xpos+=m.getX();
-				ypos+=m.getY();
-				count++;
+	Creases Unused;
+
+	HashMap<node,Area> largeAreas;
+	HashMap<node,Area> trueAreas;
+	public int getScore() {
+		int score=0;
+		for(node n:nodes) {
+			for(node m:this.nodes) {
+				int[] overlap= this.getOverlap(n, m);
+				score-=Math.min(overlap[0],overlap[1]);
 			}
 		}
-		if(count!=0) {
-		n.setX((int)xpos/count);
-		n.setY((int)ypos/count);
-		}
-		settled.add(n);
+		return score;
 	}
+	public void refreshNodes() {
+		this.settled= new ArrayList<node>();
+		for(node n:nodes) {
+			refreshNode(n);
 		}
-}
+	}
+	private void refreshNode(node n) {
+		settled.add(n);
+		if(!settled.contains(n)) {
+			if(isLeaf(n)) {
+			}else {
+				for(node m :this.connections.get(n)) {
+					if(!settled.contains(m)) {
+						refreshNode(m);
+					}
+				}
+				int xpos=0;
+				int ypos=0;
+				int count=0;
+				for(node m :this.connections.get(n)) {
+					if(settled.contains(m)) {
+						xpos+=m.getX();
+						ypos+=m.getY();
+						count++;
+					}
+				}
+				if(count!=0) {
+					n.setX((int)xpos/count);
+					n.setY((int)ypos/count);
+				}
+
+			}
+		}
+	}
 	public int compareTo(paper b) {
 		int size1=this.getSize();
 		int size2=b.getSize();
@@ -80,83 +86,30 @@ public void refreshNodes() {
 		return size1-size2;
 	}
 	public int getSize() {
-			if(this.isFixedRatio) {
-				return Math.max(width, (int)( height*this.ratioX_Y));
-			}
+		if(this.isFixedRatio) {
+			return Math.max(width, (int)( height*this.ratioX_Y));
+		}
 		return Math.max(width, height);
 	}
 	public void getAreas(int scale) {
-		
-		Unused= new Area(new Rectangle2D.Double(0,0,width*scale,height*scale));
-		Used= new Area();
+
+		Unused= new Creases(scale,new Area(new Rectangle2D.Double(0,0,width*scale,height*scale)));
+
 		settled= new ArrayList<node>();
-		//get all the leaf nodes
-		//get all their connections.
-		//ad river nodes
-		
-		/*ArrayList<node> newNextNodes= new ArrayList<node>();
-		for(node m:nextNodes) {
-			if(isLeaf(m)) {
-				makeLeaf(m,scale);
-				newNextNodes.add(this.connections.get(m).get(0));
-			}else {
-				if(m.size==0) {
-					for(node k:this.connections.get(m)) {
-						m.A.add(k.A);
-					}
-				}else {
-					
-				}
-				
-			}
-		}*/
-		
+
 		node start= getFirstLeaf();
-		areas= new HashMap<node,Area>();
+		trueAreas= new HashMap<node,Area>();
+		largeAreas= new HashMap<node,Area>();
 		getArea(start,scale);
 		for(node n:nodes) {
-			n.makeCreases(scale, areas.get(n));
-		}
-		/*
-		while(activeCorners.size()>0) {
-			ArrayList<Point> newActive= new ArrayList<Point>();
-		for( Point p:activeCorners) {
-			Point l= expand(p,Used,scale);
-			
-			if(l!=null) {
-				double x=(l.getX()+p.getX()-scale)/2;
-				double y=(l.getY()+p.getY()-scale)/2;
-				Area added= new Area (new Rectangle2D.Double(x,y,scale,scale));
-				Used.add(added);
-				Unused.subtract(added);
-				if(l.x<=width*scale&&l.x>=0&&l.y<=width*scale&&l.y>=0) {
-				newActive.add(l);
-				System.out.println("expanded"+l.getX()/scale+", "+l.getY()/scale);
-				}
+			n.makeCreases(scale, trueAreas.get(n));
+			if(n.size!=0) {
+				Unused.subtract(n.c);
 			}
+
 		}
-		
-		activeCorners= newActive;
-		}
-		*/
+		Unused.makeCreases();
 		settled= new ArrayList<node>();
-	}
-	
-	private Point expand(Point p, Area expand, int scale) {
-		for(int a=-1;a<=1;a+=2) {
-			for(int b=-1;b<=1;b+=2) {
-				Point k= new Point(p.x-2*a,p.y-2*b);
-				if(expand.contains(k)) {
-					Point d= new Point(p.x+2*a,p.y-2*b);
-					Point e= new Point(p.x-2*a,p.y+2*b);
-					if(expand.contains(d)==expand.contains(e)) {
-					 return new Point(p.x+a*scale,p.y+b*scale);
-					
-					}
-				}
-			}
-		}
-		return null;
 	}
 	public node getFirstLeaf() {
 		for(node n:nodes) {
@@ -173,17 +126,19 @@ public void refreshNodes() {
 			makeLeaf(n,scale);
 		}else {
 			Area poly = new Area();	
-			areas.put(n, poly);
+			largeAreas.put(n, poly);
+			trueAreas.put(n, poly);
 			settled.add(n);
 			for(node m:this.connections.get(n)) {
 				if(!settled.contains(m)) {
 					getArea(m,scale);
-					System.out.print("dont delete me");
+
 				}	
 			}
 			for(node m:this.connections.get(n)) {
 				if(settled.contains(m)) {
-					Area sub=areas.get(m);
+					Area sub=largeAreas.get(m);
+					////
 					poly.add(sub);
 				}
 			}
@@ -195,31 +150,35 @@ public void refreshNodes() {
 					finished.add(poly.createTransformedArea(t));
 				}
 			}
-			if(Size!=0) {
-			finished.subtract(poly);
-			}
-			areas.replace(n, finished);
+			
+			largeAreas.replace(n, finished);
+			Area True= new Area(finished);
+			True.subtract(poly);
+			trueAreas.replace(n, True);
 		}
 		for(node m:this.connections.get(n)) {
 			if(!settled.contains(m)) {
 				getArea(m,scale);
-				System.out.print("dont delete me");
+				System.out.println("dont delete me");
 			}	
 		}
+		
+		
 
 
 	}
 	private void makeLeaf(node n, int scale) {
 		Area poly= new Area(new Rectangle2D.Double(scale*(n.getX()-n.size),scale*(n.getY()-n.size),2*scale*n.size,2*scale*n.size));
 		settled.add(n);
-		areas.put(n, poly);
+		trueAreas.put(n, poly);
+		largeAreas.put(n, poly);
 	}
 	public void deleteNode(node delete) {
-		
+
 		nodes.remove(delete);
 		if(delete.equals(selected)) {
 			if(nodes.size()>0) {
-			selected= nodes.get(nodes.size()-1);
+				selected= nodes.get(nodes.size()-1);
 			}else {
 				selected=null;
 			}
@@ -244,7 +203,7 @@ public void refreshNodes() {
 			this.unSettled.add(m);
 		}
 		if(p.selected!=null) {
-		this.selected= this.nodes.get(p.nodes.indexOf(p.selected));
+			this.selected= this.nodes.get(p.nodes.indexOf(p.selected));
 		}
 		edgeNodes= new ArrayList<node>();
 		if(p.edgeNodes!=null) {
@@ -297,17 +256,17 @@ public void refreshNodes() {
 		int ymin=Integer.MAX_VALUE;
 		for(node n:nodes) {
 			if(n.getX()>xmax) {
-					xmax=n.getX();
-				}
-				if(n.getX()<xmin) {
-					xmin=n.getX();
-				}
-				if(n.getY()>ymax) {
-					ymax=n.getY();
-				}
-				if(n.getY()<ymin) {
-					ymin=n.getY();
-				}
+				xmax=n.getX();
+			}
+			if(n.getX()<xmin) {
+				xmin=n.getX();
+			}
+			if(n.getY()>ymax) {
+				ymax=n.getY();
+			}
+			if(n.getY()<ymin) {
+				ymin=n.getY();
+			}
 		}
 		for( node n:nodes) {
 			n.setX(n.getX()-xmin);	
@@ -340,7 +299,7 @@ public void refreshNodes() {
 			HashMap<node,Integer> selfMap= new HashMap<node,Integer>();
 			selfMap.put(one,0);
 			distances.put(one,selfMap);
-			}
+		}
 		for (node start:this.nodes){
 			for(node end:this.nodes) {
 				searchNodes(start,start,end,0,new ArrayList<node>());
@@ -389,7 +348,7 @@ public void refreshNodes() {
 		newList.add(startNode);
 		connections.put(newNode,newList);
 		nodes.add(newNode);
-		
+
 	}
 	public void addNode(node newNode) {
 		if(!isFirstNode()) {
@@ -398,7 +357,7 @@ public void refreshNodes() {
 			ArrayList<node>newList= new ArrayList<node>();
 			connections.put(newNode,newList);
 			nodes.add(newNode);
-			
+
 		}
 	}
 	public boolean isLeaf(node n) {
@@ -407,10 +366,10 @@ public void refreshNodes() {
 	public int[] getOverlap(node one, node two) {
 		if(!one.equals(two)) {
 			int deltax= Math.abs(one.getX()-two.getX());
-				int deltay= Math.abs(one.getY()-two.getY());
-				int overlapX=distances.get(one).get(two)-deltax;
-				int overlapY=distances.get(one).get(two)-deltay;
-				return new int[] {overlapX,overlapY};
+			int deltay= Math.abs(one.getY()-two.getY());
+			int overlapX=distances.get(one).get(two)-deltax;
+			int overlapY=distances.get(one).get(two)-deltay;
+			return new int[] {overlapX,overlapY};
 		}
 		return new int[] {0,0};
 
@@ -418,8 +377,8 @@ public void refreshNodes() {
 	public boolean overlaps(node one, node two) {
 		if(!one.equals(two)) {
 			if(isLeaf(one)&&isLeaf(two)) {
-			int deltax= Math.abs(one.getX()-two.getX());
-			int deltay= Math.abs(one.getY()-two.getY());
+				int deltax= Math.abs(one.getX()-two.getX());
+				int deltay= Math.abs(one.getY()-two.getY());
 				if(deltax>=distances.get(one).get(two)) {
 					return false;
 				}
@@ -475,7 +434,7 @@ public void refreshNodes() {
 			conditions = new ArrayList<Condition>();
 		}
 		conditions.add(new Condition(selected2,selected3));
-		
+
 	}
 	public void removeConditions(node selected2, node selected3) {
 		if(this.conditions==null) {

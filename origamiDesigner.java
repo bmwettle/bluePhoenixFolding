@@ -344,7 +344,7 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 	private void optimizeAction() {
 		
 		this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-		lay= new layout(myPaper);
+		
 		int buffer=0;
 		boolean checkminor=false;
 		if(this.optimizeSettings!=null) {
@@ -352,6 +352,7 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 			checkminor=this.minorImprove.isSelected();
 			System.out.println(","+buffer+","+checkminor);
 		}
+		lay= new layout(myPaper,buffer,1000000,checkminor);
 		long start_time=System.currentTimeMillis();
 		//lay.optimize(buffer,checkminor);
 try {
@@ -362,7 +363,9 @@ try {
 }
 		long end_time=System.currentTimeMillis();
 		long time=end_time-start_time;
-		System.out.print("optimized in" +time +"milli seconds");
+		int seconds= (int) (time/1000)%60;
+		int min=(int) (time/(60*1000));
+		System.out.println("optimized in: " +min+ " minutes and "+seconds+" seconds");
 		myPaper=lay.getPaper(myPaper);
 		myPaper.refreshNodes();
 		myPaper.shrink();
@@ -380,6 +383,8 @@ try {
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
 			File file = fc.getSelectedFile();
 			try {
+				myPaper.trueAreas=null;
+				myPaper.largeAreas=null;
 				ObjectOutputStream fileOut = new ObjectOutputStream(new FileOutputStream (file));
 				fileOut.writeObject(myPaper);
 				fileOut.close();

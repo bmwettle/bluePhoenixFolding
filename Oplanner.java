@@ -4,9 +4,7 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
-import java.awt.geom.Area;
 import java.awt.geom.Line2D;
-import java.awt.geom.PathIterator;
 import java.awt.geom.Rectangle2D;
 import java.awt.print.PageFormat;
 import java.awt.print.Printable;
@@ -33,7 +31,7 @@ public class Oplanner extends JPanel implements Printable,ColorSettings    {
 	int height;
 	boolean hasChanged;
 	private static final long serialVersionUID = -1071442708667655401L;
-	
+
 	public Oplanner(paper p) {
 		super();
 		this.p=p;
@@ -56,16 +54,16 @@ public class Oplanner extends JPanel implements Printable,ColorSettings    {
 			g.drawLine( i*squareSize-shift,0,i*squareSize-shift, height*squareSize);
 		}
 	}
-/**draws the plan view of the paper.
- * this includes locations, connections and conditions of the nodes.
- * @param myP
- */
+	/**draws the plan view of the paper.
+	 * this includes locations, connections and conditions of the nodes.
+	 * @param myP
+	 */
 	public void drawPlan(paper myP) {
 		this.p=myP;
 		setUp(myP);
 		drawSymmetry();
 		if(myP.conditions!=null&&myP.conditions.size()!=0) {
-			
+
 			drawConditions();
 		}
 		for(node n:myP.nodes) {
@@ -75,63 +73,63 @@ public class Oplanner extends JPanel implements Printable,ColorSettings    {
 			g.setStroke(AREA_STROKE);
 		}
 	}
-private void drawSymmetry() {
-	if(p.hasSymmetry) {
-		System.out.print("ok");
-		g.setColor(SYMMERTY_LINE_COLOR);
-		g.setStroke(SYMMERTY_LINE_STROKE);
-		if(p.isXsymmetry) {
-			g.drawLine((int)(p.width*.5*squareSize), 0, (int)(p.width*.5*squareSize),p.height*squareSize);
-		}else {
-			g.drawLine(0,(int)(p.height*.5*squareSize),p.width*squareSize, (int)(p.height*.5*squareSize));
-			
+	private void drawSymmetry() {
+		if(p.hasSymmetry) {
+			System.out.print("ok");
+			g.setColor(SYMMERTY_LINE_COLOR);
+			g.setStroke(SYMMERTY_LINE_STROKE);
+			if(p.isXsymmetry) {
+				g.drawLine((int)(p.width*.5*squareSize), 0, (int)(p.width*.5*squareSize),p.height*squareSize);
+			}else {
+				g.drawLine(0,(int)(p.height*.5*squareSize),p.width*squareSize, (int)(p.height*.5*squareSize));
+
+			}
+		}
+
+
+		// TODO Auto-generated method stub
+
+	}
+
+	private void drawConnections(node n) {
+		g.setStroke(CONNECTION_STROKE);
+		for(node m:p.connections.get(n)) {
+			g.setStroke(new BasicStroke(3));
+			g.drawLine(m.getX()*squareSize,m.getY()*squareSize, n.getX()*squareSize, n.getY()*squareSize);
+			g.setStroke(new BasicStroke(1));
 		}
 	}
-	
 
-	// TODO Auto-generated method stub
-	
-}
+	private void drawNode(node n) {
+		g.setColor(NODE_COLOR);
+		g.setStroke(AREA_STROKE);
+		double size= n.size;
+		if(size==0) {
+			size=.5;
+		}
+		if(p.isSelcted(n)) {
+			g.setColor(SELECTED_NODE_COLOR);
+		}
 
-private void drawConnections(node n) {
-	g.setStroke(CONNECTION_STROKE);
-	for(node m:p.connections.get(n)) {
-		g.setStroke(new BasicStroke(3));
-		g.drawLine(m.getX()*squareSize,m.getY()*squareSize, n.getX()*squareSize, n.getY()*squareSize);
-		g.setStroke(new BasicStroke(1));
+		//g.drawChars(n.ID.toString().toCharArray(), 0, n.ID.toString().length(), n.getX()*squareSize, n.getY()*squareSize);
+		g.draw(new Rectangle2D.Double((n.getX()-size)*squareSize,(n.getY()-size)*squareSize,size*2*squareSize,size*2*squareSize));
+		g.fill(new Rectangle2D.Double(n.getX()*squareSize-size*smallSquareSize,n.getY()*squareSize-size*smallSquareSize,size*2*smallSquareSize,size*2*smallSquareSize));
+
 	}
-}
 
-private void drawNode(node n) {
-	g.setColor(NODE_COLOR);
-	g.setStroke(AREA_STROKE);
-	double size= n.size;
-	if(size==0) {
-		size=.5;
+	private void drawConditions() {
+		g.setStroke(CONDITION_STROKE);
+		g.setColor(CONDITION_LINE_COLOR);
+		for(Condition con:p.conditions) {
+			g.drawLine(con.node1.getX()*squareSize, con.node1.getY()*squareSize, con.node2.getX()*squareSize, con.node2.getY()*squareSize);
+			g.setColor(Color.BLUE);
+		}
 	}
-	if(p.isSelcted(n)) {
-		g.setColor(SELECTED_NODE_COLOR);
-	}
-	
-	//g.drawChars(n.ID.toString().toCharArray(), 0, n.ID.toString().length(), n.getX()*squareSize, n.getY()*squareSize);
-	g.draw(new Rectangle2D.Double((n.getX()-size)*squareSize,(n.getY()-size)*squareSize,size*2*squareSize,size*2*squareSize));
-	g.fill(new Rectangle2D.Double(n.getX()*squareSize-size*smallSquareSize,n.getY()*squareSize-size*smallSquareSize,size*2*smallSquareSize,size*2*smallSquareSize));
-	
-}
 
-private void drawConditions() {
-	g.setStroke(CONDITION_STROKE);
-	g.setColor(CONDITION_LINE_COLOR);
-	for(Condition con:p.conditions) {
-		g.drawLine(con.node1.getX()*squareSize, con.node1.getY()*squareSize, con.node2.getX()*squareSize, con.node2.getY()*squareSize);
-		g.setColor(Color.BLUE);
-	}
-}
-
-/**
- * set up the basic background and grid.
- * @param myP
- */
+	/**
+	 * set up the basic background and grid.
+	 * @param myP
+	 */
 	private void setUp(paper myP) {
 		p.getTreeDistances();
 		g= (Graphics2D)this.getGraphics();
@@ -141,8 +139,8 @@ private void drawConditions() {
 		squareSize= Math.min(getWidth()/width,getHeight()/height);
 		smallSquareSize=squareSize/6;
 		drawGrid(0);
-		
-}
+
+	}
 
 	public void drawCreases(paper myP, Graphics g1){
 		setUp(myP);
@@ -150,43 +148,34 @@ private void drawConditions() {
 		g.setStroke(AREA_STROKE);
 		g.setColor(CREASE_COLOR);
 		if(myP.nodes.size()>0) {
-			
+
 			if(hasChanged||myP.nodes.get(0).c==null) {
 				myP.getAreas(squareSize);
 				System.out.println(hasChanged);
-				}
+			}
 			//total stores all the area on the paper to start
 			//as nodes are drawn, their areas are removed. since all
 			//since all areas must be used, we mark unused areas in orange(142)
 			for(node n:myP.nodes) {
 				drawNodeCreases(n);	
-				
+
 			}
 			g.setColor(UN_USED_AREA_COLOR);
-			//g.fill(p.Unused);
-			
+			g.draw(p.Unused);
+			for(Line2D.Double l:p.Unused.creases) {
+				g.draw(l);
+			}
 		}
 
 	}
 	private void drawNodeCreases(node n) {
 		if(n.c!=null) {
-			g.setColor(new Color((int)(225*Math.random()),(int)(225*Math.random()),(int)(225*Math.random())));
-			g.setStroke(AREA_STROKE);
+			g.setStroke(LINE_STROKE);
 			for(Line2D.Double l:n.c.creases) {
 				g.draw(l);
-				
 			}
-			//if(p.isLeaf(n)) {
-				g.setStroke(AREA_STROKE);
-				g.draw(n.c);
-				
-				g.setStroke(LINE_STROKE);
-			//}
-			for(Point p:n.c.activeCorners) {
-				g.drawOval(p.x,p.y,3,3);
-			}
+			g.draw(n.c);
 		}	
-
 	}
 
 	public int print(Graphics g1, PageFormat pf, int page) throws

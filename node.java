@@ -2,12 +2,9 @@ package origamiProject;
 
 
 
-import java.awt.Point;
 import java.awt.geom.Area;
-import java.awt.geom.Line2D;
 import java.io.Serializable;
 import java.rmi.server.UID;
-import java.util.ArrayList;
 
 
 /**
