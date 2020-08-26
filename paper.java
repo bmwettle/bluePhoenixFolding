@@ -51,7 +51,6 @@ public class paper implements Serializable , Comparable<paper>{
 	}
 	private void refreshNode(node n) {
 		settled.add(n);
-		if(!settled.contains(n)) {
 			if(isLeaf(n)) {
 			}else {
 				for(node m :this.connections.get(n)) {
@@ -75,7 +74,11 @@ public class paper implements Serializable , Comparable<paper>{
 				}
 
 			}
-		}
+			for(node m :this.connections.get(n)) {
+				if(!settled.contains(m)) {
+					refreshNode(m);
+				}
+			}
 	}
 	public int compareTo(paper b) {
 		int size1=this.getSize();

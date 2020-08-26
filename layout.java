@@ -38,7 +38,7 @@ public class layout  extends SwingWorker<paper,Void>{
 	//the paper class is great for display and changes, but is slow to optimize with
 	//the skeleton class is the bare bones of it- just the leaf nodes
 	//this lets the optimizer run quickly, without worrying about redoing a lot of computation
-	ArrayList<skeleton>generated;
+	
 	ArrayList<skeleton> minor;
 
 	//these keep track of the data needed from the original paper
@@ -55,7 +55,7 @@ public class layout  extends SwingWorker<paper,Void>{
 		this.baseBuffer=base_buffer;
 		this.p=p;
 		this.checkminor=check_minor;
-		generated= new ArrayList<skeleton>();
+		
 		addLeafNodes();
 		size= this.leafNodes.size();
 		isFixedRatio=p.isFixedRatio;
@@ -74,6 +74,12 @@ public class layout  extends SwingWorker<paper,Void>{
 				System.out.println(paired[i].toString()+": "+leafNodes.get(i).toString());	
 			}
 
+		}
+		for(node n:leafNodes) {
+			for(node m:leafNodes) {
+				System.out.println(n+":"+m+", "+p.distances.get(n).get(m)+this.distances.get(n.ID).get(m.ID));
+			}
+			System.out.println("next");
 		}
 	}
 
@@ -129,14 +135,18 @@ public class layout  extends SwingWorker<paper,Void>{
 		if(newGen.size()>=1) {
 			checked++;
 			skeleton myBest= newGen.get(0);
+			//System.out.println("updating best"+index2+": "+myBest.getSize()+",>" +myBest.score+", "+myBest.size()+". "+leafNodes.size());
 			index2++;
 			if(index2==size) {
 				int mySize=myBest.getSize();
+				
 				//System.out.println("checking best"+index2+","+newGen.size());
 				if(mySize<globalSize) {
-					System.out.println("updating best"+index2+": "+myBest.getSize()+",>" +myBest.score);
+					System.out.println("updating best"+index2+": "+myBest.getSize()+",>" +myBest.score+", "+myBest.size()+". "+leafNodes.size());
+					
 					globalBest=myBest;
 					globalSize=myBest.getSize();
+					globalScore=myBest.score;
 					checked=0;
 					minor = new ArrayList<skeleton>();
 					//globalScore=myBest.score;
@@ -148,19 +158,26 @@ public class layout  extends SwingWorker<paper,Void>{
 				}
 			}else {
 				if(checked<max_checked) {
+					
 				for(skeleton design:newGen) {
 					int designSize=design.getSize();
 					int designScore=design.score;
-					if(designSize<globalSize&&((designScore*size/index2)<globalScore)) {
+					if(designSize<globalSize&&((designScore)<globalScore)) {
 						optimizeDF(index2,design);
 					}else {
 						if(designSize==globalSize&&designScore<globalScore) {
 							minor.add(design);
+					
+						}else {
+							
 						}
-					}
+						}
+					design.removeAll(design);
 				}
+				newGen.removeAll(newGen);
 			}}
 		}
+		
 	}
 	private void sortNewGen(Generation newGen) {
 		Collections.sort(newGen);
@@ -183,7 +200,7 @@ public class layout  extends SwingWorker<paper,Void>{
 							if(Math.abs(n.getX())<=globalSize&&Math.abs(n.getY())<=globalSize){
 
 
-								if(!design.overlaps(distances.get(n.ID), n, index2)) {
+								if(!design.overlaps(distances.get(n.ID), n)) {
 									skeleton newDesign=new skeleton(isFixedRatio, ratioX_Y);
 									for(node old:design) {
 										newDesign.add(new node(old));
@@ -192,23 +209,24 @@ public class layout  extends SwingWorker<paper,Void>{
 										newDesign.addPaired(new node(old));
 									}
 									newDesign.score=design.score+Math.abs(n.getX())+Math.abs(n.getY());
-									if((newDesign.score*size/index2)<globalScore) {
+									if((newDesign.score)<globalScore) {
 									newDesign.add(n);
-									}
+									
 									if(paired[index2]!=null) {
 										node pair= new node( paired[index2]);
 										pair.setX(-1*n.getX());
 										pair.setY(n.getY());
-										if(!newDesign.overlaps(distances.get(pair.ID), pair, index2)) {
+										if(!newDesign.overlaps(distances.get(pair.ID), pair)) {
 											newDesign.score+=Math.abs(pair.getX())+Math.abs(pair.getY());
 											newDesign.addPaired(pair);
 											if((newDesign.score*size/index2)<globalScore) {
 												newDesign.add(n);
+												newGen.add(newDesign);
 												}
 										}
 									}else {
 										newGen.add(newDesign);
-									}
+									}}
 								}
 							}
 						}
@@ -226,11 +244,16 @@ public class layout  extends SwingWorker<paper,Void>{
 		
 		this.checked=0;
 
-		generateFirst();
+		
 
-		this.optimizeDF(1, generated.get(0));
+		this.optimizeDF(1, generateFirst());
 		if(checkminor) {
 			checkMinorImprovements();
+		}
+		for(node n:globalBest) {
+			if(globalBest.overlaps(distances.get(n.ID), n)) {
+				System.out.println("panic");
+			}
 		}
 
 	}
@@ -251,6 +274,12 @@ public class layout  extends SwingWorker<paper,Void>{
 
 		// we don't really care about designs bigger than the smallest, only equal.
 		skeleton top=globalBest;
+		for(node n:top) {
+			System.out.println(n+" : "+top.overlaps(distances.get(n.ID), n));
+		}
+		for(node n:leafNodes) {
+			System.out.println(n+" : ");
+		}
 		for(node M:top.paired) {
 
 			System.out.println(M.ID);
@@ -263,11 +292,13 @@ public class layout  extends SwingWorker<paper,Void>{
 		//we will set the nodes to the locations found in optimization
 		for(node n:oldp.nodes) {
 			if(oldp.isLeaf(n)) {
+				boolean wasReset=false;
 				for(node M:top) {
 					if(n.ID==M.ID) {
 
 						n.setX(M.getX());
 						n.setY(M.getY());
+						wasReset=true;
 						//System.out.println(j+": "+n.size+", "+n.getX()+":"+n.getY());
 
 					}
@@ -281,9 +312,11 @@ public class layout  extends SwingWorker<paper,Void>{
 
 					}
 				}
+				System.out.println(n+", "+wasReset);
 
 			}
 		}
+		oldp.selected= oldp.nodes.get(0);
 		oldp.refreshNodes();
 		oldp.shrink();
 
@@ -292,13 +325,13 @@ public class layout  extends SwingWorker<paper,Void>{
 
 		return oldp;
 	}
-	public void generateFirst() {
+	public skeleton generateFirst() {
 		skeleton design= new skeleton(isFixedRatio, ratioX_Y);
 		node n= new node(leafNodes.get(0));
-		n.setY(1);
-		n.setX(1);
+		n.setY(0);
+		n.setX(0);
 		design.add(n);
-		this.generated.add(design);
+		return design;
 
 	}
 

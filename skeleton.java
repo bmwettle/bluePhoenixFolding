@@ -73,18 +73,20 @@ public class skeleton extends ArrayList<node> implements Comparable<skeleton> {
 		//smaller skeletons are better
 		int size= this.getSize();
 		int osize=o.getSize();
-
+		if(osize==size) {
+			return(this.score-o.score);
+		}
 		return(size-osize);
 
 	}
 	//this checks to see if node n overlaps with anything already on the skeleton
-	public boolean overlaps(HashMap<UID,Integer> distance, node n, int index) {
+	public boolean overlaps(HashMap<UID,Integer> distance, node n) {
 		for(node m:this) {
-			if(!m.equals(n)) {
+			if(m.ID!=n.ID) {
 				int deltax= Math.abs(n.getX()-m.getX());
 				int deltay= Math.abs(n.getY()-m.getY());
 				int dist=distance.get(m.ID);
-				int gap=deltax+deltay;
+				int gap=Math.abs(deltax)+Math.abs(deltay);
 				this.score+=gap;
 				if(deltax<dist) {
 					if(deltay<dist) {
@@ -98,7 +100,7 @@ public class skeleton extends ArrayList<node> implements Comparable<skeleton> {
 				int deltax= Math.abs(n.getX()-m.getX());
 				int deltay= Math.abs(n.getY()-m.getY());
 				int dist=distance.get(m.ID);
-				int gap=deltax+deltay;
+				int gap=Math.abs(deltax)+Math.abs(deltay);
 				this.score+=gap;
 				if(deltax<dist) {
 					if(deltay<dist) {

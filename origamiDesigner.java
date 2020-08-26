@@ -55,11 +55,11 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 	ArrayList<paper>redoPapers;
 	Oplanner planner;
 	JFrame myEdit;
-	
+
 	layout lay;
 
 	JMenu DisplayMenu;
-	
+
 	JLabel Node;
 	ButtonGroup Mode;
 	JToggleButton leafMode;
@@ -75,7 +75,7 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 	JMenuItem ShowSymmetryEditor;
 	JMenuItem nodeEditor;
 	JMenuItem optimizeEditor;
-	
+
 	JFrame symmetryEditor;
 	JLabel conditions;
 	JToggleButton addsymmetry;
@@ -86,19 +86,19 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 	JRadioButton Ysymmetry;
 	JCheckBox fixToEdge;
 	JCheckBox fixToSymmetry;
-	
-	
+
+
 	JFrame optimizeSettings;
 	JRadioButton square;
 	JRadioButton fixRatio;
 	JCheckBox minorImprove;
 	JSpinner buffer;
-	
+
 	JLabel paper;
 	JSpinner Width;
 	JSpinner Height;
 	ButtonGroup optimizeParams;
-	
+
 	private JRadioButton creases;
 	private JRadioButton treePlan;
 	int squareSize;
@@ -128,9 +128,9 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 				javax.swing.MenuSelectionManager.defaultManager().clearSelectedPath();
 			} 
 		} );
-		
-		
-		
+
+
+
 		makeNodeEditor();
 	}
 	private void makeNodeEditor() {
@@ -207,13 +207,13 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 		createMenu();
 		menuBar.setDoubleBuffered(true);
 		this.setJMenuBar(menuBar);
-		
+
 	}
 	public void createMenu() {
 		menuBar= new JMenuBar();
 		createFileMenu();
 		createDisplayMenu();
-		
+
 	}
 	private void createFileMenu() {
 		fileMenu= new JMenu("File");
@@ -342,9 +342,9 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 		}
 	}
 	private void optimizeAction() {
-		
+
 		this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-		
+
 		int buffer=0;
 		boolean checkminor=false;
 		if(this.optimizeSettings!=null) {
@@ -355,12 +355,12 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 		lay= new layout(myPaper,buffer,1000000,checkminor);
 		long start_time=System.currentTimeMillis();
 		//lay.optimize(buffer,checkminor);
-try {
-	lay.doInBackground();
-} catch (Exception e) {
-	// TODO Auto-generated catch block
-	e.printStackTrace();
-}
+		try {
+			lay.doInBackground();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		long end_time=System.currentTimeMillis();
 		long time=end_time-start_time;
 		int seconds= (int) (time/1000)%60;
@@ -487,13 +487,13 @@ try {
 		JLabel HeightLabel= new JLabel("Set Height:");
 		myEdit.add(HeightLabel);
 		myEdit.add(Height);
-	
-		}
+
+	}
 	public void stateChanged(ChangeEvent e) {}
 	public void mouseDragged(MouseEvent arg0) {}
 	public void mouseMoved(MouseEvent arg0) {}
 	public void mouseClicked(MouseEvent arg0) {
-		
+
 		squareSize= getSquareSize();
 		int x = 0;
 		int y = 0;
@@ -512,9 +512,9 @@ try {
 		myPaper.width=(int) Integer.parseInt(Width.getValue().toString());
 		myPaper.height=(int)Integer.parseInt(Height.getValue().toString());;
 		myPaper.ratioX_Y=myPaper.width/myPaper.height;
-		
+
 		drawPlanner();
-		
+
 	}
 	private void makeSelectedAction(int x, int y) {
 		if(this.symmetryEditor!=null) {
@@ -609,27 +609,27 @@ try {
 		nodeSize.setValue(1);
 	}
 	public void actionPerformed(ActionEvent arg0) {
-		
+
 		this.mouseClicked(null);
 	}
-private void makeOptimizeSettings(){
-	this.optimizeSettings= new JFrame();
-	if( optimizeSettings!=null&&this.optimizeSettings.isActive()) {
-		optimizeSettings.dispose();
-	}
-	this.optimizeSettings= new JFrame();
-	this.optimizeSettings.setSize(250,300);
-	this.optimizeSettings.setLocation(this.getWidth()+this.getX(), this.getY());
-	this.optimizeSettings.setLayout(new GridLayout(10,1));
-	makeOptimizeConditions();
-	optimizeSettings.setVisible(true);
-	optimizeSettings.addComponentListener(new ComponentAdapter() {
-		public void componentResized(ComponentEvent componentEvent) {
-			optimizeSettings.toFront();
-			mouseClicked(null);
-		}});
+	private void makeOptimizeSettings(){
+		this.optimizeSettings= new JFrame();
+		if( optimizeSettings!=null&&this.optimizeSettings.isActive()) {
+			optimizeSettings.dispose();
+		}
+		this.optimizeSettings= new JFrame();
+		this.optimizeSettings.setSize(250,300);
+		this.optimizeSettings.setLocation(this.getWidth()+this.getX(), this.getY());
+		this.optimizeSettings.setLayout(new GridLayout(10,1));
+		makeOptimizeConditions();
+		optimizeSettings.setVisible(true);
+		optimizeSettings.addComponentListener(new ComponentAdapter() {
+			public void componentResized(ComponentEvent componentEvent) {
+				optimizeSettings.toFront();
+				mouseClicked(null);
+			}});
 
-}
+	}
 	private void makeSymmetryEditor() {
 		setUpsymmetryEditor();
 		makeSymmetryConditions();
@@ -645,7 +645,7 @@ private void makeOptimizeSettings(){
 				javax.swing.MenuSelectionManager.defaultManager().clearSelectedPath();
 			} 
 		} );
-		
+
 	}
 	private void finishAdvancedSetup() {
 		symmetryEditor.setVisible(true);
@@ -666,7 +666,7 @@ private void makeOptimizeSettings(){
 		fixRatio= new JRadioButton("fix ratio");
 		optimizeSettings.add(fixRatio);
 		optimizeParams.add(fixRatio);
-		
+
 		this.minorImprove= new JCheckBox("check for minor improvements");
 		minorImprove.addActionListener(this);
 		optimizeSettings.add(minorImprove);
@@ -676,7 +676,7 @@ private void makeOptimizeSettings(){
 		this.buffer= new JSpinner();
 		buffer.setModel(new SpinnerNumberModel(0, 0, Integer.MAX_VALUE, 1));
 		optimizeSettings.add(buffer);
-		
+
 	}
 	private void makeSymmetryActions() {
 		ButtonGroup symmetryAction= new ButtonGroup();
@@ -709,28 +709,28 @@ private void makeOptimizeSettings(){
 			@Override
 			public void stateChanged(ChangeEvent arg0) {
 				if(myPaper.selected!=null) {
-				myPaper.selected.isFixedToSymmetryLine=fixToSymmetry.isSelected();
+					myPaper.selected.isFixedToSymmetryLine=fixToSymmetry.isSelected();
 				}
-			
+
 			}});
 		fixToEdge.addChangeListener(new ChangeListener() {
 
 			@Override
 			public void stateChanged(ChangeEvent arg0) {
 				if(myPaper.selected!=null) {
-				myPaper.selected.isFixedToEdge=fixToEdge.isSelected();
+					myPaper.selected.isFixedToEdge=fixToEdge.isSelected();
 				}
 				System.out.println("fixed");
 			}});
 	}
-private void updateSymmetryConditions() {
-	if(this.symmetryEditor!=null) {
-	myPaper.hasSymmetry=!this.nosymmetry.isSelected();
-	if(myPaper.hasSymmetry) {
-		myPaper.isXsymmetry=this.Xsymmetry.isSelected();
+	private void updateSymmetryConditions() {
+		if(this.symmetryEditor!=null) {
+			myPaper.hasSymmetry=!this.nosymmetry.isSelected();
+			if(myPaper.hasSymmetry) {
+				myPaper.isXsymmetry=this.Xsymmetry.isSelected();
+			}
+		}
 	}
-	}
-}
 	private void makeSymmetryConditions() {
 		this.symmetryEditor.add(new JLabel("symmetry"));
 		ButtonGroup symmetryCon= new ButtonGroup();
@@ -743,11 +743,11 @@ private void updateSymmetryConditions() {
 			public void stateChanged(ChangeEvent arg0) {
 				updateSymmetryConditions();
 			}
-			
+
 		});
 		this.symmetryEditor.add(nosymmetry);
 		nosymmetry.setSelected(true);
-		
+
 		Xsymmetry= new JRadioButton("X symmetry");
 		symmetryCon.add(Xsymmetry);
 		Xsymmetry.addActionListener(this);
@@ -762,7 +762,7 @@ private void updateSymmetryConditions() {
 			public void stateChanged(ChangeEvent arg0) {
 				updateSymmetryConditions();
 			}
-			
+
 		});
 		Xsymmetry.addChangeListener(new ChangeListener() {
 
@@ -770,7 +770,7 @@ private void updateSymmetryConditions() {
 			public void stateChanged(ChangeEvent arg0) {
 				updateSymmetryConditions();
 			}
-			
+
 		});
 	}
 
@@ -798,7 +798,7 @@ private void updateSymmetryConditions() {
 			planner.drawCreases(myPaper);
 		}
 		if(this.treePlan.isSelected()) {
-			
+
 			planner.drawPlan(myPaper);
 		}
 		System.out.println("overlaps: "+myPaper.hasOverlap());
