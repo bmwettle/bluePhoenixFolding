@@ -346,7 +346,7 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 		this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 
 		int buffer=0;
-		boolean checkminor=false;
+		boolean checkminor=true;
 		if(this.optimizeSettings!=null) {
 			buffer=Integer.parseInt(this.buffer.getValue().toString());
 			checkminor=this.minorImprove.isSelected();
