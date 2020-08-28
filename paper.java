@@ -1,4 +1,4 @@
-package origamiProject;
+package bluePheonixFolding;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.awt.geom.Rectangle2D;

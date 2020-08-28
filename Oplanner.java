@@ -1,4 +1,4 @@
-package origamiProject;
+package bluePheonixFolding;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics;
@@ -169,8 +169,12 @@ public class Oplanner extends JPanel implements Printable,ColorSettings    {
 
 	}
 	private void drawNodeCreases(node n) {
+		g.setColor(new Color((int)(Math.random()*255),(int)(Math.random()*255),(int)(Math.random()*255)));
 		if(n.c!=null) {
+			
 			g.setStroke(LINE_STROKE);
+			g.setStroke(AREA_STROKE);
+			g.draw(n.c);
 			for(Line2D.Double l:n.c.creases) {
 				g.draw(l);
 			}

@@ -1,4 +1,4 @@
-package origamiProject;
+package bluePheonixFolding;
 
 import java.util.ArrayList;
 

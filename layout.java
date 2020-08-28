@@ -1,4 +1,4 @@
-package origamiProject;
+package bluePheonixFolding;
 
 import java.rmi.server.UID;
 import java.util.ArrayList;
@@ -138,7 +138,8 @@ public class layout  extends SwingWorker<paper,Void>{
 		Generation newGen= makeNewGen(parent,index2);
 		sortNewGen(newGen);
 		if(newGen.size()>=1) {
-			checked++;
+			checked+=newGen.size();
+			System.out.println(checked);
 			skeleton myBest= newGen.get(0);
 			//System.out.println("updating best"+index2+": "+myBest.getSize()+",>" +myBest.score+", "+myBest.size()+". "+leafNodes.size());
 			index2++;
@@ -155,11 +156,6 @@ public class layout  extends SwingWorker<paper,Void>{
 					checked=0;
 					minor = new ArrayList<skeleton>();
 					//globalScore=myBest.score;
-				}else {
-					if(mySize==globalSize&&myBest.score<globalScore) {
-						minor.add(myBest);
-					}
-
 				}
 			}else {
 				if(checked<max_checked) {
@@ -243,7 +239,21 @@ public class layout  extends SwingWorker<paper,Void>{
 					newDesign.score=design.score+Math.abs(n.getX())+Math.abs(n.getY());
 					if((newDesign.score)<globalScore) {
 					newDesign.add(n);
+					if(paired[index2]!=null) {
+						node pair= new node( paired[index2]);
+						pair.setX(-1*n.getX());
+						pair.setY(n.getY());
+						if(!newDesign.overlaps(distances.get(pair.ID), pair)) {
+							newDesign.score+=Math.abs(pair.getX())+Math.abs(pair.getY());
+							newDesign.addPaired(pair);
+							
+								newGen.add(newDesign);
+								
+						}
+					}else {
+						
 					newGen.add(newDesign);
+					}
 				//	System.out.println("x"+x+", "+y+newDesign.score);
 				}
 					}else {

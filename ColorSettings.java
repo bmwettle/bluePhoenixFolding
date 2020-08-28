@@ -1,4 +1,4 @@
-package origamiProject;
+package bluePheonixFolding;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
