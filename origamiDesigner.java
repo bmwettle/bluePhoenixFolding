@@ -1,4 +1,3 @@
-package bluePheonixFolding;
 
 import java.awt.Cursor;
 import java.awt.GridLayout;
@@ -111,6 +110,7 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 	}
 	private void makeEditors() {
 		this.openEditorsMenu= new JMenu("Edit");
+		
 		this.menuBar.add(openEditorsMenu);
 		ShowSymmetryEditor= new JMenuItem("show Symmetry Editor");
 		this.openEditorsMenu.add(ShowSymmetryEditor);
@@ -118,6 +118,7 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 			public void actionPerformed(ActionEvent e) { 
 				makeSymmetryEditor();
 				javax.swing.MenuSelectionManager.defaultManager().clearSelectedPath();
+				drawPlanner();
 			} 
 		} );
 		this.optimizeEditor= new JMenuItem("show Optimize Settings");
@@ -367,12 +368,11 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 		int min=(int) (time/(60*1000));
 		System.out.println("optimized in: " +min+ " minutes and "+seconds+" seconds");
 		myPaper=lay.getPaper(myPaper);
-		myPaper.refreshNodes();
-		myPaper.shrink();
 		int w=myPaper.width;
 		int h= myPaper.height;
 		this.Height.setValue(h);
 		this.Width.setValue(w);
+		this.nodeSize.setValue(myPaper.selected.size);
 		escapeMode.setSelected(true);
 		this.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 		drawPlanner();
@@ -466,7 +466,14 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 		JLabel nodeSizeLabel= new JLabel("SetNodeSize");
 		myEdit.add(nodeSizeLabel);
 		nodeSize.setModel(new SpinnerNumberModel(1, 0, Integer.MAX_VALUE, 1));
-		nodeSize.addChangeListener(this);
+		nodeSize.addChangeListener(new ChangeListener() {
+
+			@Override
+			public void stateChanged(ChangeEvent arg0) {
+				System.out.println("ok");
+				mouseClicked(null);
+				
+			}});
 		myEdit.add(nodeSize);	
 
 	}
@@ -479,11 +486,25 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 		Width.setModel(new SpinnerNumberModel(16, 1, Integer.MAX_VALUE, 1));
 		JLabel WidthLabel= new JLabel("Set Width:");
 		myEdit.add(WidthLabel);
-		Width.addChangeListener(this);
+		Width.addChangeListener(new ChangeListener() {
+
+			@Override
+			public void stateChanged(ChangeEvent arg0) {
+				System.out.println("ok");
+				mouseClicked(null);
+				
+			}});
 		myEdit.add(Width);
 		Height=new JSpinner();
 		Height.setModel(new SpinnerNumberModel(16, 1, Integer.MAX_VALUE, 1));
-		Height.addChangeListener(this);
+		Height.addChangeListener(new ChangeListener() {
+
+			@Override
+			public void stateChanged(ChangeEvent arg0) {
+				System.out.println("ok");
+				mouseClicked(null);
+				
+			}});
 		JLabel HeightLabel= new JLabel("Set Height:");
 		myEdit.add(HeightLabel);
 		myEdit.add(Height);

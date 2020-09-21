@@ -1,4 +1,3 @@
-package bluePheonixFolding;
 
 import java.awt.Point;
 import java.awt.geom.Area;
@@ -16,6 +15,7 @@ public class Creases extends Area implements Serializable {
 	ArrayList<Point> corners;
 	ArrayList<Line2D.Double> creases;
 	ArrayList<int[]> directions;
+	ArrayList<Point> ignore;
 	int scale;
 	private static final long serialVersionUID = -5200999865205395759L;
 
@@ -23,6 +23,15 @@ public class Creases extends Area implements Serializable {
 		super(inside);
 		this.scale=scale;
 		activeCorners= new ArrayList<Point>();
+		corners= new ArrayList<Point>();
+		creases= new ArrayList<Line2D.Double>();
+		directions= new ArrayList<int[]>();
+	}
+	public Creases(int scale, Area inside, ArrayList<Point> ignore) {
+		super(inside);
+		this.scale=scale;
+		activeCorners= new ArrayList<Point>();
+		this.ignore=ignore;
 		corners= new ArrayList<Point>();
 		creases= new ArrayList<Line2D.Double>();
 		directions= new ArrayList<int[]>();
@@ -90,9 +99,14 @@ public class Creases extends Area implements Serializable {
 		while(!borders.isDone()) {
 			double [] coords= new double[6];
 			borders.currentSegment(coords);
-			Point p=new Point((int)coords[0],(int)coords[1]);
+			int x=(int)coords[0];
+			int y=(int)coords[1];
+			Point p=new Point(x,y);
 			corners.add(p);
 			borders.next();
 		}
+		if(ignore!=null) {
+	corners.removeAll(ignore);
+	}
 	}
 }

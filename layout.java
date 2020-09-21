@@ -1,4 +1,3 @@
-package bluePheonixFolding;
 
 import java.rmi.server.UID;
 import java.util.ArrayList;
@@ -80,12 +79,7 @@ public class layout  extends SwingWorker<paper,Void>{
 			}
 
 		}
-		for(node n:leafNodes) {
-			for(node m:leafNodes) {
-				//System.out.println(n+":"+m+", "+p.distances.get(n).get(m)+this.distances.get(n.ID).get(m.ID));
-			}
-			//System.out.println("next");
-		}
+		
 	}
 
 	private void addDiststances() {
@@ -163,16 +157,13 @@ public class layout  extends SwingWorker<paper,Void>{
 				for(skeleton design:newGen) {
 					int designSize=design.getSize();
 					int designScore=design.score;
-					if(designSize<globalSize&&((designScore)<globalScore)) {
+					if(designSize<=globalSize&&((designScore)<globalScore)) {
 						optimizeDF(index2,design);
 					}else {
-						if(designSize==globalSize&&designScore<globalScore) {
-							minor.add(design);
-					
-						}else {
+						
 							break;
 						}
-						}
+						
 					design.removeAll(design);
 				}
 				newGen.removeAll(newGen);
@@ -187,18 +178,19 @@ public class layout  extends SwingWorker<paper,Void>{
 
 
 	private Generation makeNewGen(skeleton design, int index2) {
+		int gap=globalSize-design.size;
 		// we start by setting up a place to store the new generated skeletons
 		Generation newGen= new Generation();
-		boolean [][] placed= new boolean[globalSize][globalSize];
+		boolean [][] placed= new boolean[globalSize+2*gap][globalSize+2*gap];
 		for(node m:design) {
 			int radius= this.distances.get(m.ID).get(leafNodes.get(index2).ID);
 			for(int i=radius+baseBuffer;i>=-radius-baseBuffer;i--) {
 				int x= m.getX()+i;
-				if(x>=0&&x<globalSize) {
+				if(x>=-gap&&x<globalSize+gap) {
 				for(int j=radius+baseBuffer;j>=-radius-baseBuffer;j--) {
 					int y= m.getY()+j;
-					if(y>=0&&y<globalSize) {
-						placed[x][y]=true;
+					if(y>=-gap&&y<globalSize+gap) {
+						placed[x+gap][y+gap]=true;
 					}
 				}
 				}
@@ -208,11 +200,11 @@ public class layout  extends SwingWorker<paper,Void>{
 			int radius= this.distances.get(m.ID).get(leafNodes.get(index2).ID)-1;
 			for(int i=radius;i>=-radius;i--) {
 				int x= m.getX()+i;
-				if(x>=0&&x<globalSize) {
+				if(x>=-gap&&x<globalSize+gap) {
 				for(int j=radius;j>=-radius;j--) {
 					int y= m.getY()-0+j;
-					if(y>=0&&y<globalSize) {
-						placed[x][y]=false;
+					if(y>=-gap&&y<globalSize+gap) {
+						placed[x+gap][y+gap]=false;
 					}
 				}
 				}
@@ -234,26 +226,26 @@ public class layout  extends SwingWorker<paper,Void>{
 						newDesign.addPaired(new node(old));
 					}
 					node n= new node(leafNodes.get(index2));
-					n.setX(x);
-					n.setY(y);
+					n.setX(x-gap);
+					n.setY(y-gap);
 					newDesign.score=design.score+Math.abs(n.getX())+Math.abs(n.getY());
 					if((newDesign.score)<globalScore) {
 					newDesign.add(n);
-					if(paired[index2]!=null) {
-						node pair= new node( paired[index2]);
-						pair.setX(-1*n.getX());
-						pair.setY(n.getY());
-						if(!newDesign.overlaps(distances.get(pair.ID), pair)) {
-							newDesign.score+=Math.abs(pair.getX())+Math.abs(pair.getY());
-							newDesign.addPaired(pair);
-							
-								newGen.add(newDesign);
-								
-						}
-					}else {
+//					if(paired[index2]!=null) {
+//						node pair= new node( paired[index2]);
+//						pair.setX(-1*n.getX());
+//						pair.setY(n.getY());
+//						if(!newDesign.overlaps(distances.get(pair.ID), pair)) {
+//							newDesign.score+=Math.abs(pair.getX())+Math.abs(pair.getY());
+//							newDesign.addPaired(pair);
+//							
+//								newGen.add(newDesign);
+//								
+//						}
+//					}else {
 						
 					newGen.add(newDesign);
-					}
+					//}
 				//	System.out.println("x"+x+", "+y+newDesign.score);
 				}
 					}else {
@@ -352,49 +344,25 @@ public class layout  extends SwingWorker<paper,Void>{
 
 		// we don't really care about designs bigger than the smallest, only equal.
 		skeleton top=globalBest;
-		for(node n:top) {
-			//System.out.println(n+" : "+top.overlaps(distances.get(n.ID), n));
-		}
-		for(node n:leafNodes) {
-			//System.out.println(n+" : ");
-		}
-		for(node M:top.paired) {
-
-			//System.out.println(M.ID);
-
-
-		}
 		paper oldp= new paper(p);
-
-
 		//we will set the nodes to the locations found in optimization
 		for(node n:oldp.nodes) {
 			if(oldp.isLeaf(n)) {
-				boolean wasReset=false;
 				for(node M:top) {
 					if(n.ID==M.ID) {
 
 						n.setX(M.getX());
 						n.setY(M.getY());
-						wasReset=true;
-						//System.out.println(j+": "+n.size+", "+n.getX()+":"+n.getY());
-
-					}
+						}
 				}
 				for(node M:top.paired) {
 					if(n.ID==M.ID) {
-
 						n.setX(M.getX());
-						n.setY(M.getY());
-						//System.out.println("ok");
-
-					}
-				}
-				//System.out.println(n+", "+wasReset);
-
-			}
+						n.setY(M.getY());}
+				}}
 		}
 		oldp.selected= oldp.nodes.get(0);
+		oldp.shrink();
 		oldp.refreshNodes();
 		oldp.shrink();
 

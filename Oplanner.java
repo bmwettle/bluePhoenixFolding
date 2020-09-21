@@ -1,9 +1,10 @@
-package bluePheonixFolding;
+
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Point;
+
+import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.print.PageFormat;
@@ -87,8 +88,6 @@ public class Oplanner extends JPanel implements Printable,ColorSettings    {
 		}
 
 
-		// TODO Auto-generated method stub
-
 	}
 
 	private void drawConnections(node n) {
@@ -105,16 +104,20 @@ public class Oplanner extends JPanel implements Printable,ColorSettings    {
 		g.setStroke(AREA_STROKE);
 		double size= n.size;
 		if(size==0) {
-			size=.5;
+			size=1/2;
 		}
 		if(p.isSelcted(n)) {
 			g.setColor(SELECTED_NODE_COLOR);
 		}
-
+		if(p.isLeaf(n)) {
 		//g.drawChars(n.ID.toString().toCharArray(), 0, n.ID.toString().length(), n.getX()*squareSize, n.getY()*squareSize);
 		g.draw(new Rectangle2D.Double((n.getX()-size)*squareSize,(n.getY()-size)*squareSize,size*2*squareSize,size*2*squareSize));
 		g.fill(new Rectangle2D.Double(n.getX()*squareSize-size*smallSquareSize,n.getY()*squareSize-size*smallSquareSize,size*2*smallSquareSize,size*2*smallSquareSize));
-
+		}else {
+			g.draw(new Ellipse2D.Double((n.getX()-size)*squareSize,(n.getY()-size)*squareSize,size*2*squareSize,size*2*squareSize));
+			g.fill(new Ellipse2D.Double(n.getX()*squareSize-size*smallSquareSize,n.getY()*squareSize-size*smallSquareSize,size*2*smallSquareSize,size*2*smallSquareSize));
+			
+		}
 	}
 
 	private void drawConditions() {
@@ -137,7 +140,7 @@ public class Oplanner extends JPanel implements Printable,ColorSettings    {
 		width= p.width;
 		height=p.height;
 		squareSize= Math.min(getWidth()/width,getHeight()/height);
-		smallSquareSize=squareSize/6;
+		smallSquareSize=squareSize/4;
 		drawGrid(0);
 
 	}
@@ -169,7 +172,7 @@ public class Oplanner extends JPanel implements Printable,ColorSettings    {
 
 	}
 	private void drawNodeCreases(node n) {
-		g.setColor(new Color((int)(Math.random()*255),(int)(Math.random()*255),(int)(Math.random()*255)));
+		//g.setColor(new Color((int)(Math.random()*255),(int)(Math.random()*255),(int)(Math.random()*255)));
 		if(n.c!=null) {
 			
 			g.setStroke(LINE_STROKE);

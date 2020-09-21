@@ -1,10 +1,10 @@
-package bluePheonixFolding;
+
+import java.awt.Point;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.awt.geom.Rectangle2D;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 public class paper implements Serializable , Comparable<paper>{
@@ -52,6 +52,7 @@ public class paper implements Serializable , Comparable<paper>{
 	private void refreshNode(node n) {
 		settled.add(n);
 			if(isLeaf(n)) {
+			
 			}else {
 				for(node m :this.connections.get(n)) {
 					if(!settled.contains(m)) {
@@ -95,8 +96,13 @@ public class paper implements Serializable , Comparable<paper>{
 		return Math.max(width, height);
 	}
 	public void getAreas(int scale) {
-
-		Unused= new Creases(scale,new Area(new Rectangle2D.Double(0,0,width*scale,height*scale)));
+		ArrayList<Point> corners=new ArrayList<Point>();
+		corners.add(new Point(0,0));
+		corners.add(new Point(0,height*scale));
+		corners.add(new Point(width*scale,0));
+		corners.add(new Point(width*scale,height*scale));
+		
+		Unused= new Creases(scale,new Area(new Rectangle2D.Double(0,0,width*scale,height*scale)),corners);
 
 		settled= new ArrayList<node>();
 
@@ -258,6 +264,7 @@ public class paper implements Serializable , Comparable<paper>{
 		int ymax=0;
 		int ymin=Integer.MAX_VALUE;
 		for(node n:nodes) {
+			if(isLeaf(n)) {
 			if(n.getX()>xmax) {
 				xmax=n.getX();
 			}
@@ -269,6 +276,7 @@ public class paper implements Serializable , Comparable<paper>{
 			}
 			if(n.getY()<ymin) {
 				ymin=n.getY();
+			}
 			}
 		}
 		for( node n:nodes) {
