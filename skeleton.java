@@ -148,5 +148,11 @@ public class skeleton extends ArrayList<node> implements Comparable<skeleton> {
 
 
 	}
-
+public String toString() {
+	String message="";
+	for(node n:this) {
+		message+=" ,"+n.getSize()+"."+n.getX()+"."+n.getY();
+	}
+	return message;
+}
 }

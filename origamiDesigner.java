@@ -1,6 +1,7 @@
 
 import java.awt.Cursor;
 import java.awt.GridLayout;
+import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
@@ -18,6 +19,7 @@ import java.rmi.server.UID;
 import java.util.ArrayList;
 
 import javax.swing.ButtonGroup;
+import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -30,10 +32,13 @@ import javax.swing.JRadioButton;
 import javax.swing.JSpinner;
 import javax.swing.JToggleButton;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.MenuEvent;
+import javax.swing.event.MenuListener;
 
-public class origamiDesigner extends JFrame implements ActionListener,ChangeListener, MouseListener{
+public class origamiDesigner extends JFrame implements ActionListener,ChangeListener, MouseListener, MenuListener{
 
 	/**
 	 * 
@@ -106,27 +111,33 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 		setUpPlanner();
 		setUpCloseing();
 		makeEditors();
-
+		this.openEditorsMenu.addMenuListener(this);
 	}
 	private void makeEditors() {
 		this.openEditorsMenu= new JMenu("Edit");
 		
 		this.menuBar.add(openEditorsMenu);
 		ShowSymmetryEditor= new JMenuItem("show Symmetry Editor");
+		ShowSymmetryEditor.setEnabled(false);
 		this.openEditorsMenu.add(ShowSymmetryEditor);
 		ShowSymmetryEditor.addActionListener(new ActionListener() { 
 			public void actionPerformed(ActionEvent e) { 
-				makeSymmetryEditor();
+				
 				javax.swing.MenuSelectionManager.defaultManager().clearSelectedPath();
+				makeSymmetryEditor();
 				drawPlanner();
 			} 
 		} );
+		ShowSymmetryEditor.setIcon(new ImageIcon("src/icons/symIcon.png"));
 		this.optimizeEditor= new JMenuItem("show Optimize Settings");
+		optimizeEditor.setIcon(new ImageIcon("src/icons/optimizeSettingsIcon.png"));
 		this.openEditorsMenu.add(optimizeEditor);
 		optimizeEditor.addActionListener(new ActionListener() { 
 			public void actionPerformed(ActionEvent e) { 
-				makeOptimizeSettings();
+				
 				javax.swing.MenuSelectionManager.defaultManager().clearSelectedPath();
+				makeOptimizeSettings();
+				drawPlanner();
 			} 
 		} );
 
@@ -138,10 +149,15 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 		JMenuItem ShowEditor= new JMenuItem("show Node Editor");
 		ShowEditor.addActionListener(new ActionListener() { 
 			public void actionPerformed(ActionEvent e) { 
-				makeEdit();
+				
 				javax.swing.MenuSelectionManager.defaultManager().clearSelectedPath();
+				makeEdit();
+				mouseClicked(null);
+				drawPlanner();
 			} 
 		} );
+		
+		ShowEditor.setIcon(new ImageIcon("src/icons/nodeEditIcon.png"));
 		this.openEditorsMenu.add(ShowEditor);
 	}
 	private void setUpCloseing() {
@@ -194,7 +210,6 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 		this.add(planner);
 		planner.setVisible(true);
 		planner.addMouseListener(this);
-
 		makeEdit();
 		myEdit.addMouseListener(this);
 	}
@@ -231,25 +246,25 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 				saveFile();
 			} 
 		} );
-
+		save.setIcon(new ImageIcon("src/icons/saveIcon.png"));
 		New.addActionListener(new ActionListener() { 
 			public void actionPerformed(ActionEvent e) { 
 				newFile();
 			} 
 		} );
-
+		New.setIcon(new ImageIcon("src/icons/newIcon.png"));
 		open.addActionListener(new ActionListener() { 
 			public void actionPerformed(ActionEvent e) { 
 				openFile();
 			} 
 		} );
-
+		open.setIcon(new ImageIcon("src/icons/openIcon.png"));
 		print.addActionListener(new ActionListener() { 
 			public void actionPerformed(ActionEvent e) { 
 				printFile();
 			} 
 		} );
-
+		print.setIcon(new ImageIcon("src/icons/printIcon.png"));
 		fileMenu.add(print);
 	}
 	private void makeEdit() {
@@ -283,16 +298,18 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 		creases= new JRadioButton("show crease pattern");
 		creases.addActionListener(new ActionListener() { 
 			public void actionPerformed(ActionEvent e) { 
-				drawPlanner();
+				
 				javax.swing.MenuSelectionManager.defaultManager().clearSelectedPath();
+				drawPlanner();
 			} 
 		} );
 		treePlan= new JRadioButton("show tree plan");
 		treePlan.setSelected(true);
 		treePlan.addActionListener(new ActionListener() { 
 			public void actionPerformed(ActionEvent e) { 
-				drawPlanner();
+				
 				javax.swing.MenuSelectionManager.defaultManager().clearSelectedPath();
+				drawPlanner();
 			} 
 		} );
 		DisplayMenu.add(treePlan);
@@ -302,17 +319,23 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 	}
 	private void makeUndoActions() {
 		JMenuItem undo = new JMenuItem("undo");
+		undo.setIcon(new ImageIcon("src/icons/undoIcon.png"));
 		undo.addActionListener(new ActionListener() { 
 			public void actionPerformed(ActionEvent e) { 
-				undoAction();
+				
 				javax.swing.MenuSelectionManager.defaultManager().clearSelectedPath();
+				undoAction();
+				drawPlanner();
 			} 
 		} );
 		JMenuItem redo = new JMenuItem("redo");
+		redo.setIcon(new ImageIcon("src/icons/redoIcon.png"));
 		redo.addActionListener(new ActionListener() { 
 			public void actionPerformed(ActionEvent e) { 
-				redoAction();
+				
 				javax.swing.MenuSelectionManager.defaultManager().clearSelectedPath();
+				redoAction();
+				drawPlanner();
 			} 
 		} );
 		DisplayMenu.add(undo);
@@ -322,16 +345,22 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 		JMenuItem optimize = new JMenuItem("optimize");
 		optimize.addActionListener(new ActionListener() { 
 			public void actionPerformed(ActionEvent e) { 
-				optimizeAction();
+				
 				javax.swing.MenuSelectionManager.defaultManager().clearSelectedPath();
+				optimizeAction();
+				drawPlanner();
 			} 
 		} );
 		DisplayMenu.add(optimize);
+		optimize.setIcon(new ImageIcon("src/icons/optimizeIcon.png"));
 	}
 	public static void main(String[] args){
 		origamiDesigner design = new origamiDesigner();
 		origamiDesigner.allDesignerWindows.add(design); // MC
+		 try {
+		      UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
 
+		    } catch (Exception e) { System.err.println("Error: " + e.getMessage()); }
 		design.setVisible(true);
 	}
 	private void undoAction() {
@@ -353,7 +382,7 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 			checkminor=this.minorImprove.isSelected();
 			System.out.println(","+buffer+","+checkminor);
 		}
-		lay= new layout(myPaper,buffer,1000000,checkminor);
+		lay= new layout(myPaper,buffer,30000,checkminor);
 		long start_time=System.currentTimeMillis();
 		//lay.optimize(buffer,checkminor);
 		try {
@@ -372,6 +401,8 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 		int h= myPaper.height;
 		this.Height.setValue(h);
 		this.Width.setValue(w);
+		System.out.print(myPaper.selected.size);
+		System.out.print(myPaper.nodes.get(0).size);
 		this.nodeSize.setValue(myPaper.selected.size);
 		escapeMode.setSelected(true);
 		this.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
@@ -475,6 +506,7 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 				
 			}});
 		myEdit.add(nodeSize);	
+		escapeMode.setSelected(true);
 
 	}
 	private void createPaperGui() {
@@ -514,14 +546,15 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 	public void mouseDragged(MouseEvent arg0) {}
 	public void mouseMoved(MouseEvent arg0) {}
 	public void mouseClicked(MouseEvent arg0) {
-
+		System.out.println("click");
+		//javax.swing.MenuSelectionManager.defaultManager().clearSelectedPath();
 		squareSize= getSquareSize();
 		int x = 0;
 		int y = 0;
 		if(arg0!=null) {
 			try {
-				x= arg0.getX()/squareSize;
-				y= (arg0.getY())/squareSize;
+				x= (int) ((double)(arg0.getX())/squareSize+.5);
+				y= (int) (((double)arg0.getY())/squareSize+.5);
 			} catch (Exception e) { }
 			makeSelectedAction( x, y);
 		}
@@ -662,8 +695,10 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 		}
 		ShowSymmetryEditor.addActionListener(new ActionListener() { 
 			public void actionPerformed(ActionEvent e) { 
-				makeSymmetryEditor();
+				
 				javax.swing.MenuSelectionManager.defaultManager().clearSelectedPath();
+				makeSymmetryEditor();
+				drawPlanner();
 			} 
 		} );
 
@@ -817,13 +852,13 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 		planner.validate();
 		if(this.creases.isSelected()) {
 			planner.drawCreases(myPaper);
+			System.out.println("overlaps: "+myPaper.hasOverlap());
 		}
 		if(this.treePlan.isSelected()) {
-
 			planner.drawPlan(myPaper);
+			System.out.println("overlaps: "+myPaper.hasOverlap());
 		}
-		System.out.println("overlaps: "+myPaper.hasOverlap());
-		planner.hasChanged=false;
+		
 	}
 	@Override
 	public void mouseEntered(MouseEvent e) {}
@@ -833,5 +868,23 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 	public void mousePressed(MouseEvent e) {}
 	@Override
 	public void mouseReleased(MouseEvent e) {}
+	@Override
+	public void menuCanceled(MenuEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void menuDeselected(MenuEvent arg0) {
+		System.out.println("ok");
+		planner.hasChanged=true;
+		//this.mouseClicked(null);
+		JMenu source=(JMenu)arg0.getSource();
+		drawPlanner();
+			}
+	@Override
+	public void menuSelected(MenuEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
 
 }

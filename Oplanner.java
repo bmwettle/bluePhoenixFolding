@@ -3,10 +3,13 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-
+import java.awt.Point;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
+import java.awt.image.BufferedImageOp;
 import java.awt.print.PageFormat;
 import java.awt.print.Printable;
 import java.awt.print.PrinterException;
@@ -42,7 +45,7 @@ public class Oplanner extends JPanel implements Printable,ColorSettings    {
 	//draws a grid, shifted to the left by shift
 	public void drawGrid(int shift) {
 		if(shift==0) {
-			g.clearRect(0, 0, this.getWidth(), this.getHeight());
+			
 			g.setStroke(LINE_STROKE);
 		}else {
 			g.setStroke(CONDITION_STROKE);
@@ -62,6 +65,8 @@ public class Oplanner extends JPanel implements Printable,ColorSettings    {
 	public void drawPlan(paper myP) {
 		this.p=myP;
 		setUp(myP);
+		g.clearRect(0, 0, this.getWidth(), this.getHeight());
+		drawGrid(0);
 		drawSymmetry();
 		if(myP.conditions!=null&&myP.conditions.size()!=0) {
 
@@ -92,6 +97,7 @@ public class Oplanner extends JPanel implements Printable,ColorSettings    {
 
 	private void drawConnections(node n) {
 		g.setStroke(CONNECTION_STROKE);
+		g.setColor(NODE_COLOR);
 		for(node m:p.connections.get(n)) {
 			g.setStroke(new BasicStroke(3));
 			g.drawLine(m.getX()*squareSize,m.getY()*squareSize, n.getX()*squareSize, n.getY()*squareSize);
@@ -103,21 +109,25 @@ public class Oplanner extends JPanel implements Printable,ColorSettings    {
 		g.setColor(NODE_COLOR);
 		g.setStroke(AREA_STROKE);
 		double size= n.size;
-		if(size==0) {
-			size=1/2;
-		}
 		if(p.isSelcted(n)) {
 			g.setColor(SELECTED_NODE_COLOR);
 		}
-		if(p.isLeaf(n)) {
-		//g.drawChars(n.ID.toString().toCharArray(), 0, n.ID.toString().length(), n.getX()*squareSize, n.getY()*squareSize);
-		g.draw(new Rectangle2D.Double((n.getX()-size)*squareSize,(n.getY()-size)*squareSize,size*2*squareSize,size*2*squareSize));
-		g.fill(new Rectangle2D.Double(n.getX()*squareSize-size*smallSquareSize,n.getY()*squareSize-size*smallSquareSize,size*2*smallSquareSize,size*2*smallSquareSize));
-		}else {
-			g.draw(new Ellipse2D.Double((n.getX()-size)*squareSize,(n.getY()-size)*squareSize,size*2*squareSize,size*2*squareSize));
-			g.fill(new Ellipse2D.Double(n.getX()*squareSize-size*smallSquareSize,n.getY()*squareSize-size*smallSquareSize,size*2*smallSquareSize,size*2*smallSquareSize));
+		if(size==0) {
+			g.fill(new Ellipse2D.Double(n.getX()*squareSize-smallSquareSize,n.getY()*squareSize-smallSquareSize,2*smallSquareSize,2*smallSquareSize));
 			
+		}else {
+			if(p.isLeaf(n)) {
+			//g.drawChars(n.ID.toString().toCharArray(), 0, n.ID.toString().length(), n.getX()*squareSize, n.getY()*squareSize);
+			g.draw(new Rectangle2D.Double((n.getX()-size)*squareSize,(n.getY()-size)*squareSize,size*2*squareSize,size*2*squareSize));
+			g.fill(new Rectangle2D.Double(n.getX()*squareSize-size*smallSquareSize,n.getY()*squareSize-size*smallSquareSize,size*2*smallSquareSize,size*2*smallSquareSize));
+			}else {
+				g.draw(new Ellipse2D.Double((n.getX()-size)*squareSize,(n.getY()-size)*squareSize,size*2*squareSize,size*2*squareSize));
+				g.fill(new Ellipse2D.Double(n.getX()*squareSize-size*smallSquareSize,n.getY()*squareSize-size*smallSquareSize,size*2*smallSquareSize,size*2*smallSquareSize));
+				
+			}
 		}
+		if(n.isMirrored) {}
+		
 	}
 
 	private void drawConditions() {
@@ -141,12 +151,15 @@ public class Oplanner extends JPanel implements Printable,ColorSettings    {
 		height=p.height;
 		squareSize= Math.min(getWidth()/width,getHeight()/height);
 		smallSquareSize=squareSize/4;
-		drawGrid(0);
+		
 
 	}
 
 	public void drawCreases(paper myP, Graphics g1){
 		setUp(myP);
+		g.clearRect(0, 0, this.getWidth(), this.getHeight());
+		//g.translate(squareSize*p.width/2, squareSize*p.height/2);
+		drawGrid(0);
 		drawGrid(squareSize/2);
 		g.setStroke(AREA_STROKE);
 		g.setColor(CREASE_COLOR);
@@ -169,15 +182,26 @@ public class Oplanner extends JPanel implements Printable,ColorSettings    {
 				g.draw(l);
 			}
 		}
-
+		
+		//AffineTransform mirror=new AffineTransform();
+		//mirror.scale(-1, 1);
+		//g.transform(mirror);;
+		
 	}
 	private void drawNodeCreases(node n) {
-		//g.setColor(new Color((int)(Math.random()*255),(int)(Math.random()*255),(int)(Math.random()*255)));
+		g.setColor(new Color((int)(Math.random()*255),(int)(Math.random()*255),(int)(Math.random()*255)));
 		if(n.c!=null) {
 			
 			g.setStroke(LINE_STROKE);
 			g.setStroke(AREA_STROKE);
-			g.draw(n.c);
+			g.draw(n.c.large);
+			int i=0;
+			for(Point p:n.c.activeCorners) {
+				g.fill(new Ellipse2D.Double(p.getX(),p.getY(),smallSquareSize,smallSquareSize));
+				int[] dir=n.c.directions.get(i);
+				g.draw(new Line2D.Double(p.getX(),p.getY(),p.getX()+dir[0]*smallSquareSize,p.getY()+dir[1]*smallSquareSize));
+				i++;
+			}
 			for(Line2D.Double l:n.c.creases) {
 				g.draw(l);
 			}

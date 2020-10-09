@@ -1,4 +1,7 @@
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.rmi.server.UID;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,6 +32,7 @@ public class layout  extends SwingWorker<paper,Void>{
 	skeleton globalBest;
 	int max_checked;
 	int checked;
+	String outputLog;
 	//leafNodes is a list of the nodes in paper p that are leaf nodes
 	//it is used to make sure that all the skeletons are working on the same paper,
 	//without affecting the paper
@@ -54,7 +58,7 @@ public class layout  extends SwingWorker<paper,Void>{
 		this.baseBuffer=base_buffer;
 		this.p=p;
 		this.checkminor=check_minor;
-		
+		outputLog="starting"+System.lineSeparator()+"ok";
 		addLeafNodes();
 		size= this.leafNodes.size();
 		isFixedRatio=p.isFixedRatio;
@@ -72,10 +76,10 @@ public class layout  extends SwingWorker<paper,Void>{
 			tree[i]=new Generation();
 		}
 		minor= new ArrayList<skeleton>();
-		System.out.println(leafNodes);
+		outputLog+=leafNodes+System.lineSeparator();
 		for(int i=0;i<leafNodes.size();i++) {
 			if(paired[i]!=null) {
-				System.out.println(paired[i].toString()+": "+leafNodes.get(i).toString());	
+				outputLog+=paired[i].toString()+": "+leafNodes.get(i).toString()+System.lineSeparator();	
 			}
 
 		}
@@ -129,21 +133,27 @@ public class layout  extends SwingWorker<paper,Void>{
 	 * subject to the constraints given by the paper.
 	 */
 	private void optimizeDF(int index2, skeleton parent) {	
+		if(parent.size>globalSize) {
+			System.out.println("good idea");
+		}
 		Generation newGen= makeNewGen(parent,index2);
 		sortNewGen(newGen);
+	
+		
 		if(newGen.size()>=1) {
 			checked+=newGen.size();
-			System.out.println(checked);
 			skeleton myBest= newGen.get(0);
-			//System.out.println("updating best"+index2+": "+myBest.getSize()+",>" +myBest.score+", "+myBest.size()+". "+leafNodes.size());
 			index2++;
 			if(index2==size) {
+				
 				int mySize=myBest.getSize();
 				
 				//System.out.println("checking best"+index2+","+newGen.size());
 				if(mySize<globalSize) {
-					System.out.println("updating best"+index2+": "+myBest.getSize()+",>" +myBest.score+", "+myBest.size()+". "+leafNodes.size());
-					System.out.println("checked "+checked+"nodes");
+					System.out.println("better");
+					outputLog+="updating best"+index2+": "+myBest.getSize()+",>" +myBest.score+", "+myBest.size()+". "+leafNodes.size()+System.lineSeparator();
+					outputLog+="checked "+checked+"nodes"+System.lineSeparator();
+					outputLog+=newGen.get(0)+System.lineSeparator();
 					globalBest=myBest;
 					globalSize=myBest.getSize();
 					globalScore=myBest.score;
@@ -157,17 +167,26 @@ public class layout  extends SwingWorker<paper,Void>{
 				for(skeleton design:newGen) {
 					int designSize=design.getSize();
 					int designScore=design.score;
-					if(designSize<=globalSize&&((designScore)<globalScore)) {
+					if(designSize<globalSize&&designScore<globalScore) {
+						for(int i=0;i<index2;i++) {
+							outputLog+="	";
+						}
+							outputLog+="<"+index2+">"+design+"ch"+checked+System.lineSeparator();
 						optimizeDF(index2,design);
-					}else {
 						
-							break;
+						//}
+					}else {
+						break;
 						}
 						
 					design.removeAll(design);
 				}
 				newGen.removeAll(newGen);
+			}else{
+				outputLog+="checked too many"+System.lineSeparator();
 			}}
+		}else {
+			outputLog+="dead end"+System.lineSeparator();
 		}
 		
 	}
@@ -257,53 +276,7 @@ public class layout  extends SwingWorker<paper,Void>{
 		
 			x++;
 		}
-		//System.out.println("next"+index2);
-		/*for(node m:design) {
-			int radius= this.distances.get(m.ID).get(leafNodes.get(index2).ID);
-			for(int i=radius+baseBuffer;i>=-radius-baseBuffer;i--) {
-				for(int j=radius+baseBuffer;j>=-radius-baseBuffer;j--) {
-					if(Math.abs(i)>=radius||Math.abs(j)>=radius) {
-						if(index2!=1||(i<=0&&j>=0)) {
-							node n= new node(leafNodes.get(index2));
-							n.setX(i+m.getX());
-							n.setY(j+m.getY());
-							if(Math.abs(n.getX())<=globalSize&&Math.abs(n.getY())<=globalSize){
 
-
-								if(!design.overlaps(distances.get(n.ID), n)) {
-									skeleton newDesign=new skeleton(isFixedRatio, ratioX_Y);
-									for(node old:design) {
-										newDesign.add(new node(old));
-									}
-									for( node old:design.paired) {
-										newDesign.addPaired(new node(old));
-									}
-									newDesign.score=design.score+Math.abs(n.getX())+Math.abs(n.getY());
-									if((newDesign.score)<globalScore) {
-									newDesign.add(n);
-									
-									if(paired[index2]!=null) {
-										node pair= new node( paired[index2]);
-										pair.setX(-1*n.getX());
-										pair.setY(n.getY());
-										if(!newDesign.overlaps(distances.get(pair.ID), pair)) {
-											newDesign.score+=Math.abs(pair.getX())+Math.abs(pair.getY());
-											newDesign.addPaired(pair);
-											if((newDesign.score*size/index2)<globalScore) {
-												newDesign.add(n);
-												newGen.add(newDesign);
-												}
-										}
-									}else {
-										newGen.add(newDesign);
-									}}
-								}
-							}
-						}
-					}
-				}
-			}
-		}*/
 		return newGen;
 	}
 
@@ -313,18 +286,29 @@ public class layout  extends SwingWorker<paper,Void>{
 		//it doesn't matter where it goes, since all the locations are relative
 		
 		this.checked=0;
- 
+		
 		
 
 		this.optimizeDF(1, generateFirst());
 		if(checkminor) {
 			checkMinorImprovements();
 		}
+		System.out.println(globalBest);
 		for(node n:globalBest) {
 			if(globalBest.overlaps(distances.get(n.ID), n)) {
-				System.out.println("panic");
+				outputLog+="panic"+System.lineSeparator();
 			}
 		}
+		try {
+			outputLog+="ok, finished optimazation";
+		      FileWriter myWriter = new FileWriter("outputLog.txt");
+		      myWriter.write(outputLog);
+		      myWriter.close();
+		      System.out.println("Successfully wrote to the file.");
+		    } catch (IOException e) {
+		      System.out.println("An error occurred.");
+		      e.printStackTrace();
+		    }
 
 	}
 	private void checkMinorImprovements() {
@@ -340,11 +324,10 @@ public class layout  extends SwingWorker<paper,Void>{
 	//we basically have to do the opposite of the constructor function
 	//this also lets us compare two papers together
 	//this could give us more insight as to which is better
-	public paper getPaper(paper p) {
+	public paper getPaper(paper oldp) {
 
-		// we don't really care about designs bigger than the smallest, only equal.
+		// we don't really care about designs bigger than the smallest.
 		skeleton top=globalBest;
-		paper oldp= new paper(p);
 		//we will set the nodes to the locations found in optimization
 		for(node n:oldp.nodes) {
 			if(oldp.isLeaf(n)) {
@@ -361,12 +344,10 @@ public class layout  extends SwingWorker<paper,Void>{
 						n.setY(M.getY());}
 				}}
 		}
-		oldp.selected= oldp.nodes.get(0);
-		oldp.shrink();
+		//oldp.setSelectedNode(oldp.nodes.get(0));
+		//oldp.shrink();
 		oldp.refreshNodes();
 		oldp.shrink();
-
-
 		//now we sort the papers, and pick the best one
 
 		return oldp;
@@ -378,10 +359,7 @@ public class layout  extends SwingWorker<paper,Void>{
 		n.setX(0);
 		design.add(n);
 		return design;
-
 	}
-
-
 
 	//this lets the optimization run in the background.
 	//for big designs, it can take a few minutes.

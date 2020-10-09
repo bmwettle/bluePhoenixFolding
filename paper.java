@@ -28,6 +28,7 @@ public class paper implements Serializable , Comparable<paper>{
 	ArrayList<node> settled;
 	ArrayList<node> unSettled;
 	ArrayList<Condition> conditions;
+	ArrayList<node> mirroredNodes;
 	ArrayList<node>edgeNodes;
 	Creases Unused;
 
@@ -54,11 +55,6 @@ public class paper implements Serializable , Comparable<paper>{
 			if(isLeaf(n)) {
 			
 			}else {
-				for(node m :this.connections.get(n)) {
-					if(!settled.contains(m)) {
-						refreshNode(m);
-					}
-				}
 				int xpos=0;
 				int ypos=0;
 				int count=0;
@@ -70,8 +66,8 @@ public class paper implements Serializable , Comparable<paper>{
 					}
 				}
 				if(count!=0) {
-					n.setX((int)xpos/count);
-					n.setY((int)ypos/count);
+					n.setX((int)(xpos/count));
+					n.setY((int)(ypos/count));
 				}
 
 			}
@@ -102,8 +98,8 @@ public class paper implements Serializable , Comparable<paper>{
 		corners.add(new Point(width*scale,0));
 		corners.add(new Point(width*scale,height*scale));
 		
-		Unused= new Creases(scale,new Area(new Rectangle2D.Double(0,0,width*scale,height*scale)),corners);
-
+		
+		Area empty=new Area(new Rectangle2D.Double(0,0,width*scale,height*scale));
 		settled= new ArrayList<node>();
 
 		node start= getFirstLeaf();
@@ -111,12 +107,14 @@ public class paper implements Serializable , Comparable<paper>{
 		largeAreas= new HashMap<node,Area>();
 		getArea(start,scale);
 		for(node n:nodes) {
-			n.makeCreases(scale, trueAreas.get(n));
+			n.makeCreases(scale, trueAreas.get(n),largeAreas.get(n));
 			if(n.size!=0) {
-				Unused.subtract(n.c);
+				empty.subtract(n.c);
 			}
 
-		}
+		} 
+		int[][] edges= new int[][] {new int[] {0,width*scale},new int[] {0,height*scale}};
+		Unused= new Creases(scale,empty,edges);
 		Unused.makeCreases();
 		settled= new ArrayList<node>();
 	}
@@ -206,10 +204,14 @@ public class paper implements Serializable , Comparable<paper>{
 		this.ratioX_Y=p.ratioX_Y;
 		this.settled=new ArrayList<node>();
 		this.unSettled= new ArrayList<node>();
+		mirroredNodes= new ArrayList<node>();
 		for(node n: p.nodes) {
 			node m= new node(n);
 			this.nodes.add(m);
 			this.unSettled.add(m);
+			if(n.isMirrored) {
+				mirroredNodes.add(m);
+			}
 		}
 		if(p.selected!=null) {
 			this.selected= this.nodes.get(p.nodes.indexOf(p.selected));
@@ -220,6 +222,8 @@ public class paper implements Serializable , Comparable<paper>{
 				edgeNodes.add(this.nodes.get(p.nodes.indexOf(e)));
 			}
 		}
+
+		
 		conditions = new ArrayList<Condition>();
 		if(p.conditions!=null) {
 			for(Condition con:p.conditions) {
@@ -299,6 +303,7 @@ public class paper implements Serializable , Comparable<paper>{
 		nodes= new ArrayList<node>();
 		conditions = new ArrayList<Condition>();
 		edgeNodes= new ArrayList<node>();
+		mirroredNodes= new ArrayList<node>();
 	}
 	public void moveSelect(int x, int y) {
 		selected.setX(x);

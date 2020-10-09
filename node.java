@@ -23,6 +23,7 @@ int size;
 UID ID;;
 boolean isFixedToEdge;
 boolean isFixedToSymmetryLine;
+boolean isMirrored;
 
 // these are set during crease generation.
 Creases c;
@@ -40,6 +41,7 @@ public node(UID id) {
 	ID=id;
 	isFixedToEdge=false;
 	isFixedToSymmetryLine=false;
+	isMirrored=true;
 }
 public node(node n) {
 	super();
@@ -49,6 +51,7 @@ public node(node n) {
 	this.ID=n.ID;
 	this.isFixedToEdge=n.isFixedToEdge;
 	this.isFixedToSymmetryLine=n.isFixedToSymmetryLine;
+	
 }
 
 public node(int X,int Y, int Size, UID id) {
@@ -56,6 +59,7 @@ public node(int X,int Y, int Size, UID id) {
 	y=Y;
 	size=Size;
 	this.ID=id;
+	isMirrored=true;
 }
 public int getX() {
 	return x;
@@ -83,9 +87,9 @@ public int getSize() {
 public void setSize(int size) {
 	this.size = size;
 }
-public void makeCreases(int scale, Area a){
+public void makeCreases(int scale, Area a,Area b){
 	if(size!=0) {
-	c= new Creases(scale,a);
+	c= new Creases(scale,a,b);
 	c.makeCreases();
 	}
 }
