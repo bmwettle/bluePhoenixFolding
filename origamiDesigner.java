@@ -14,9 +14,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.rmi.server.UID;
 import java.util.ArrayList;
+import java.util.Collections;
 
-import javax.swing.ButtonGroup;
-import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -30,7 +29,8 @@ import javax.swing.event.ChangeListener;
 public class origamiDesigner extends JFrame implements ActionListener,ChangeListener, MouseListener, KeyListener{
 
 	/**
-	 * 
+	 * this class takes input from the user to do any actions. 
+	 * It controls the Oeditor, planner, paper, and layout
 	 */
 	private static final long serialVersionUID = 1L;
 	private static ArrayList<origamiDesigner> allDesignerWindows = new ArrayList<>();
@@ -38,8 +38,6 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 	public static final int STARTING_HEIGHT=400;
 	public static final int STARTING_PAPER_WIDTH=16;
 	public static final int STARTING_PAPER_HEIGHT=16;
-
-
 	String mode;
 	JMenuBar menuBar;
 	JMenu fileMenu; 
@@ -50,7 +48,6 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 	CreasePlanner myCreases;
 	JFrame showCreases;
 	OEditor myEdit;
-
 	layout lay;
 	JMenu DisplayMenu;
 	JMenu openEditorsMenu;
@@ -66,20 +63,19 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 	private void makeEditor() {
 		openEditorsMenu= new JMenu("Edit");
 		menuBar.add(openEditorsMenu);
-	
 		JMenuItem optimize = new JMenuItem("optimize");
 		optimize.addActionListener(new ActionListener() { 
 			public void actionPerformed(ActionEvent e) { 
-				
 				optimizeAction();
 				drawPlanner();
 			} 
 		} );
 		openEditorsMenu.add(optimize);
-		
-
 		makeUndoActions();
 	}
+	/***
+	 * makes sure each of the windows closes properly
+	 */
 	private void setUpCloseing() {
 		myEdit.setAlwaysOnTop(true);
 		addWindowListener(new WindowAdapter() { // MC
@@ -110,6 +106,9 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 			}
 		});
 	}
+	/***
+	 * sets up the planner, and adds listeners
+	 */
 	private void setUpPlanner() {
 		planner=new Oplanner(myPaper);
 		planner.setDoubleBuffered(true);
@@ -129,13 +128,16 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 		createMenu();
 		menuBar.setDoubleBuffered(true);
 		setJMenuBar(menuBar);
-		this.addKeyListener(this);
+		addKeyListener(this);
 	}
 	public void createMenu() {
 		menuBar= new JMenuBar();
 		createFileMenu();
 		createDisplayMenu();
 	}
+	/***
+	 * creates the save, open, print and new menu items
+	 */
 	private void createFileMenu() {
 		fileMenu= new JMenu("File");
 		menuBar.add(fileMenu);
@@ -168,11 +170,14 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 		} );
 		fileMenu.add(print);
 	}
+	/***
+	 * makes a new Oeditor object,
+	 * and adds functionality to it
+	 */
 	private void makeEdit() {
 		disposeEditors();
 		myEdit=new OEditor(myPaper);
 		myEdit.setAlwaysOnTop(true);
-		System.out.println(myEdit.Mode.getSelection());
 		myEdit.nodeFixed.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent arg0) {
@@ -193,7 +198,6 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 				mouseClicked(null);				
 			}});
 		myEdit.Width.addChangeListener(new ChangeListener() {
-
 			@Override
 			public void stateChanged(ChangeEvent arg0) {
 				mouseClicked(null);				
@@ -241,7 +245,6 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 				mouseClicked(null);
 			} 
 		} );
-		
 		DisplayMenu.add(ShowEditor);
 		JMenuItem reshapePaper= new JMenuItem("reshape paper");
 		reshapePaper.addActionListener(new ActionListener(){
@@ -258,8 +261,7 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 	private void makeUndoActions() {
 		JMenuItem undo = new JMenuItem("undo");
 		undo.addActionListener(new ActionListener() { 
-			public void actionPerformed(ActionEvent e) { 	
-				
+			public void actionPerformed(ActionEvent e) { 		
 				undoAction();
 				drawPlanner();
 			} 
@@ -267,7 +269,6 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 		JMenuItem redo = new JMenuItem("redo");
 		redo.addActionListener(new ActionListener() { 
 			public void actionPerformed(ActionEvent e) { 
-				
 				redoAction();
 				drawPlanner();
 			} 
@@ -275,6 +276,9 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 		openEditorsMenu.add(undo);
 		openEditorsMenu.add(redo);
 	}
+	/***
+	 * creates a list of origmai designers, so multiple windows can be open at once
+	 */
 	public static void main(String[] args){
 		origamiDesigner design = new origamiDesigner();
 		origamiDesigner.allDesignerWindows.add(design); // MC
@@ -283,45 +287,46 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 		    } catch (Exception e) { System.err.println("Error: " + e.getMessage()); }
 		design.setVisible(true);
 	}
+	/***
+	 * undoes the last action
+	 */
 	private void undoAction() {
 		int last=(undoPapers.size()-1);
 		if(last>=0) {
 			redoPapers.add(myPaper);
 			myPaper=undoPapers.get(last);
-			this.planner.p=myPaper;
+			planner.p=myPaper;
 			undoPapers.remove(last);
+			this.myEdit.redraw(myPaper);
+
+			this.drawPlanner();
 		}
 	}
+	/***
+	 * creates a new layout, and optimizes the paper
+	 */
 	private void optimizeAction() {
-		if(myEdit.optimizeToRatio.isSelected()) {
-			myPaper.ratioX_Y=((double)myPaper.width)/((double)myPaper.height);
-			System.out.println(myPaper.ratioX_Y);
-		}else {
-			myPaper.ratioX_Y=1;
-		}
+		//Collections.shuffle(myPaper.nodes);
+
+		undoPapers.add(new paper(myPaper));
 		setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 		int buffer=0;
-		lay= new layout(myPaper,buffer,100000*myPaper.nodes.size());
-		long start_time=System.currentTimeMillis();
-		System.out.println(System.currentTimeMillis()/1000);
+		lay= new layout(myPaper,buffer,Integer.MAX_VALUE);
 		try {
 			lay.doInBackground();
+			myPaper=lay.getPaper(myPaper);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		System.out.println(System.currentTimeMillis()/1000);
-		long end_time=System.currentTimeMillis();
-		long time=end_time-start_time;
-		int seconds= (int) (time/1000)%60;
-		int min=(int) (time/(60*1000));
-		System.out.println("optimized in: " +min+ " minutes and "+seconds+" seconds");
-		myPaper=lay.getPaper(myPaper);
 		makeEdit();
 		myEdit.escapeMode.setSelected(true);
 		setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 		drawPlanner();
+		System.out.println("overlaps: "+myPaper.hasOverlap());
 	}
+	/***
+	 * saves the paper object as a file
+	 */
 	private void saveFile() {
 		disposeEditors();
 		JFileChooser fc = new JFileChooser();
@@ -336,7 +341,6 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 				fileOut.close();
 				redoPapers= new ArrayList<paper>();
 				undoPapers= new ArrayList<paper>();
-				System.out.println("saved file");
 			} catch (Exception e) {
 				System.err.println("Could not open the file.");
 				e.printStackTrace();
@@ -345,8 +349,11 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 	}
 	private void printFile() {
 		drawCreases();
-		this.myCreases.printCreases(myPaper);
+		myCreases.printCreases(myPaper);
 	}
+	/***
+	 * opens a new window and displays the crease pattern on it
+	 */
 	private void drawCreases() {
 		if(showCreases!=null) {
 			showCreases.dispose();
@@ -354,8 +361,9 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 			myCreases= new CreasePlanner(myPaper);
 			myCreases.hasChanged=true;
 			showCreases= new JFrame();
-			showCreases.setLocation(0,300);
-			showCreases.setSize(planner.squareSize*myPaper.width*2, planner.squareSize*myPaper.height);
+			showCreases.setLocation(0,0);
+			showCreases.setExtendedState(JFrame.MAXIMIZED_BOTH); 
+			showCreases.setUndecorated(false);
 			showCreases.add(myCreases);
 			showCreases.setVisible(true);
 			myCreases.setVisible(true);
@@ -363,6 +371,9 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 			myCreases.repaint();
 		}
 	}
+	/***
+	 * opens a file as a paper object
+	 */
 	private void openFile() {
 		disposeEditors();
 		JFileChooser fc = new JFileChooser();
@@ -378,18 +389,25 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 				e.printStackTrace();
 			}
 		}
-		this.makeEdit();
+		makeEdit();
 		planner.p=myPaper;
 		planner.hasChanged=true;
 		drawPlanner();
 	}
+	/***
+	 * makes a new origami designer
+	 */
 	private void newFile() {
 		origamiDesigner design = new origamiDesigner();
 		origamiDesigner.allDesignerWindows.add(design);
 		design.setVisible(true);
 		planner.hasChanged=true;
 	}
+	/***
+	 * This finds the largest value for the size of a square with the current window size.
+	 */
 	private int getSquareSize() {
+		//size and proportion of the window can change, and all parts of the paper should be visible
 		return Math.min(planner.getWidth()/myPaper.width, planner.getHeight()/myPaper.height);
 	}
 	public void stateChanged(ChangeEvent e) {}
@@ -406,17 +424,20 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 			} catch (Exception e) { }
 			makeSelectedAction( x, y);
 		}
-		if(myPaper.selected!=null) {
+		if(myPaper.selected!=null&&myEdit!=null) {
 			myPaper.selected.size=(int) Integer.parseInt(myEdit.nodeSize.getValue().toString());;
-
 		}
 		myPaper.width=(int) Integer.parseInt(myEdit.Width.getValue().toString());
 		myPaper.height=(int)Integer.parseInt(myEdit.Height.getValue().toString());;
-		myPaper.ratioX_Y=myPaper.width/myPaper.height;
+		myPaper.ratioX_Y=(double)myPaper.width/(double)myPaper.height;
 		drawPlanner();
 	}
+	/***
+	 * Handles the actions for the different modes 
+	 */
 	private void makeSelectedAction(int x, int y) {
 		if(myEdit!=null) {
+			
 		if(myEdit.leafMode.isSelected()) {
 			addLeaf(x,y);
 			planner.hasChanged=true;
@@ -440,6 +461,9 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 		}
 		}
 	}
+	/***
+	 * deletes a node from the paper, and selects an new node is necessary
+	 */
 	private void deleteNode(int x, int y) {
 		node selected= myPaper.getNodeAt(x,y);
 		if(selected==(null)) {
@@ -449,6 +473,9 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 			myEdit.nodeSize.setValue(myPaper.selected.size);
 		}
 	}
+	/***
+	 * selects the node at the specified location, if there is one.
+	 */
 	private void selectNode(int x, int y) {
 		node selected= myPaper.getNodeAt(x,y);
 		if(selected==(null)) {	
@@ -458,27 +485,35 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 			myEdit.nodeMirrored.setSelected(selected.isMirrored);
 		}
 	}
+	/***
+	 * moves the selected node to the specified location
+	 */
 	private void moveNode(int x, int y) {
 		undoPapers.add(new paper(myPaper));
 		myPaper.moveSelect(x,y);
 	}
+	/***
+	 * Adds a river node to the paper, at the specified location
+	 */
 	private void addRiver(int x, int y) {
 		undoPapers.add(new paper(myPaper));
 		if(myPaper.selected.size!=0) {
+			// if the selected node is size zero, adding a second size 0 node is not necessary 
 		node newNode1= new node(x, y-1, 0,new UID());
 		myPaper.addNode(newNode1);
-
 		myPaper.setSelectedNode(newNode1);
 		}
 		node newNode2= new node(x, y, 1,new UID());
 		node newNode3= new node(x, y+1, 0,new UID());
-		
 		myPaper.addNode(newNode2);
 		myPaper.setSelectedNode(newNode2);
 		myPaper.addNode(newNode3);
 		myPaper.setSelectedNode(newNode3);
 		myEdit.nodeSize.setValue(0);
 	}
+	/***
+	 * Adds a leaf node at the specified location to the paper
+	 */
 	private void addLeaf(int x, int y) {
 		undoPapers.add(new paper(myPaper));
 		node newNode= new node(x, y,1, new UID());
@@ -489,16 +524,25 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 	public  void actionPerformed(ActionEvent arg0) {
 		mouseClicked(null);
 	}
-
+	/***
+	 * redoes the last undo to the paper
+	 */
 	private void redoAction() {
 		int last=(redoPapers.size()-1);
 		if(last>=0) {
 			undoPapers.add(myPaper);
 			myPaper=redoPapers.get(last);
 			redoPapers.remove(last);
-			this.planner.p=myPaper;
+			planner.p=myPaper;
+
+			this.myEdit.redraw(myPaper);
+
+			this.drawPlanner();
 		}
 	}
+	/***
+	 * updates and redraws the planner
+	 */
 	public void drawPlanner() {
 		planner.repaint();	}
 	@Override
@@ -510,16 +554,14 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 	@Override
 	public void mouseReleased(MouseEvent e) {}
 	@Override
-	public void keyPressed(KeyEvent arg0) {
-		
-		
-	}
+	public void keyPressed(KeyEvent arg0) {}
 	@Override
 	public void keyReleased(KeyEvent arg0) {
-		// TODO Auto-generated method stub
-
 		mouseClicked(null);
 	}
+	/***
+	 * This lets the user change modes by typing
+	 */
 	@Override
 	public void keyTyped(KeyEvent arg0) {
 		char key = arg0.getKeyChar();

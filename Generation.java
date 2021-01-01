@@ -1,5 +1,6 @@
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class Generation extends ArrayList<skeleton>{
 
@@ -10,6 +11,16 @@ public class Generation extends ArrayList<skeleton>{
 
 	public Generation() {
 		super();
-		// TODO Auto-generated constructor stub
+	}
+	@Override
+	
+	public boolean add(skeleton x) {
+		 int pos = Collections.binarySearch(this, x);
+		    if (pos < 0) {
+		       add(-pos-1, x);
+		       return true;
+		    }
+		    return false;
 	}
 }
+

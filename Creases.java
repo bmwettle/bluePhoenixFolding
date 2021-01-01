@@ -68,7 +68,6 @@ public class Creases extends Area implements Serializable {
 			}
 		}
 		this.corners=baseCorners;
-		System.out.println(startCorners.size());
 	}
 	private void makeBisectors() {
 		

@@ -6,7 +6,6 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JRadioButton;
 import javax.swing.JSpinner;
-import javax.swing.JRadioButton;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -35,8 +34,8 @@ public class OEditor extends JFrame{
 	JSpinner Width;
 	JSpinner Height;
 	JCheckBox isPaperMirrored;
-	JRadioButton optimizeToSquare;
-	JRadioButton optimizeToRatio;
+	//JRadioButton optimizeToSquare;
+	//JRadioButton optimizeToRatio;
 	ButtonGroup optimizeParams;
 	public OEditor(paper myPaper) {
 		super();
@@ -61,7 +60,6 @@ public class OEditor extends JFrame{
 
 			@Override
 			public void stateChanged(ChangeEvent arg0) {
-				System.out.println("ok now");
 				boolean isF= nodeFixed.isSelected();
 				if(myPaper.selected!=null) {
 					myPaper.selected.isFixedToSymmetryLine=isF;
@@ -73,7 +71,6 @@ public class OEditor extends JFrame{
 
 			@Override
 			public void stateChanged(ChangeEvent arg0) {
-				System.out.println("ok mow");
 				boolean isM= isPaperMirrored.isSelected();
 				nodeMirrored.setEnabled(isM);
 				nodeFixed.setEnabled(isM);
@@ -84,14 +81,12 @@ public class OEditor extends JFrame{
 
 			@Override
 			public void stateChanged(ChangeEvent arg0) {
-				System.out.println("ok");
 				
 			}});
 		Height.addChangeListener(new ChangeListener() {
 
 			@Override
 			public void stateChanged(ChangeEvent arg0) {
-				System.out.println("ok");
 				
 			}});
 		nodeSize.addChangeListener(new ChangeListener() {
@@ -100,14 +95,23 @@ public class OEditor extends JFrame{
 			public void stateChanged(ChangeEvent arg0) {
 				if(myPaper.selected.isLeaf||myPaper.selected.size!=0) {
 					myPaper.selected.size=(int)nodeSize.getValue();
-					
-					System.out.println("changes size");
 				}
 				nodeSize.setValue(myPaper.selected.size);
 			}});
 		setVisible(true);
+/*this.optimizeToRatio.addChangeListener(new ChangeListener() {
 
-		
+	@Override
+	public void stateChanged(ChangeEvent arg0) {
+		if(optimizeToRatio.isSelected()) {
+			myPaper.ratioX_Y=((double)myPaper.width)/((double)myPaper.height);
+		}else {
+			myPaper.ratioX_Y=1;
+		}
+	}
+	
+});
+		*/
 	}
 	private void createPaperGui() {
 		paper= new JLabel("Paper:");
@@ -130,7 +134,7 @@ public class OEditor extends JFrame{
 		isPaperMirrored.setSelected(myPaper.hasSymmetry);
 		add(isPaperMirrored);
 		add(new JLabel("`"));
-		optimizeToSquare= new JRadioButton("1:1");
+	/*	optimizeToSquare= new JRadioButton("1:1");
 		optimizeToRatio= new JRadioButton("keep ratio");
 		add(new JLabel("optimized ratio"));
 		add(optimizeToSquare);
@@ -139,6 +143,15 @@ public class OEditor extends JFrame{
 		ratio.add(optimizeToRatio);
 		ratio.add(optimizeToSquare);
 		optimizeToSquare.setSelected(!myPaper.isFixedRatio);
+		*/
+	}
+	public void redraw(paper newP) {
+		this.myPaper=newP;
+		this.isPaperMirrored.setSelected(myPaper.hasSymmetry);
+		//this.optimizeToRatio.setSelected(myPaper.isFixedRatio);
+		int h=myPaper.height;
+		this.Width.setValue(myPaper.width);
+		this.Height.setValue(h);
 	}
 	private void createNodeGui() {
 		Node = new JLabel("Node:");

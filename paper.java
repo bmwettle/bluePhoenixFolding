@@ -7,10 +7,11 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-public class paper implements Serializable , Comparable<paper>{
+public class paper implements Serializable {
 
 	/**
-	 * 
+	 * This class stores the bulk of the design. Nodes, connections, conditions, are stored here. 
+	 * This class also initiates crease generation, and calculating minimum distances.
 	 */
 	private static final long serialVersionUID = -6420912694063224236L;
 	int width;
@@ -19,7 +20,7 @@ public class paper implements Serializable , Comparable<paper>{
 	node selected;
 	boolean isFixedRatio;
 
-	double ratioX_Y;
+	double ratioX_Y=1;
 	boolean hasSymmetry;
 	public HashMap<node, ArrayList<node>> connections;
 	public ArrayList<node> nodes;
@@ -30,16 +31,7 @@ public class paper implements Serializable , Comparable<paper>{
 	Creases Unused;
 	HashMap<node,Area> largeAreas;
 	HashMap<node,Area[]> trueAreas;
-	public int getScore() {
-		int score=0;
-		for(node n:nodes) {
-			for(node m:this.nodes) {
-				int[] overlap= this.getOverlap(n, m);
-				score-=Math.min(overlap[0],overlap[1]);
-			}
-		}
-		return score;
-	}
+
 	public void refreshNodes() {
 		this.settled= new ArrayList<node>();
 		ArrayList<node> next= new ArrayList<node>();
@@ -48,7 +40,6 @@ public class paper implements Serializable , Comparable<paper>{
 				settled.add(n);
 				node m=this.connections.get(n).get(0);
 				if(!next.contains(m)) {
-
 					next.add(m);
 				}
 				
@@ -68,10 +59,10 @@ public class paper implements Serializable , Comparable<paper>{
 			next=next2;
 		}
 	}
+
 	private void refreshNode(node n) {
 		settled.add(n);
 			if(n.isLeaf) {
-				
 			}else {
 				int xpos=0;
 				int ypos=0;
@@ -88,7 +79,7 @@ public class paper implements Serializable , Comparable<paper>{
 						}
 					}
 				}
-				if(count!=0) {
+				if(count>0) {
 					n.setX((int)(xpos/count));
 					n.setY((int)(ypos/count));
 					
@@ -102,14 +93,7 @@ public class paper implements Serializable , Comparable<paper>{
 			}
 			
 	}
-	public int compareTo(paper b) {
-		int size1=this.getSize();
-		int size2=b.getSize();
-		if(size1==size2) {
-			return this.getScore()-b.getScore();
-		}
-		return size1-size2;
-	}
+
 	public int getSize() {
 		if(this.isFixedRatio) {
 			return Math.max(width, (int)( height*this.ratioX_Y));
@@ -132,9 +116,7 @@ public class paper implements Serializable , Comparable<paper>{
 		trueAreas= new HashMap<node,Area[]>();
 		largeAreas= new HashMap<node,Area>();
 
-		System.out.print("ok");
 		getArea(start,scale);
-		System.out.print("ok");
 		int[][] edges= new int[][] {new int[] {0,(int) ((width)*scale)},new int[] {0,(int) ((height)*scale)}};
 		
 		for(node n:nodes) {
@@ -216,7 +198,6 @@ public class paper implements Serializable , Comparable<paper>{
 		for(node m:this.connections.get(n)) {
 			if(!settled.contains(m)) {
 				getArea(m,scale);
-				System.out.println("dont delete me");
 			}	
 		}
 		}else {
@@ -455,7 +436,6 @@ public class paper implements Serializable , Comparable<paper>{
 	
 public void addMirroedNode(node toMirror) {
 	toMirror.isMirrored=true;
-	System.out.println("ok");
 }
 
 	public int[] getOverlap(node one, node two) {
@@ -513,7 +493,6 @@ public void addMirroedNode(node toMirror) {
 	public boolean hasOverlap( node N1) {
 		for(node N2:nodes) {
 			if(overlaps(N1,N2)) {
-				System.out.println("overlap at:"+N1.ID+", "+N2.ID);
 				return true;
 			}
 		}

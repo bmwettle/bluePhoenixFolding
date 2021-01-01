@@ -92,7 +92,6 @@ public void makeCreases(double scale, Area[] a, int[][] ignore){
 	if(size!=0) {
 		c=new Creases[2*size];
 		for( int i=0;i<size*2;i++) {
-			System.out.println(a+"' "+size);
 			c[i]= new Creases(scale,a[i],ignore);
 			c[i].makeCreases();
 		}

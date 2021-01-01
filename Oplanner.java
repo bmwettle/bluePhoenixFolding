@@ -1,5 +1,6 @@
 
 import java.awt.BasicStroke;
+import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.geom.Ellipse2D;
@@ -36,19 +37,16 @@ public void paintComponent(Graphics g) {
 	this.drawPlan(p,(Graphics2D) g);
 }
 	//draws a grid, shifted to the left by shift
-	public void drawGrid(int shift,Graphics2D g) {
-		if(shift==0) {
-			System.out.println("grid");
+	public void drawGrid(Graphics2D g) {
+		
 			g.setStroke(LINE_STROKE);
-		}else {
-			g.setStroke(CONDITION_STROKE);
-		}
+		
 		for (int i=0;i<=height;i++){
-			g.drawLine(0, i*squareSize-shift, width*squareSize, i*squareSize-shift);
+			g.drawLine(0, i*squareSize, width*squareSize, i*squareSize);
 
 		}
 		for (int i=0;i<=width;i++){
-			g.drawLine( i*squareSize-shift,0,i*squareSize-shift, height*squareSize);
+			g.drawLine( i*squareSize,0,i*squareSize, height*squareSize);
 		}
 	}
 	/**draws the plan view of the paper.
@@ -59,7 +57,7 @@ public void paintComponent(Graphics g) {
 		this.p=myP;
 		setUp(myP);
 		g.clearRect(0, 0, this.getWidth(), this.getHeight());
-		drawGrid(0,g);
+		drawGrid(g);
 		drawSymmetry(g);
 		for(node n:myP.nodes) {
 			drawNode(n,g);
@@ -74,12 +72,8 @@ public void paintComponent(Graphics g) {
 		if(p.hasSymmetry) {
 			g.setColor(SYMMERTY_LINE_COLOR);
 			g.setStroke(SYMMERTY_LINE_STROKE);
-			
-				g.drawLine(0, 0, 0,p.height*squareSize);
-			
+		 g.drawLine(0, 0, 0,p.height*squareSize);
 		}
-
-
 	}
 
 	private void drawConnections(node n,Graphics2D g) {
@@ -102,19 +96,20 @@ public void paintComponent(Graphics g) {
 		if(p.isSelcted(n)) {
 			g.setColor(SELECTED_NODE_COLOR);
 		}
-		
 		if(size==0) {
 			g.fill(new Ellipse2D.Double(n.getX()*squareSize-smallSquareSize,n.getY()*squareSize-smallSquareSize,2*smallSquareSize,2*smallSquareSize));
 			
 		}else {
 			if(n.isLeaf) {
-			//g.drawChars(n.ID.toString().toCharArray(), 0, n.ID.toString().length(), n.getX()*squareSize, n.getY()*squareSize);
 			g.draw(new Rectangle2D.Double((n.getX()-size)*squareSize,(n.getY()-size)*squareSize,size*2*squareSize,size*2*squareSize));
-			g.fill(new Rectangle2D.Double(n.getX()*squareSize-size*smallSquareSize,n.getY()*squareSize-size*smallSquareSize,size*2*smallSquareSize,size*2*smallSquareSize));
+			//g.fill(new Rectangle2D.Double(n.getX()*squareSize-size*smallSquareSize,n.getY()*squareSize-size*smallSquareSize,size*2*smallSquareSize,size*2*smallSquareSize));
+			g.setColor(Color.black);
+			String index=""+p.nodes.indexOf(n);
+			g.drawChars(index.toCharArray(), 0, index.length(), n.getX()*squareSize, n.getY()*squareSize);
+			
 			}else {
 				g.draw(new Ellipse2D.Double((n.getX()-size)*squareSize,(n.getY()-size)*squareSize,size*2*squareSize,size*2*squareSize));
-				g.fill(new Ellipse2D.Double(n.getX()*squareSize-size*smallSquareSize,n.getY()*squareSize-size*smallSquareSize,size*2*smallSquareSize,size*2*smallSquareSize));
-				
+				g.fill(new Ellipse2D.Double(n.getX()*squareSize-size*smallSquareSize,n.getY()*squareSize-size*smallSquareSize,size*2*smallSquareSize,size*2*smallSquareSize));		
 			}
 		}	
 		
