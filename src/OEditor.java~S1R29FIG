@@ -1,0 +1,195 @@
+import java.awt.GridLayout;
+
+import javax.swing.ButtonGroup;
+import javax.swing.JCheckBox;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JRadioButton;
+import javax.swing.JSpinner;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+
+public class OEditor extends JFrame{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	paper myPaper;
+	JLabel Node;
+	ButtonGroup Mode;
+	JRadioButton leafMode;
+	JRadioButton riverMode;
+	JRadioButton selectMode;
+	JRadioButton deleteMode;
+	JRadioButton moveMode;
+	JRadioButton escapeMode;
+	JLabel nodeSizeLabel;
+	JSpinner nodeSize;
+	JRadioButton nodeMirrored;
+	JRadioButton nodeFixed;
+
+
+	JLabel paper;
+	JSpinner Width;
+	JSpinner Height;
+	JCheckBox isPaperMirrored;
+	JRadioButton optimizeToSquare;
+	JRadioButton optimizeToRatio;
+	ButtonGroup optimizeParams;
+	public OEditor(paper myPaper) {
+		super();
+		this.myPaper=myPaper;
+		setLocation(500,0);
+		setSize(300, 400);
+		setLayout(new GridLayout(12,2));
+		createNodeGui();
+		createPaperGui();
+		if(myPaper!=null) {
+			int w=myPaper.width;
+			int h= myPaper.height;
+			Height.setValue(h);
+			Width.setValue(w);
+			this.isPaperMirrored.setSelected(myPaper.hasSymmetry);
+			if(myPaper.selected!=null) {
+				nodeSize.setValue(myPaper.selected.size);
+				this.nodeFixed.setSelected(myPaper.selected.isFixedToSymmetryLine);
+			}
+		}
+		nodeFixed.addChangeListener(new ChangeListener() {
+
+			@Override
+			public void stateChanged(ChangeEvent arg0) {
+				boolean isF= nodeFixed.isSelected();
+				if(myPaper.selected!=null) {
+					myPaper.selected.isFixedToSymmetryLine=isF;
+					myPaper.selected.isMirrored=!isF;
+				}
+				
+			}});
+		isPaperMirrored.addChangeListener(new ChangeListener() {
+
+			@Override
+			public void stateChanged(ChangeEvent arg0) {
+				boolean isM= isPaperMirrored.isSelected();
+				nodeMirrored.setEnabled(isM);
+				nodeFixed.setEnabled(isM);
+				myPaper.hasSymmetry=isM;
+				
+			}});
+		Width.addChangeListener(new ChangeListener() {
+
+			@Override
+			public void stateChanged(ChangeEvent arg0) {
+				
+			}});
+		Height.addChangeListener(new ChangeListener() {
+
+			@Override
+			public void stateChanged(ChangeEvent arg0) {
+				
+			}});
+		nodeSize.addChangeListener(new ChangeListener() {
+
+			@Override
+			public void stateChanged(ChangeEvent arg0) {
+				if(myPaper.selected.isLeaf||myPaper.selected.size!=0) {
+					myPaper.selected.size=(int)nodeSize.getValue();
+				}
+				nodeSize.setValue(myPaper.selected.size);
+			}});
+		setVisible(true);
+this.optimizeToRatio.addChangeListener(new ChangeListener() {
+
+	@Override
+	public void stateChanged(ChangeEvent arg0) {
+		if(optimizeToRatio.isSelected()) {
+			myPaper.ratioX_Y=((double)myPaper.width)/((double)myPaper.height);
+		}else {
+			myPaper.ratioX_Y=1;
+		}
+	}
+	
+});
+		
+	}
+	private void createPaperGui() {
+		paper= new JLabel("Paper:");
+		add(paper);
+		JLabel Buffer= new JLabel("");
+		add(Buffer);
+		Width=new JSpinner();
+		Width.setModel(new SpinnerNumberModel(16, 1, Integer.MAX_VALUE, 1));
+		JLabel WidthLabel= new JLabel("Set Width:");
+		add(WidthLabel);
+		
+		add(Width);
+		Height=new JSpinner();
+		Height.setModel(new SpinnerNumberModel(16, 1, Integer.MAX_VALUE, 1));
+		
+		JLabel HeightLabel= new JLabel("Set Height:");
+		add(HeightLabel);
+		add(Height);
+		isPaperMirrored= new JCheckBox("mirror paper");
+		isPaperMirrored.setSelected(myPaper.hasSymmetry);
+		add(isPaperMirrored);
+		add(new JLabel("`"));
+		optimizeToSquare= new JRadioButton("1:1");
+		optimizeToRatio= new JRadioButton("keep ratio");
+		add(new JLabel("optimized ratio"));
+		add(optimizeToSquare);
+		add(optimizeToRatio);
+		ButtonGroup ratio= new ButtonGroup();
+		ratio.add(optimizeToRatio);
+		ratio.add(optimizeToSquare);
+		optimizeToSquare.setSelected(!myPaper.isFixedRatio);
+	}
+	public void redraw(paper newP) {
+		
+	}
+	private void createNodeGui() {
+		Node = new JLabel("Node:");
+		add(Node);
+		JLabel Buffer= new JLabel("");
+		add(Buffer);
+		Mode= new ButtonGroup();
+		leafMode= new JRadioButton("[l] add leaf node",!true);
+		riverMode= new JRadioButton("[r] add river node",!true);
+		selectMode= new JRadioButton("[s] select node",!true);
+		moveMode= new JRadioButton("[m] move node",false);
+		deleteMode= new JRadioButton("[d] delete node",false);
+
+		escapeMode= new JRadioButton("[e] escape",!false);
+		add(leafMode);
+		add(riverMode);
+		add(selectMode);
+
+		add(deleteMode);
+
+		add(moveMode);
+
+		add(escapeMode);
+		Mode.add(leafMode);
+		Mode.add(riverMode);
+		Mode.add(selectMode);
+		Mode.add(deleteMode);
+		Mode.add(moveMode);
+		Mode.add(escapeMode);
+		nodeSize=new JSpinner();
+		JLabel nodeSizeLabel= new JLabel("Set node size");
+		add(nodeSizeLabel);
+		nodeSize.setModel(new SpinnerNumberModel(1, 0, Integer.MAX_VALUE, 1));
+		
+		add(nodeSize);	
+		nodeFixed= new JRadioButton("fixed to x=0");
+		nodeMirrored= new JRadioButton("node mirrored");
+		ButtonGroup isFixed= new ButtonGroup();
+		isFixed.add(nodeFixed);
+		isFixed.add(nodeMirrored);
+		add(nodeFixed);
+		add(nodeMirrored);
+		nodeMirrored.setSelected(true);
+		nodeFixed.setEnabled(myPaper.hasSymmetry);
+		nodeMirrored.setEnabled(myPaper.hasSymmetry);
+	}
+}
