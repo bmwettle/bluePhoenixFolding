@@ -7,6 +7,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -17,10 +19,12 @@ import java.util.ArrayList;
 
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JProgressBar;
 import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -51,7 +55,8 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 	JMenu DisplayMenu;
 	JMenu openEditorsMenu;
 	JMenuItem Editor;
-	int squareSize;
+	double squareSize;
+	
 	public origamiDesigner() {
 		initalizeDesigner();
 		setUpPlanner();
@@ -307,7 +312,7 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 		//Collections.shuffle(myPaper.nodes);
 
 		undoPapers.add(new paper(myPaper));
-		setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+		//setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 		int buffer=0;
 		lay= new layout(myPaper,buffer,Integer.MAX_VALUE);
 		try {
@@ -404,9 +409,9 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 	/***
 	 * This finds the largest value for the size of a square with the current window size.
 	 */
-	private int getSquareSize() {
+	private double getSquareSize() {
 		//size and proportion of the window can change, and all parts of the paper should be visible
-		return Math.min(planner.getWidth()/myPaper.width, planner.getHeight()/myPaper.height);
+		return Math.min(((double)planner.getWidth())/myPaper.width, ((double)planner.getHeight())/myPaper.height);
 	}
 	public void stateChanged(ChangeEvent e) {}
 	public void mouseDragged(MouseEvent arg0) {}
@@ -426,8 +431,14 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 			myPaper.selected.size=(int) Integer.parseInt(myEdit.nodeSize.getValue().toString());;
 		}
 		myPaper.width=(int) Integer.parseInt(myEdit.Width.getValue().toString());
-		myPaper.height=(int)Integer.parseInt(myEdit.Height.getValue().toString());;
-		myPaper.ratioX_Y=myPaper.width/myPaper.height;
+		myPaper.height=(int)Integer.parseInt(myEdit.Height.getValue().toString());
+		if(this.myEdit!=null) {
+			if(myEdit.optimizeToRatio.isSelected()) {
+		myPaper.ratioX_Y=(double)myPaper.width/(double)myPaper.height;
+			}else{
+				myPaper.ratioX_Y=1;
+			}
+		}
 		drawPlanner();
 	}
 	/***
@@ -580,4 +591,5 @@ public class origamiDesigner extends JFrame implements ActionListener,ChangeList
 			myEdit.escapeMode.setSelected(true);
 		}
 	}
+	
 }

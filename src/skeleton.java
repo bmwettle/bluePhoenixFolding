@@ -14,6 +14,7 @@ public class skeleton  implements Comparable<skeleton> {
 	 * 
 	 */
 	int score=0;
+	int index;
 	int size;
 	int smallSize;
 	int xmax;
@@ -23,10 +24,11 @@ public class skeleton  implements Comparable<skeleton> {
 	int max;
 	boolean isFixedRatio;
 	boolean isSymetrical;
-	double ratioX_Y=1;
+	double ratioX_Y;
 	node[] nodes;
 	public skeleton(skeleton old) {
 		super();
+		this.index=old.index;
 		this.xmax=old.xmax;
 		this.xmin=old.xmin;
 		this.smallSize=old.smallSize;
@@ -65,6 +67,7 @@ public class skeleton  implements Comparable<skeleton> {
 			double ratioX_Y, int max) {
 
 		super();
+		index=0;
 		this.isFixedRatio= isFixedRatio;
 		this.max=max;
 		nodes= new node[max];
@@ -94,7 +97,7 @@ public class skeleton  implements Comparable<skeleton> {
 	 */
 	public int compareTo(skeleton o) {
 		//smaller skeletons are better
-		int size= this.getSize();
+	/*	int size= this.getSize();
 		int osize=o.getSize();
 	if(osize==size) {
 			//int smallGap= this.smallSize-o.smallSize;
@@ -105,7 +108,10 @@ public class skeleton  implements Comparable<skeleton> {
 		//}
 	}
 		return(size-osize);
-
+*/	//	if(o.index==this.index) {
+		//	return this.size-o.size;
+//}
+		return (o.index/(o.size*o.size)-this.index/(this.size*this.size));
 	}
 	/**
 	 * this checks to see if node n overlaps with anything already on the skeleton
@@ -174,6 +180,7 @@ public class skeleton  implements Comparable<skeleton> {
 			xmin=0;
 			
 		}
+		this.index++;
 		size=(int) Math.max(xmax-xmin,ratioX_Y*(ymax-ymin));
 		smallSize=(int) Math.min(xmax-xmin,ratioX_Y*(ymax-ymin));
 	}

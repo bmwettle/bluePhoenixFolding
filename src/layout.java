@@ -1,8 +1,10 @@
 
+import java.awt.Toolkit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 
+import javax.swing.JProgressBar;
 import javax.swing.SwingWorker;
 
 /**
@@ -16,6 +18,8 @@ import javax.swing.SwingWorker;
  */
 
 public class layout  extends SwingWorker<paper,Void>{
+	ArrayList<skeleton>currentSkeletons;
+	int maxGap;
 	boolean end;
 	//HashMap<skeleton,Boolean> globalChecked;
 	//int hashIgnored;
@@ -26,13 +30,15 @@ public class layout  extends SwingWorker<paper,Void>{
 	//Generation[] tree;
 	//int min_size;
 	int globalSize;
+	//int expandedDepth;
 	int globalSmallSize;
 	int globalScore;
 	int upperBound;
 	int lowerBound;
+	//int globalGap;
 	//	int[] parents;
-	//int[] children;
-	//int[] finished;
+	int[] children;
+	int[] finished;
 	//int[] forced;
 	//long[] times;
 	int total;
@@ -42,6 +48,7 @@ public class layout  extends SwingWorker<paper,Void>{
 	//ArrayList<Double>[]totalDensity;
 	skeleton globalBest;
 	int max_checked;
+	//int max_checked_per_branch;
 	//int checked_live;
 	int checked_dead;
 	//String outputLog;
@@ -64,6 +71,9 @@ public class layout  extends SwingWorker<paper,Void>{
 	int baseBuffer;
 	//this sets up the layout, and make it ready to optimize
 	public layout(paper p, int base_buffer,int max_checked) {
+		
+		
+		
 		newline=System.lineSeparator();
 		//globalChecked= new HashMap<skeleton,Boolean>();
 		//hashIgnored=0;
@@ -87,6 +97,8 @@ public class layout  extends SwingWorker<paper,Void>{
 		}
 		globalSize=(int) Math.sqrt(globalSize);
 		globalSmallSize=globalSize;
+		maxGap=globalSize;
+		this.setProgress(0);
 		//tree= new Generation[size];
 		//for(int i=0;i<size;i++) {
 		//tree[i]=new Generation();
@@ -124,6 +136,10 @@ public class layout  extends SwingWorker<paper,Void>{
 	 * subject to the constraints given by the paper.
 	 */
 	private int optimizeDF(int index2, skeleton parent) {
+		if(index2==size) {
+			
+		}
+		
 		//if(globalChecked.containsKey(parent)) {
 		//	hashIgnored++;
 		//	return 0;
@@ -134,16 +150,18 @@ public class layout  extends SwingWorker<paper,Void>{
 				total++;
 				//times[0]+=System.nanoTime();
 				//make a new generation of skeletons, by adding the next node to the parent
-				Generation newGen= makeNewGen(parent,index2);
+				ArrayList<skeleton> newGen= makeNewGen(parent,index2);
+				children[index2]+=newGen.size();
 				// if that generation is possible
 				if(newGen!=null&&newGen.size()>=1) {
 					// get the best of the generation
 					skeleton myBest=newGen.get(0);
+					int mySize=myBest.getSize();
 					index2++;
 					if(index2==size) {
 						// if that is the last node to be added
 						//check to see if that is an improvement over the current best skeleton
-						int mySize=myBest.getSize();
+					
 						if(mySize<globalSize||(mySize==globalSize&&(myBest.smallSize<globalSmallSize))) {
 							globalBest=myBest;
 							globalSize=myBest.getSize();
@@ -151,15 +169,15 @@ public class layout  extends SwingWorker<paper,Void>{
 							globalSmallSize=myBest.smallSize;
 							end=true;
 							improved=true;
-							globalBest.Printout();
+							//globalBest.Printout();
 						}
 
-						return -10;
+						return 0;
 					}
 					// extra code for finding partial solutions, not currently used
 					else if(index2==depth) {
 
-						int mySize=myBest.getSize();
+						//int mySize=myBest.getSize();
 
 						if(mySize<globalSize||(mySize==globalSize&&(myBest.smallSize<globalSmallSize))) {
 
@@ -170,15 +188,21 @@ public class layout  extends SwingWorker<paper,Void>{
 					}else {
 						int count=0;
 						for(skeleton design:newGen) {
+							if(design.size<globalSize) {
 							count+=optimizeDF(index2,design);
-
+							if(!end) {
+								finished[index2-1]++;
+							//globalChecked.put(parent, true);
+							}
+							}
+							//if(count>this.max_checked_per_branch) {
+						//		return 1*newGen.size();
+							//}
 							design=null;
 						}
-						if(!end) {
-						//globalChecked.put(parent, true);
-						}
+						
 						newGen=null;
-						return (int) (count*.5);
+						return count;
 
 					}
 				}				else {
@@ -195,11 +219,11 @@ public class layout  extends SwingWorker<paper,Void>{
 private Boolean[][] makePlaced(skeleton design, int index2) {
 	int gap=globalSize-design.size;
 	Boolean [][]placed= new Boolean[design.size+2*gap][design.size+2*gap];
-
+	int ignore=leafNodes.get(index2).ID;
 	//times[1]+=System.nanoTime();
 
 	for(node m:design.nodes) {
-		if(m!=null) {
+		if(m!=null&&(ignore!=m.ID)) {
 			// each pair of nodes must be a certain distance apart, called the radius
 			int radius= this.distances.get(m.ID).get(leafNodes.get(index2).ID);
 			int topx=Math.min(radius+baseBuffer,design.size-m.getX()+gap-1);
@@ -212,7 +236,7 @@ private Boolean[][] makePlaced(skeleton design, int index2) {
 				for(int j=topy;j>=lowy;j--) {
 					int y= m.getY()+j+gap;
 					// if the nodes are far enough apart, then you could place a node there
-					if(Math.abs(i)>=radius||Math.abs(j)>=radius) {
+					if((Math.abs(i)>=radius)||(Math.abs(j)>=radius)) {
 						if(placed[x][y]==null) {
 							placed[x][y]=true;
 						}
@@ -230,10 +254,10 @@ private Boolean[][] makePlaced(skeleton design, int index2) {
 	}
 	return placed;
 }
-	private Generation makeNewGen(skeleton design, int index2) {
+	private ArrayList<skeleton> makeNewGen(skeleton design, int index2) {
 		int gap=globalSize-design.size;
 		// we start by setting up a place to store the new generated skeletons
-		Generation newGen= new Generation();
+		ArrayList<skeleton> newGen= new ArrayList<skeleton>();
 		
 		Boolean[][] placed=makePlaced(design,index2);
 		//times[2]+=System.nanoTime();
@@ -274,35 +298,51 @@ private Boolean[][] makePlaced(skeleton design, int index2) {
 	}
 
 	public void optimize() {
+		//globalGap=0;
 		upperBound=globalSize;
 		lowerBound=0;
-		globalSize=(int)(lowerBound+(double)(upperBound-lowerBound)/2);
+		//this.max_checked_per_branch=20;
+		globalSize=1+(int)(lowerBound+(double)(upperBound-lowerBound)/2);
+		globalSmallSize=globalSize;
 		//this.globalSize=1;
 		//globalSmallSize=1;
 		//first we add the first node
 		//it doesn't matter where it goes, since all the locations are relative
-		max_checked=100000000/100;
+		max_checked=100000000/10000;
 //max_checked=Integer.MAX_VALUE;
 		this.checked_dead=0;
 		long start=System.currentTimeMillis();
 		long prev=start;
-		int loop=0;
+		//int loop=0;
 
 		//times= new long[5];
-		depth=this.leafNodes.size()+1;
+		depth=10*this.leafNodes.size()+1;
 		total=0;
 
 		int oldSize=globalSize;
 		int oldSmallSize=globalSmallSize;
+		//expandedDepth=size;
 		//boolean finalSteps=false;
 		while(true) {
 			improved=false;
 			//int oldScore=globalScore;
 			System.out.println("up, low: "+upperBound+","+lowerBound);
 			System.out.println("starting at"+globalSize);
-			for(int l=0;l<leafNodes.size();l++) {
+			this.currentSkeletons= new ArrayList<skeleton>();
+			currentSkeletons.add(this.generateFirst());
+			optimizeAStar();
+			System.out.println("done");
+			//this.optimizeDF(1, generateFirst());
+			/*for(int l=0;l<leafNodes.size();l++) {
+				//expandedDepth+=size;
+				this.checked_dead=0;
 				improved=false;
-				this.optimizeDF(1, generateFirst());
+				end=false;
+				//this.optimizeDF(1,generateFirst());
+				for (int i=0;i<leafNodes.size();i++){
+					System.out.print("c: "+children[i]+" f: "+finished[i]+"i: "+i);
+				}
+				System.out.println();
 				//System.out.println("looping"+l);
 				//upperBound=globalSize;
 				// we now have to check other node orders, as they may contain better solutions
@@ -310,26 +350,33 @@ private Boolean[][] makePlaced(skeleton design, int index2) {
 				node first=leafNodes.get(0);
 				leafNodes.remove(first);
 				leafNodes.add(first);
+				//Collections.shuffle(leafNodes);
 				if(improved) {
+					
 					break;
 				}
+				System.out.println("not improved, global Size is: "+globalSize);
+				if(checked_dead<max_checked) {
+					break;
+				}
+			}*/
+			for (int i=0;i<leafNodes.size();i++){
+				//System.out.println("children: "+children[i]+" finished: "+finished[i]);
 			}
-			//this.optimizeDF(1, generateFirst());
-
 			if(!improved) {
 				lowerBound=globalSize;
 				
-				System.out.println("not improved, global Size is: "+globalSize);
+			//	System.out.println("not improved, global Size is: "+globalSize);
 				//if(finalSteps) {
 				//globalSize++;
 				//globalSmallSize++;
 				//}
 			}else {
 				upperBound=globalSize;
-				System.out.println(globalBest.size+", "+globalBest.smallSize+": "+oldSize+", "+oldSmallSize+"ignored "+0);
+			//	System.out.println(globalBest.size+", "+globalBest.smallSize+": "+oldSize+", "+oldSmallSize+"ignored "+0);
 
 			}
-			if(globalBest!=null&&!improved) {
+			/*if(globalBest!=null&&!improved) {
 				System.out.println("looping"+loop);
 				//upperBound=globalSize;
 				// we now have to check other node orders, as they may contain better solutions
@@ -338,22 +385,60 @@ private Boolean[][] makePlaced(skeleton design, int index2) {
 				leafNodes.remove(first);
 				leafNodes.add(first);
 			
-				//Collections.shuffle(leafNodes);
+			
+				//\Collections.shuffle(leafNodes);
 			}else {
 				loop=0;
-			}
+			}*/
 			this.checked_dead=0;
 			//checked_live=1;
-			if(loop>p.nodes.size()) {
-				break;
-			}
+			//if(loop>p.nodes.size()) {
+				//break;
+			//}
 			end=false;
 			int gap=upperBound-lowerBound;
-			System.out.println("up, low; gap "+upperBound+","+lowerBound+gap);
-			
+			//System.out.println("up, low; gap "+upperBound+","+lowerBound+gap);
+			this.setProgress((maxGap-gap)/100);
+			System.out.println(this.getProgress());
 			if(gap>1) {
-			globalSize=(int)(lowerBound+(double)(upperBound-lowerBound)/2);
+			globalSize=1+(int)(lowerBound+(double)(upperBound-lowerBound)/2);
+			globalSmallSize=globalSize;
 			}else {
+				break;
+			}
+		}
+		System.out.println("starting final steps");
+		/*max_checked*=10;
+		//expandedDepth=size*2;
+		while(true) {
+			for(int l=0;l<leafNodes.size();l++) {
+				//expandedDepth+=size;
+				this.checked_dead=0;
+				improved=false;
+				end=false;
+				this.optimizeDF(1,generateFirst());
+				for (int i=0;i<leafNodes.size();i++){
+				//	System.out.print("c: "+children[i]+" f: "+finished[i]+"i: "+i);
+				}
+				//System.out.println();
+				//System.out.println("looping"+l);
+				//upperBound=globalSize;
+				// we now have to check other node orders, as they may contain better solutions
+				
+				node first=leafNodes.get(0);
+				leafNodes.remove(first);
+				leafNodes.add(first);
+				//Collections.shuffle(leafNodes);
+				if(improved) {
+					
+					break;
+				}
+				//System.out.println("not improved, global Size is: "+globalSize);
+				if(checked_dead<max_checked) {
+					break;
+				}
+			}
+			if(!improved) {
 				break;
 			}
 		}
@@ -400,6 +485,47 @@ private Boolean[][] makePlaced(skeleton design, int index2) {
 	}
 
 
+	private void optimizeAStar() {
+		this.checked_dead++;
+		if(checked_dead<this.max_checked) {
+			//end=true;
+		}
+		if(!end) {
+		//System.out.println(" size is; "+currentSkeletons2.size()+" globalSize: "+globalSize);
+		Collections.sort(currentSkeletons);
+		if(currentSkeletons.size()>100) {
+			currentSkeletons=new ArrayList<skeleton>(currentSkeletons.subList(0, 100));
+		}
+		skeleton best= currentSkeletons.get(0);
+		currentSkeletons.remove(best);
+		int mySize=best.size;
+		if(best.index==size) {
+			System.out.println("index is: "+best.index+" size is; "+currentSkeletons.size()+" globalSize: "+globalSize);
+			
+			if(mySize<globalSize||(mySize==globalSize&&(best.smallSize<globalSmallSize))) {
+				globalBest=best;
+				globalSize=best.getSize();
+				globalScore=best.score;
+				globalSmallSize=best.smallSize;
+				end=true;
+				improved=true;
+				//globalBest.Printout();
+			}
+
+		}else {
+			if(mySize<globalSize) {
+		ArrayList<skeleton> newGen= makeNewGen(best,best.index);
+		currentSkeletons.addAll(newGen);
+		//System.out.println("index is: "+best.index+" new gen size is; "+newGen.size());
+		if(currentSkeletons.size()>0) {
+		optimizeAStar();
+		}
+		
+		}
+		}
+		}
+	}
+
 	//now that we have the best designs, we need to get the best paper.
 	// since skeletons only store the locations of leaf nodes, 
 	//we basically have to do the opposite of the constructor function
@@ -433,11 +559,14 @@ private Boolean[][] makePlaced(skeleton design, int index2) {
 	}
 
 	public skeleton generateFirst() {
+		children= new int[5*leafNodes.size()];
+		finished=new int[5*leafNodes.size()];
 		skeleton design= new skeleton(isFixedRatio,p.hasSymmetry, ratioX_Y,this.p.maxSize);
 		node n= new node(leafNodes.get(0));
 		n.setY(0);
 		n.setX(0);
 		design.add(n,0);
+		children[0]=1;
 		return design;
 	}
 
@@ -446,11 +575,17 @@ private Boolean[][] makePlaced(skeleton design, int index2) {
 	@Override
 	protected paper doInBackground() throws Exception {
 		//nearestNode();
-
+		System.out.println(this.ratioX_Y);
 		this.optimize();
 		System.out.println("was overlaping:"+p.hasOverlap());
 		System.out.println(p.nodes.size());
 		System.out.println(leafNodes.size());
 		return this.getPaper(p);
 	}
+	public void done() {
+	      Toolkit.getDefaultToolkit().beep();
+	      //startButton.setEnabled(true);
+	      //setCursor(null); // turn off the wait cursor
+	      //taskOutput.append("Done!\n");
+	    }
 }
