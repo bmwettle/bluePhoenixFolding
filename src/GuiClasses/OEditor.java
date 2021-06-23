@@ -1,3 +1,4 @@
+package GuiClasses;
 import java.awt.GridLayout;
 
 import javax.swing.ButtonGroup;
@@ -9,6 +10,8 @@ import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+
+import origamiClasses.paper;
 
 public class OEditor extends JFrame{
 	/**

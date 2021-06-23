@@ -1,3 +1,4 @@
+package GuiClasses;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -7,6 +8,9 @@ import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
 
 import javax.swing.JPanel;
+
+import origamiClasses.node;
+import origamiClasses.paper;
 /**
  * 
  * @author Benjamin Wettle

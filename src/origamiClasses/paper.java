@@ -1,3 +1,4 @@
+package origamiClasses;
 
 import java.awt.Point;
 import java.awt.geom.AffineTransform;
@@ -15,23 +16,23 @@ public class paper implements Serializable {
 	 * This class also initiates crease generation, and calculating minimum distances.
 	 */
 	private static final long serialVersionUID = -6420912694063224236L;
-	int width;
-	int height;
-	int square_size;
-	node selected;
-	boolean isFixedRatio;
-	int maxSize;
-	double ratioX_Y;
-	boolean hasSymmetry;
+	public int width;
+	public int height;
+	public int square_size;
+	public node selected;
+	public boolean isFixedRatio;
+	public int maxSize;
+	public double ratioX_Y;
+	public boolean hasSymmetry;
 	public HashMap<Integer, ArrayList<node>> connections;
 	public ArrayList<node> nodes;
 	public HashMap<Integer,HashMap<Integer, Integer>> distances;
 	ArrayList<node> settled;
 	ArrayList<node> unSettled;
 	ArrayList<node>edgeNodes;
-	Creases Unused;
-	HashMap<node,Area> largeAreas;
-	HashMap<node,Area[]> trueAreas;
+	public Creases Unused;
+	public HashMap<node,Area> largeAreas;
+	public HashMap<node,Area[]> trueAreas;
 
 	public void refreshNodes() {
 		this.settled= new ArrayList<node>();
@@ -429,8 +430,16 @@ public class paper implements Serializable {
 		maxSize++;
 
 	}
-	public void addNode(node newNode) {
-		if(!isFirstNode()) {
+	public void addAll(ArrayList<node> newNodes) {
+		for(node newNode:newNodes) {
+		ArrayList<node>newList= new ArrayList<node>();
+		connections.put(newNode.ID,newList);
+		nodes.add(newNode);
+		maxSize++;
+		}
+	}
+	public void addNode(node newNode,boolean addConnected) {
+		if(!isFirstNode()&&addConnected) {
 			this.addNode(newNode,selected);
 		}else {
 			ArrayList<node>newList= new ArrayList<node>();

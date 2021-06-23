@@ -1,3 +1,4 @@
+package origamiClasses;
 
 
 
@@ -18,13 +19,13 @@ public class node implements Serializable{
 	
 private int x;
 private int y;
-int size;
-int ID;
-boolean isFixedToSymmetryLine;
-boolean isLeaf;
-boolean isMirrored;
+public int size;
+public int ID;
+public boolean isFixedToSymmetryLine;
+public boolean isLeaf;
+public boolean isMirrored;
 // these are set during crease generation.
-Creases[] c;
+public Creases[] c;
 
 public void setX(int newX) {
 	this.x=newX;
@@ -82,6 +83,7 @@ public int hashCode() {
 	result = prime * result + y;
 	return result;
 }
+
 @Override
 public boolean equals(Object obj) {
 	if (this == obj)

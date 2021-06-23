@@ -1,3 +1,4 @@
+package GuiClasses;
 
 
 import java.awt.BasicStroke;

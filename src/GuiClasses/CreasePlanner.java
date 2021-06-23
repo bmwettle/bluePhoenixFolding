@@ -1,3 +1,4 @@
+package GuiClasses;
 //if debugging the crease generation, remove this line
 //import java.awt.Color;
 import java.awt.Color;
@@ -11,6 +12,10 @@ import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
 
 import javax.swing.JPanel;
+
+import origamiClasses.node;
+import origamiClasses.paper;
+import origamiClasses.Creases;
 /**
  * 
  * @author Benjamin Wettle
