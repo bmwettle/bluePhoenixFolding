@@ -163,7 +163,7 @@ public class skeleton  implements Comparable<skeleton> {
 			//	this.smallSize=this.ymax-newY;
 			//}
 		}
-		if(changed) {
+		/*if(changed) {
 			for( node m:this.nodes) {
 				if(m!=null) {
 				m.moveY(-ymin);
@@ -180,7 +180,7 @@ public class skeleton  implements Comparable<skeleton> {
 			xmax-=xmin;
 			xmin=0;
 			
-		}
+		}*/
 		this.index++;
 		size=(int) Math.max(xmax-xmin,ratioX_Y*(ymax-ymin));
 		smallSize=(int) Math.min(xmax-xmin,ratioX_Y*(ymax-ymin));
@@ -212,7 +212,7 @@ public class skeleton  implements Comparable<skeleton> {
 	 * shifts the skeleton so that the nodes are all at positive positions.
 	 * 
 	 */
-	public void resize() {
+	private void resize() {
 		xmax=0;
 		 xmin=Integer.MAX_VALUE;
 		 ymax=0;

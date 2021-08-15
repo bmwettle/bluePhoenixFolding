@@ -139,102 +139,114 @@ public class layout  extends SwingWorker<paper,Void>{
      * it takes given paper, and optimizes it to the best shape and size,
      * subject to the constraints given by the paper.
      */
-    private int optimizeDF(int index2, skeleton parent) {
+    private int optimizeDF(int index2, skeleton parent, int max_to_check) {
+	int cost=0;
 	if(index2==size) {
 
 	}
-	int maxDepth=index2;
+	//int maxDepth=index2;
 	//if(globalChecked.containsKey(parent)) {
 	//	hashIgnored++;
 	//	return 0;
 	//}
 	checked_dead++;
 	if(!end) {
-	    if(checked_dead<max_checked) {
-		total++;
-		//times[0]+=System.nanoTime();
-		//make a new generation of skeletons, by adding the next node to the parent
-		ArrayList<skeleton> newGen= makeNewGen(parent,index2);
-		children[index2]+=newGen.size();
-		// if that generation is possible
-		if(newGen!=null&&newGen.size()>=1) {
-		    // get the best of the generation
-		    skeleton myBest=newGen.get(0);
-		    int mySize=myBest.getSize();
-		    index2++;
-		    if(index2==size) {
-			// if that is the last node to be added
-			//check to see if that is an improvement over the current best skeleton
+	    // if(checked_dead<max_checked) {
+	    total++;
+	    //times[0]+=System.nanoTime();
+	    //make a new generation of skeletons, by adding the next node to the parent
+	    ArrayList<skeleton> newGen= makeNewGen(parent,index2);
+	    children[index2]+=newGen.size();
+	    // if that generation is possible
+	    if(newGen!=null&&newGen.size()>=1) {
+		// get the best of the generation
+		skeleton myBest=newGen.get(0);
+		int mySize=myBest.getSize();
+		index2++;
+		if(index2==size) {
+		    // if that is the last node to be added
+		    //check to see if that is an improvement over the current best skeleton
 
-			if(mySize<globalSize||(mySize==globalSize&&(myBest.smallSize<globalSmallSize))) {
-			    globalBest=myBest;
-			    globalSize=myBest.getSize();
-			    globalScore=myBest.score;
-			    globalSmallSize=myBest.smallSize;
-			    end=true;
-			    improved=true;
-			    //globalBest.Printout();
-			}
-			finished[index2-1]++;
-			return index2;
+		    if(mySize<globalSize||(mySize==globalSize&&(myBest.smallSize<globalSmallSize))) {
+			globalBest=myBest;
+			globalSize=myBest.getSize();
+			globalScore=myBest.score;
+			globalSmallSize=myBest.smallSize;
+			end=true;
+			improved=true;
+			//globalBest.Printout();
 		    }
-		    // extra code for finding partial solutions, not currently used
-		    else if(index2==depth) {
+		    finished[index2-1]++;
+		    return index2;
+		}
+		// extra code for finding partial solutions, not currently used
+		else if(index2==depth) {
 
-			//int mySize=myBest.getSize();
+		    //int mySize=myBest.getSize();
 
-			if(mySize<globalSize||(mySize==globalSize&&(myBest.smallSize<globalSmallSize))) {
+		    if(mySize<globalSize||(mySize==globalSize&&(myBest.smallSize<globalSmallSize))) {
 
-			    newBestPartial.add(myBest);
+			newBestPartial.add(myBest);
 
-			}
-			return -10;
-		    }else {
-			int count=0;
-			for(skeleton design:newGen) {
-			   
+		    }
+		    return -10;
+		}else {
+
+		    int index=0;
+		    //int to_check= (int) Math.ceil((double) max_to_check/ (double) newGen.size());
+		    //if(to_check>0) {
+		    for(skeleton design:newGen) {
+			if(cost<max_checked) {
+			    //int to_check=(int) max_to_check/(newGen.size()-index);
 			    if(design.size<globalSize) {
-				int newDepth=optimizeDF(index2,design);
-				count++;
-				if(newDepth>maxDepth) {
-				    maxDepth=newDepth;
-				}
-				if(index2>3&&(newDepth==0||maxDepth<size-3)) {
-				    deadEnds[index2]++;
-				 //  break;
-				}
+				cost+=optimizeDF(index2,design,this.max_checked);
+				//count+=cost;
+				//max_to_check-=cost;
+				//count++;
+				//if(newDepth>maxDepth) {
+				//maxDepth=newDepth;
+				// }
+				// if(index2>3&&(newDepth==0||maxDepth<size-3)) {
+				//deadEnds[index2]++;
+				//  break;
+				//}
 			    }
+
 			    //if(count>this.max_checked_per_branch) {
 			    //		return 1*newGen.size();
 			    //}
 			    design=null;
+			    // }
+
+			    newGen=null;
+			    //return count;
+			    finished[index2-1]++;
+			    return cost;
+			    //}else {
+			    //  deadEnds[index2]++;
+			}		else {
+			    deadEnds[index2]++;
+			    //finished[index2]++;
+			    return cost;
 			}
-
-			newGen=null;
-			//return count;
-			finished[index2-1]++;
-			return maxDepth;
-
 		    }
-		}				else {
-		    deadEnds[index2]++;
-		    finished[index2]++;
-		    return 0;
 		}
+		//}		
 	    }else{
 
 	    }
 	}
-	return 0;
+	return cost;
     }
 
     private Boolean[][] makePlaced(skeleton design, int index2) {
-	int gap=globalSize-design.size;
-	Boolean [][]placed= new Boolean[design.size+2*gap][design.size+2*gap];
+	//int gap=globalSize-design.size;
+	//Boolean [][]placed= new Boolean[design.size+2*gap][design.size+2*gap];
+	Boolean [][]placed= new Boolean[globalSize][globalSize];
 	int ignore=leafNodes.get(index2).ID;
 	//times[1]+=System.nanoTime();
 
-	for(node m:design.nodes) {
+	/*for(node m:design.nodes) {
 	    if(m!=null&&(ignore!=m.ID)) {
 		// each pair of nodes must be a certain distance apart, called the radius
 		int radius= this.distances.get(m.ID).get(leafNodes.get(index2).ID);
@@ -248,7 +260,7 @@ public class layout  extends SwingWorker<paper,Void>{
 		    for(int j=topy;j>=lowy;j--) {
 			int y= m.getY()+j+gap;
 			// if the nodes are far enough apart, then you could place a node there
-			if((Math.abs(i)>=radius)||(Math.abs(j)>=radius)) {
+			if((Math.abs(i)==radius)||(Math.abs(j)>=radius)) {
 			    if(placed[x][y]==null) {
 				placed[x][y]=true;
 			    }
@@ -263,11 +275,36 @@ public class layout  extends SwingWorker<paper,Void>{
 		}
 	    }
 
+	}*/
+	int effectiveSize=leafNodes.get(index2).size;
+	for (int i=0;i<globalSize;i++){
+	    // if(i==0||i==globalSize-1||(i>effectiveSize&&i<globalSize-effectiveSize)) {
+	    for (int j=0;j<globalSize;j++){
+		boolean xUsefull=(i==0||i==globalSize-1||(i>effectiveSize&&i<globalSize-effectiveSize));
+		boolean yUsefull=(j==0||j==globalSize-1||(j>effectiveSize&&j<globalSize-effectiveSize));
+		if( xUsefull&&yUsefull) {
+		    for(node m:design.nodes) {
+			if(m!=null&&(ignore!=m.ID)) {
+			    int radius= this.distances.get(m.ID).get(leafNodes.get(index2).ID);
+			    int xgap=Math.abs( m.getX()-i);
+			    int ygap= Math.abs(m.getY()-j);
+			    if(xgap<radius&&ygap<radius) {
+				placed[i][j]=false;
+			    }
+
+			}
+		    }
+		}else {
+		    placed[i][j]=false;
+		}
+	    }
+	    //}
 	}
+	//System.out.println(placed);
 	return placed;
     }
     private ArrayList<skeleton> makeNewGen(skeleton design, int index2) {
-	int gap=globalSize-design.size;
+	//int gap=globalSize-design.size;
 	// we start by setting up a place to store the new generated skeletons
 	ArrayList<skeleton> newGen= new ArrayList<skeleton>();
 
@@ -277,15 +314,20 @@ public class layout  extends SwingWorker<paper,Void>{
 
 	int x=0;
 	for(Boolean[] row:placed) {
+	    //System.out.println(row);
 	    int y= 0;
 	    for(Boolean ok:row) {
+		//System.out.println(ok);
 		// if we can place a node in a spot, make an new skeleton that adds it there
 		if(ok==null||ok) {
 
 		    skeleton newDesign=new skeleton(design);
 		    node n= new node(leafNodes.get(index2));
-		    n.setX(x-gap);
-		    n.setY(y-gap);
+		    //if(x>=gap&&y>=gap) {
+		    //n.setX(x-gap);
+		    //n.setY(y-gap);
+		    n.setX(x);
+		    n.setY(y);
 		    if(!n.isFixedToSymmetryLine||n.getX()==0) {
 			if(!this.hasSymetry||n.getX()>=0) {
 			    newDesign.add(n,index2);
@@ -300,6 +342,7 @@ public class layout  extends SwingWorker<paper,Void>{
 			    //}
 			}
 		    }
+		    //}
 		}
 		y++;
 	    }
@@ -352,41 +395,41 @@ public class layout  extends SwingWorker<paper,Void>{
 		//System.out.println("total cost is: "+totalCost[id]+" total searched is: "+this.totalAdded[id]+" ave is: "+(double)totalCost[id]/((double)totalAdded[id]+1));
 	    }
 	    //this.optimizeDF(1, generateFirst());
-	  //  for(int l=0;l<leafNodes.size();l++) {
-		//expandedDepth+=size;
-		this.checked_dead=0;
-		improved=false;
-		end=false;
-		//System.out.println(l);
-		this.optimizeDF(1,generateFirst());
-		if(improved) {
-		for (int i=0;i<leafNodes.size();i++){
-		    System.out.print("c: "+children[i]+" f: "+finished[i]+"i: "+i);
-		    System.out.println("dead ends: "+deadEnds[i]);
-		}
-		}
-		//System.out.println(l);
-		//System.out.println("looping"+l);
-		//upperBound=globalSize;
-		// we now have to check other node orders, as they may contain better solutions
+	    //  for(int l=0;l<leafNodes.size();l++) {
+	    //expandedDepth+=size;
+	    this.checked_dead=0;
+	    improved=false;
+	    end=false;
+	    //System.out.println(l);
+	    this.optimizeDF(1,generateFirst(),this.max_checked);
+	    //if(improved) {
+	    for (int i=0;i<leafNodes.size();i++){
+		System.out.print("c: "+children[i]+" f: "+finished[i]+"i: "+i);
+		System.out.println("dead ends: "+deadEnds[i]);
+	    }
+	    //}
+	    //System.out.println(l);
+	    //System.out.println("looping"+l);
+	    //upperBound=globalSize;
+	    // we now have to check other node orders, as they may contain better solutions
 
-		node first=leafNodes.get(0);
-		leafNodes.remove(first);
-		leafNodes.add(first);
-		//Collections.shuffle(leafNodes);
-		if(improved) {
-		    System.out.println("improved, global Size is: "+globalSize);
-		   // break;
-		}else {
-		    //System.out.println("not improved, global Size is: "+globalSize);
-		}
-		if(checked_dead<max_checked) {
-		    System.out.println(" again improved, global Size is: "+globalSize);
-			
-		    //break;
-		}
-		
-		
+	    node first=leafNodes.get(0);
+	    leafNodes.remove(first);
+	    leafNodes.add(first);
+	    //Collections.shuffle(leafNodes);
+	    if(improved) {
+		System.out.println("improved, global Size is: "+globalSize);
+		// break;
+	    }else {
+		//System.out.println("not improved, global Size is: "+globalSize);
+	    }
+	    if(checked_dead<max_checked) {
+		System.out.println(" again improved, global Size is: "+globalSize);
+
+		//break;
+	    }
+
+
 	    //}
 	    for (int i=0;i<leafNodes.size();i++){
 		//System.out.println("children: "+children[i]+" finished: "+finished[i]);
