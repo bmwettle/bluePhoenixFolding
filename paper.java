@@ -1,3 +1,4 @@
+package origamiClasses;
 
 import java.awt.Point;
 import java.awt.geom.AffineTransform;
@@ -7,6 +8,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.stream.Collectors;
 public class paper implements Serializable {
 
 	/**
@@ -14,23 +16,23 @@ public class paper implements Serializable {
 	 * This class also initiates crease generation, and calculating minimum distances.
 	 */
 	private static final long serialVersionUID = -6420912694063224236L;
-	int width;
-	int height;
-	int square_size;
-	node selected;
-	boolean isFixedRatio;
-
-	double ratioX_Y=1;
-	boolean hasSymmetry;
-	public HashMap<node, ArrayList<node>> connections;
+	public int width;
+	public int height;
+	public int square_size;
+	public node selected;
+	public boolean isFixedRatio;
+	public int maxSize;
+	public double ratioX_Y;
+	public boolean hasSymmetry;
+	public HashMap<Integer, ArrayList<node>> connections;
 	public ArrayList<node> nodes;
-	public HashMap<node,HashMap<node, Integer>> distances;
+	public HashMap<Integer,HashMap<Integer, Integer>> distances;
 	ArrayList<node> settled;
 	ArrayList<node> unSettled;
 	ArrayList<node>edgeNodes;
-	Creases Unused;
-	HashMap<node,Area> largeAreas;
-	HashMap<node,Area[]> trueAreas;
+	public Creases Unused;
+	public HashMap<node,Area> largeAreas;
+	public HashMap<node,Area[]> trueAreas;
 
 	public void refreshNodes() {
 		this.settled= new ArrayList<node>();
@@ -38,18 +40,18 @@ public class paper implements Serializable {
 		for(node n:nodes) {
 			if(n.isLeaf) {
 				settled.add(n);
-				node m=this.connections.get(n).get(0);
+				node m=this.connections.get(n.ID).get(0);
 				if(!next.contains(m)) {
 					next.add(m);
 				}
-				
+
 			}
 		}
 		while(settled.size()<nodes.size()) {
 			ArrayList<node>next2= new ArrayList<node>();
 			for( node n:next) {
 				refreshNode(n);
-				for( node m:connections.get(n)) {
+				for( node m:connections.get(n.ID)) {
 					if(!next.contains(m)) {
 
 						next2.add(m);
@@ -62,36 +64,36 @@ public class paper implements Serializable {
 
 	private void refreshNode(node n) {
 		settled.add(n);
-			if(n.isLeaf) {
-			}else {
-				int xpos=0;
-				int ypos=0;
-				int count=0;
-				for(node m :this.connections.get(n)) {
-					if(settled.contains(m)) {
+		if(n.isLeaf) {
+		}else {
+			int xpos=0;
+			int ypos=0;
+			int count=0;
+			for(node m :this.connections.get(n.ID)) {
+				if(settled.contains(m)) {
+					xpos+=m.getX();
+					ypos+=m.getY();
+					count++;
+					if(m.isLeaf) {
 						xpos+=m.getX();
 						ypos+=m.getY();
-						count++;
-						if(m.isLeaf) {
-							xpos+=m.getX();
-							ypos+=m.getY();
-							count+=1;
-						}
+						count+=1;
 					}
 				}
-				if(count>0) {
-					n.setX((int)(xpos/count));
-					n.setY((int)(ypos/count));
-					
-				}
+			}
+			if(count!=0) {
+				n.setX((int)(xpos/count));
+				n.setY((int)(ypos/count));
 
 			}
-			for(node m :this.connections.get(n)) {
-				if(!settled.contains(m)) {
-					refreshNode(m);
-				}
+
+		}
+		for(node m :this.connections.get(n.ID)) {
+			if(!settled.contains(m)) {
+				refreshNode(m);
 			}
-			
+		}
+
 	}
 
 	public int getSize() {
@@ -106,8 +108,8 @@ public class paper implements Serializable {
 		corners.add(new Point(0,(int) (height*scale)));
 		corners.add(new Point((int) (width*scale),0));
 		corners.add(new Point((int)(width*scale),(int)(height*scale)));
-		
-		
+
+
 		Area empty=new Area(new Rectangle2D.Double(-scale,-scale,(width+2)*scale,(height+2)*scale));
 		Area border=new Area(new Rectangle2D.Double(0,0,width*scale,height*scale));
 		settled= new ArrayList<node>();
@@ -118,23 +120,23 @@ public class paper implements Serializable {
 
 		getArea(start,scale);
 		int[][] edges= new int[][] {new int[] {0,(int) ((width)*scale)},new int[] {0,(int) ((height)*scale)}};
-		
+
 		for(node n:nodes) {
-			
+
 			if(n.size!=0) {
 				n.makeCreases(scale, trueAreas.get(n),edges);
 				for(Creases c: n.c) {
-				empty.subtract(c);
-				c.intersect(border);
+					empty.subtract(c);
+					c.intersect(border);
 				}
-				
+
 			}
-			
+
 		} 
 		Unused= new Creases(scale,empty,edges);
 
 		Unused.makeCreases();
-	Unused.intersect(border);
+		Unused.intersect(border);
 		settled= new ArrayList<node>();
 	}
 	public node getFirstLeaf() {
@@ -147,92 +149,92 @@ public class paper implements Serializable {
 	}
 	public void getArea(node n, double scale) {
 		if(n.size>0) {
-		if(n.isLeaf) {
-			makeLeaf(n,scale);
-		}else {
-			Area[] poly = new Area[n.size*2];	
-			largeAreas.put(n, poly[0]);
-			trueAreas.put(n, poly);
-			settled.add(n);
-			for(node m:this.connections.get(n)) {
+			if(n.isLeaf) {
+				makeLeaf(n,scale);
+			}else {
+				Area[] poly = new Area[n.size*2];	
+				largeAreas.put(n, poly[0]);
+				trueAreas.put(n, poly);
+				settled.add(n);
+				for(node m:this.connections.get(n.ID)) {
+					if(!settled.contains(m)) {
+						getArea(m,scale);
+					}	
+				}
+				Area base=new Area();
+				Area large= new Area();
+				for(node m:this.connections.get(n.ID)) {
+					if(settled.contains(m)) {
+						Area sub=largeAreas.get(m);
+						if(sub!=null) {
+							base.add(sub);
+						}
+					}
+				}
+				large.add(base);
+				for( int m=0;m<2*n.size;m++) {
+					poly[m]= new Area();
+					for(int i=-1;i<=1;i++) {
+						for (int j=-1;j<=1;j++) {
+							AffineTransform t= new AffineTransform();
+							t.translate((scale*(i)/2), (scale*(j)/2));
+							if(m==0) {
+								Area tr=base.createTransformedArea(t);
+								poly[m].add(tr);
+							}else {
+								Area tr=poly[m-1].createTransformedArea(t);
+								poly[m].add(tr);
+							}
+
+						}
+					}
+					large.add(poly[m]);
+				}
+				for( int m=2*n.size-1;m>0;m--) {
+					poly[m].subtract(poly[m-1]);
+				}
+				poly[0].subtract(base);
+				largeAreas.replace(n, large);
+				trueAreas.replace(n, poly);
+			}
+			for(node m:this.connections.get(n.ID)) {
 				if(!settled.contains(m)) {
 					getArea(m,scale);
 				}	
 			}
-			Area base=new Area();
-			Area large= new Area();
-			for(node m:this.connections.get(n)) {
-				if(settled.contains(m)) {
-					Area sub=largeAreas.get(m);
-					if(sub!=null) {
-					base.add(sub);
-					}
-				}
-			}
-			large.add(base);
-			for( int m=0;m<2*n.size;m++) {
-				poly[m]= new Area();
-			for(int i=-1;i<=1;i++) {
-				for (int j=-1;j<=1;j++) {
-					AffineTransform t= new AffineTransform();
-					t.translate((scale*(i)/2), (scale*(j)/2));
-					if(m==0) {
-						Area tr=base.createTransformedArea(t);
-						poly[m].add(tr);
-					}else {
-					Area tr=poly[m-1].createTransformedArea(t);
-					poly[m].add(tr);
-					}
-					
-				}
-			}
-			large.add(poly[m]);
-			}
-			for( int m=2*n.size-1;m>0;m--) {
-				poly[m].subtract(poly[m-1]);
-				}
-			poly[0].subtract(base);
-			largeAreas.replace(n, large);
-			trueAreas.replace(n, poly);
-		}
-		for(node m:this.connections.get(n)) {
-			if(!settled.contains(m)) {
-				getArea(m,scale);
-			}	
-		}
 		}else {
 			Area[] poly = new Area[1];	
 			largeAreas.put(n, poly[0]);
 			trueAreas.put(n, poly);
 			settled.add(n);
-			for(node m:this.connections.get(n)) {
+			for(node m:this.connections.get(n.ID)) {
 				if(!settled.contains(m)) {
 					getArea(m,scale);
 				}	
 			}
 			poly[0]=new Area();
-			for(node m:this.connections.get(n)) {
+			for(node m:this.connections.get(n.ID)) {
 				if(settled.contains(m)) {
 					Area sub=largeAreas.get(m);
 					////
 					if(sub!=null) {
-					poly[0].add(sub);}
+						poly[0].add(sub);}
 				}
-			
+
 			}
 			largeAreas.replace(n, poly[0]);
 			trueAreas.replace(n, poly);
 		}
-		
+
 
 
 	}
 	private void makeLeaf(node n, double scale) {
 		Area[]poly= new Area[n.size*2];
 		for(int i=0;i<n.size*2;i++) {
-		Area po= new Area(new Rectangle2D.Double(Math.floor(scale*n.getX()-(i+1)*scale/2),Math.floor(scale*n.getY()-(i+1)*scale/2),scale*(i+1),(i+1)*scale));
-		poly[i]=po;
-		
+			Area po= new Area(new Rectangle2D.Double(Math.floor(scale*n.getX()-(i+1)*scale/2),Math.floor(scale*n.getY()-(i+1)*scale/2),scale*(i+1),(i+1)*scale));
+			poly[i]=po;
+
 		}
 		for( int m=2*n.size-1;m>0;m--) {
 			poly[m].subtract(poly[m-1]);
@@ -251,14 +253,14 @@ public class paper implements Serializable {
 				selected=null;
 			}
 		}
-		connections.remove(delete);
+		connections.remove(delete.ID);
 		for(node n:nodes) {
-			connections.get(n).remove(delete);
-			if(connections.get(n).size()<=1) {
+			connections.get(n.ID).remove(delete);
+			if(connections.get(n.ID).size()<=1) {
 				n.isLeaf=true;
 			}
 		}
-		
+
 	}
 	public paper(paper p) {
 		this.width=p.width;
@@ -267,6 +269,7 @@ public class paper implements Serializable {
 		this.nodes= new ArrayList<node>();
 		this.isFixedRatio=p.isFixedRatio;
 		this.ratioX_Y=p.ratioX_Y;
+		this.maxSize=p.maxSize;
 		this.settled=new ArrayList<node>();
 		this.unSettled= new ArrayList<node>();
 		for(node n: p.nodes) {
@@ -283,34 +286,36 @@ public class paper implements Serializable {
 				edgeNodes.add(this.nodes.get(p.nodes.indexOf(e)));
 			}
 		}
-		this.connections = new HashMap<node, ArrayList<node>>();
-		this.distances= new HashMap<node,HashMap<node, Integer>>();
-		Iterator<node> it= p.distances.keySet().iterator();
+		this.connections = new HashMap<Integer, ArrayList<node>>();
+		this.distances= new HashMap<Integer,HashMap<Integer, Integer>>();
+		Iterator<Integer> it= p.distances.keySet().iterator();
 		while(it.hasNext()) {
-			node oldStart= it.next();
+			int id =it.next();
+			node oldStart=p.nodes.stream().filter(a -> (int)a.ID == id).collect(Collectors.toList()).get(0);
 			node newStart= this.nodes.get(p.nodes.indexOf(oldStart));
-			Iterator<node> end= p.distances.get(oldStart).keySet().iterator();
-			HashMap<node, Integer> dist= new HashMap<node,Integer>();
+			Iterator<Integer> end= p.distances.get(oldStart.ID).keySet().iterator();
+			HashMap<Integer, Integer> dist= new HashMap<Integer,Integer>();
 			while(end.hasNext()) {
-				node oldEnd= end.next();
-				int length= p.distances.get(oldStart).get(oldEnd);
+				int nextID=end.next();
+				node oldEnd=p.nodes.stream().filter(b -> (int)b.ID == nextID).collect(Collectors.toList()).get(0);
+				int length= p.distances.get(oldStart.ID).get(oldEnd.ID);
 				node newEnd= this.nodes.get(p.nodes.indexOf(oldEnd));
-				dist.put(newEnd, length);
+				dist.put((Integer)newEnd.ID, length);
 			}
-			this.distances.put(newStart, dist);
+			this.distances.put((Integer)newStart.ID, dist);
 		}
 		for(int i=0;i<p.nodes.size();i++) {
 			node n= this.nodes.get(i);
 			node pn = p.nodes.get(i);
 			ArrayList<node> con = new ArrayList<node>();
-			ArrayList<node> oldCon= p.connections.get(pn);
+			ArrayList<node> oldCon= p.connections.get(pn.ID);
 			if(oldCon!=null) {
 				for( node c:oldCon) {
 					int oldindex= p.nodes.indexOf(c);
 					con.add(this.nodes.get(oldindex));
 				}
 			}
-			connections.put(n, con);
+			connections.put(n.ID, con);
 		}
 	}
 	public void shrink() {
@@ -320,18 +325,18 @@ public class paper implements Serializable {
 		int ymin=Integer.MAX_VALUE;
 		for(node n:nodes) {
 			if(n.isLeaf) {
-			if(n.getX()>xmax) {
-				xmax=n.getX();
-			}
-			if(n.getX()<xmin) {
-				xmin=n.getX();
-			}
-			if(n.getY()>ymax) {
-				ymax=n.getY();
-			}
-			if(n.getY()<ymin) {
-				ymin=n.getY();
-			}
+				if(n.getX()>xmax) {
+					xmax=n.getX();
+				}
+				if(n.getX()<xmin) {
+					xmin=n.getX();
+				}
+				if(n.getY()>ymax) {
+					ymax=n.getY();
+				}
+				if(n.getY()<ymin) {
+					ymin=n.getY();
+				}
 			}
 		}
 		for( node n:nodes) {
@@ -350,22 +355,23 @@ public class paper implements Serializable {
 	public paper(int w,int h) {
 		width=w;
 		height=h;
-		connections= new HashMap<node,ArrayList<node>>();
+		maxSize=0;
+		connections= new HashMap<Integer,ArrayList<node>>();
 		nodes= new ArrayList<node>();
 		edgeNodes= new ArrayList<node>();
 	}
 	public void moveSelect(int x, int y) {
 		if(selected!=null) {
-		selected.setX(x);
-		selected.setY(y);
+			selected.setX(x);
+			selected.setY(y);
 		}
 	}
 	public void getTreeDistances() {
-		distances= new HashMap<node,HashMap<node,Integer>>();
+		distances= new HashMap<Integer,HashMap<Integer,Integer>>();
 		for(node one:nodes) {
-			HashMap<node,Integer> selfMap= new HashMap<node,Integer>();
-			selfMap.put(one,0);
-			distances.put(one,selfMap);
+			HashMap<Integer,Integer> selfMap= new HashMap<Integer,Integer>();
+			selfMap.put(one.ID,0);
+			distances.put(one.ID,selfMap);
 		}
 		for (node start:this.nodes){
 			for(node end:this.nodes) {
@@ -389,11 +395,11 @@ public class paper implements Serializable {
 		searched.add(current);
 		if (current.equals(end)){
 			length+=current.size;
-			distances.get(end).put(start, length);
-			distances.get(start).put(end, length);
+			distances.get(end.ID).put(start.ID, length);
+			distances.get(start.ID).put(end.ID, length);
 		}else {
 			ArrayList<node> nearby= new ArrayList<node>();
-			nearby.addAll(connections.get(current));
+			nearby.addAll(connections.get(current.ID));
 			nearby.removeAll(searched);
 			for(node connect:nearby) {
 				searchNodes(start,connect,end,length+current.size,searched);
@@ -410,40 +416,50 @@ public class paper implements Serializable {
 		return nodes.size()==0;
 	}
 	public void addNode(node newNode, node startNode) {
-		connections.get(startNode).add(newNode);
+		connections.get(startNode.ID).add(newNode);
 		ArrayList<node>newList= new ArrayList<node>();
 		newList.add(startNode);
-		connections.put(newNode,newList);
+		connections.put(newNode.ID,newList);
 		nodes.add(newNode);
-		if(connections.get(newNode).size()!=1){
+		if(connections.get(newNode.ID).size()!=1){
 			newNode.isLeaf=false;
 		}
-		if(connections.get(startNode).size()!=1){
+		if(connections.get(startNode.ID).size()!=1){
 			startNode.isLeaf=false;
 		}
+		maxSize++;
 
 	}
-	public void addNode(node newNode) {
-		if(!isFirstNode()) {
+	public void addAll(ArrayList<node> newNodes) {
+		for(node newNode:newNodes) {
+		ArrayList<node>newList= new ArrayList<node>();
+		connections.put(newNode.ID,newList);
+		nodes.add(newNode);
+		maxSize++;
+		}
+	}
+	public void addNode(node newNode,boolean addConnected) {
+		if(!isFirstNode()&&addConnected) {
 			this.addNode(newNode,selected);
 		}else {
 			ArrayList<node>newList= new ArrayList<node>();
-			connections.put(newNode,newList);
+			connections.put(newNode.ID,newList);
 			nodes.add(newNode);
 
 		}
+		maxSize++;
 	}
-	
-public void addMirroedNode(node toMirror) {
-	toMirror.isMirrored=true;
-}
+
+	public void addMirroedNode(node toMirror) {
+		toMirror.isMirrored=true;
+	}
 
 	public int[] getOverlap(node one, node two) {
 		if(!one.equals(two)) {
 			int deltax= Math.abs(one.getX()-two.getX());
 			int deltay= Math.abs(one.getY()-two.getY());
-			int overlapX=distances.get(one).get(two)-deltax;
-			int overlapY=distances.get(one).get(two)-deltay;
+			int overlapX=distances.get(one.ID).get(two.ID)-deltax;
+			int overlapY=distances.get(one.ID).get(two.ID)-deltay;
 			return new int[] {overlapX,overlapY};
 		}
 		return new int[] {0,0};
@@ -454,10 +470,10 @@ public void addMirroedNode(node toMirror) {
 			if(one.isLeaf&&two.isLeaf) {
 				int deltax= Math.abs(one.getX()-two.getX());
 				int deltay= Math.abs(one.getY()-two.getY());
-				if(deltax>=distances.get(one).get(two)) {
+				if(deltax>=distances.get(one.ID).get(two.ID)) {
 					return false;
 				}
-				if(deltay>=distances.get(one).get(two)) {
+				if(deltay>=distances.get(one.ID).get(two.ID)) {
 					return false;
 				}
 				return true;
@@ -478,15 +494,15 @@ public void addMirroedNode(node toMirror) {
 
 	}
 	public ArrayList<node> getConections(node myNode) {
-		return connections.get(myNode);
+		return connections.get(myNode.ID);
 	}
 	public void addConection(node node1, node node2) {
-		connections.get(node1).add(node2);
-		connections.get(node2).add(node1);
-		if(connections.get(node2).size()!=1){
+		connections.get(node1.ID).add(node2);
+		connections.get(node2.ID).add(node1);
+		if(connections.get(node2.ID).size()!=1){
 			node2.isLeaf=false;
 		}
-		if(connections.get(node1).size()!=1){
+		if(connections.get(node1.ID).size()!=1){
 			node1.isLeaf=false;
 		}
 	}

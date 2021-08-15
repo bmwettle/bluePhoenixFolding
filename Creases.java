@@ -1,3 +1,4 @@
+package origamiClasses;
 
 import java.awt.Point;
 import java.awt.geom.Area;
@@ -14,7 +15,7 @@ public class Creases extends Area implements Serializable {
 	ArrayList<Point> activeCorners;
 	ArrayList<Point> corners;
 	ArrayList<Point> startCorners;
-	ArrayList<Line2D.Double> creases;
+	public ArrayList<Line2D.Double> creases;
 	ArrayList<int[]> directions;
 	int[][]ignore;
 	double scale;

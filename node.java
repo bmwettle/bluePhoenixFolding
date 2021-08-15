@@ -1,9 +1,9 @@
+package origamiClasses;
 
 
 
 import java.awt.geom.Area;
 import java.io.Serializable;
-import java.rmi.server.UID;
 
 
 /**
@@ -19,13 +19,13 @@ public class node implements Serializable{
 	
 private int x;
 private int y;
-int size;
-UID ID;
-boolean isFixedToSymmetryLine;
-boolean isLeaf;
-boolean isMirrored;
+public int size;
+public int ID;
+public boolean isFixedToSymmetryLine;
+public boolean isLeaf;
+public boolean isMirrored;
 // these are set during crease generation.
-Creases[] c;
+public Creases[] c;
 
 public void setX(int newX) {
 	this.x=newX;
@@ -33,7 +33,7 @@ public void setX(int newX) {
 public void setY(int newY) {
 	this.y=newY;
 }
-public node(UID id) {
+public node(int id) {
 	x=0;
 	y=0;
 	size=1;
@@ -53,7 +53,7 @@ public node(node n) {
 	isMirrored=n.isMirrored;
 }
 
-public node(int X,int Y, int Size, UID id) {
+public node(int X,int Y, int Size, int id) {
 	x=X;
 	y=Y;
 	size=Size;
@@ -73,6 +73,35 @@ public void moveX(int x) {
 public String toString() {
 	return("    id"+ID);
 }
+
+/*@Override
+public int hashCode() {
+	final int prime = 31;
+	int result = 1;
+	result =  result + ID;
+	result = prime * result + x;
+	result = prime * result + y;
+	return result;
+}
+
+@Override
+public boolean equals(Object obj) {
+	if (this == obj)
+		return true;
+	if (obj == null)
+		return false;
+	if (getClass() != obj.getClass())
+		return false;
+	node other = (node) obj;
+	if (ID!=other.ID ){
+		return false;
+	}
+	if (x != other.x)
+		return false;
+	if (y != other.y)
+		return false;
+	return true;
+}*/
 public int getY() {
 	
 	return y;
